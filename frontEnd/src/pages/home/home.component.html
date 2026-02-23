@@ -1,0 +1,134 @@
+<main class="pg">
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero__bg" aria-hidden="true">
+      <img class="hero__img" src="assets/images/hero-fintech.jpg" alt="" />
+      <div class="hero__overlay"></div>
+    </div>
+
+    <div class="hero__content">
+      <div class="hero__badge">
+        <span class="dot"></span>
+        Plateforme crédit • Scoring • FaceID
+      </div>
+
+      <h1 class="hero__title">
+        Accélérez le cycle de crédit
+        <span>avec une gestion centralisée & un scoring intelligent</span>
+      </h1>
+
+      <p class="hero__subtitle">
+        Une application web sécurisée pour gérer les dossiers de crédit, évaluer automatiquement le risque
+        et renforcer l’accès via authentification biométrique faciale.
+      </p>
+
+      <div class="hero__actions">
+        <a class="btn btn--primary" routerLink="/dossiers">
+          Démarrer un dossier
+          <span class="btn__chip">Nouveau</span>
+        </a>
+        <a class="btn btn--ghost" routerLink="/scoring">
+          Voir le scoring
+        </a>
+      </div>
+
+      <div class="hero__stats">
+        <div class="kpi">
+          <div class="kpi__v">3</div>
+          <div class="kpi__l">Rôles métiers</div>
+          <div class="kpi__s">Admin • Crédit • Risque</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi__v">4</div>
+          <div class="kpi__l">Statuts dossier</div>
+          <div class="kpi__s">En cours • Analyse • Accepté • Refusé</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi__v">ML</div>
+          <div class="kpi__l">Scoring risque</div>
+          <div class="kpi__s">Faible • Moyen • Élevé</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="section">
+    <div class="section__head">
+      <h2>Tout le nécessaire pour décider plus vite</h2>
+      <p>Digitalisation, traçabilité, indicateurs et sécurité biométrique.</p>
+    </div>
+
+    <div class="grid">
+      <article class="card">
+        <div class="card__icon">📁</div>
+        <h3>Dossiers de crédit</h3>
+        <p>Création, saisie (montant, durée, revenus, charges) et suivi du statut.</p>
+        <a routerLink="/dossiers" class="card__link">Gérer les dossiers →</a>
+      </article>
+
+      <article class="card">
+        <div class="card__icon">🧠</div>
+        <h3>Scoring de risque</h3>
+        <p>Score basé sur ratio d’endettement, capacité de remboursement, stabilité des revenus.</p>
+        <a routerLink="/scoring" class="card__link">Explorer le scoring →</a>
+      </article>
+
+      <article class="card">
+        <div class="card__icon">📊</div>
+        <h3>Dashboard décisionnel</h3>
+        <p>Répartition des statuts, niveaux de risque et visualisations.</p>
+        <a routerLink="/dashboard" class="card__link">Voir le dashboard →</a>
+      </article>
+
+      <article class="card">
+        <div class="card__icon">🛡️</div>
+        <h3>FaceID sécurisé</h3>
+        <p>Capture webcam, comparaison d’empreinte faciale et fallback par login classique.</p>
+        <a routerLink="/auth/login" class="card__link">Se connecter →</a>
+      </article>
+    </div>
+  </section>
+
+  <!-- PROCESS -->
+  <section class="section section--alt">
+    <div class="section__head">
+      <h2>Un parcours simple, orienté métier</h2>
+      <p>Du dépôt de la demande à la décision, avec scoring et traçabilité.</p>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step__n">1</div>
+        <div class="step__b">
+          <h3>Créer un dossier</h3>
+          <p>Saisir les informations et uploader les documents nécessaires.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step__n">2</div>
+        <div class="step__b">
+          <h3>Calculer le risque</h3>
+          <p>Générer un score et une classification (faible/moyen/élevé).</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step__n">3</div>
+        <div class="step__b">
+          <h3>Décider & suivre</h3>
+          <p>Mettre à jour le statut et consulter les indicateurs décisionnels.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="cta">
+      <div class="cta__text">
+        <h3>Prêt à simuler un dossier de crédit ?</h3>
+        <p>Données simulées, environnement sécurisé, interface claire et intuitive.</p>
+      </div>
+      <a class="btn btn--primary" routerLink="/dossiers/new">Créer un dossier</a>
+    </div>
+  </section>
+</main>

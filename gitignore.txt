@@ -1,0 +1,29 @@
+# Angular cache
+.angular/
+**/.angular/
+*.tsbuildinfo
+
+
+# Node dependencies
+node_modules/
+**/node_modules/
+
+# Build folders
+dist/
+build/
+**/dist/
+**/build/
+
+# Environment files
+.env
+.env.*
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/

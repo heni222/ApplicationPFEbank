@@ -1,0 +1,330 @@
+// ===== Header Styles =====
+/* You can add global styles to this file, and also import other style files */
+// ===== Variables =====
+$color-primary: #0a2a44;          // Bleu banque profond
+$color-primary-light: #1e3a5f;
+$color-accent: #0a66c2;            // Bleu action
+$color-accent-hover: #004182;
+$color-background: #f4f7fc;        // Fond très clair
+$color-surface: #ffffff;
+$color-text: #1e2a3a;
+$color-text-light: #5e6f8d;
+$color-border: #e2e8f0;
+$color-error: #d32f2f;
+$color-success: #2e7d32;
+$shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.05);
+$shadow-md: 0 8px 24px rgba(0, 20, 50, 0.08);
+$shadow-lg: 0 20px 40px -10px rgba(0, 20, 40, 0.2);
+$radius: 20px;
+$radius-sm: 12px;
+$transition: all 0.2s ease;
+.tw-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  background: transparent;
+  transition: $transition;
+  padding: 1rem 2rem;
+
+  &.is-scrolled {
+    background: rgba($color-surface, 0.95);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+
+    box-shadow: $shadow-sm;
+  }
+
+  &__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+}
+
+// Brand
+.tw-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: $color-text;
+
+  &__mark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: $color-primary;
+    border-radius: 12px;
+    box-shadow: $shadow-sm;
+    transition: $transition;
+  }
+
+  &__icon {
+    width: 24px;
+    height: 24px;
+    fill: white;
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__name {
+    font-weight: 700;
+    font-size: 1.25rem;
+    line-height: 1.2;
+    color: $color-primary;
+    transition: $transition;
+  }
+
+  &__tag {
+    font-size: 0.75rem;
+    color: $color-text-light;
+    letter-spacing: 0.3px;
+    transition: $transition;
+  }
+
+  &:hover &__mark {
+    background: $color-primary-light;
+    transform: scale(1.05);
+  }
+
+  &:hover &__name {
+    color: $color-accent;
+  }
+}
+
+// Desktop navigation
+.tw-nav {
+  display: flex;
+  gap: 2rem;
+
+  a {
+    text-decoration: none;
+    color: $color-text-light;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: $transition;
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: $color-accent;
+      transition: width 0.2s ease;
+    }
+
+    &:hover,
+    &.active {
+      color: $color-accent;
+
+      &::after {
+        width: 100%;
+      }
+    }
+  }
+}
+
+// Actions (boutons)
+.tw-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  .tw-btn {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: $radius-sm;
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: $transition;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+
+    &--ghost {
+      background: transparent;
+      color: $color-text-light;
+      border: 1.5px solid $color-border;
+
+      &:hover {
+        background: rgba($color-primary, 0.05);
+        border-color: $color-primary-light;
+      }
+    }
+
+    &--primary {
+      background: $color-accent;
+      color: white;
+
+      &:hover {
+        background: $color-accent-hover;
+        transform: translateY(-2px);
+        box-shadow: $shadow-sm;
+      }
+    }
+  }
+
+  .tw-dot {
+    width: 8px;
+    height: 8px;
+    background: $color-success;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 0 2px rgba($color-success, 0.2);
+    animation: pulse 2s infinite;
+  }
+}
+
+// Burger menu (mobile)
+.tw-burger {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 24px;
+  height: 18px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 1001;
+
+  span {
+    width: 100%;
+    height: 2px;
+    background: $color-text;
+    border-radius: 4px;
+    transition: $transition;
+  }
+
+  &[aria-expanded="true"] {
+    span:nth-child(1) {
+      transform: translateY(8px) rotate(45deg);
+    }
+    span:nth-child(2) {
+      opacity: 0;
+    }
+    span:nth-child(3) {
+      transform: translateY(-8px) rotate(-45deg);
+    }
+  }
+}
+
+// Mobile menu
+.tw-mobile {
+  position: fixed;
+  top: 72px;
+  left: 0;
+  width: 100%;
+  background: $color-surface;
+  padding: 2rem;
+  box-shadow: $shadow-md;
+  border-radius: 0 0 $radius $radius;
+  transform: translateY(-100%);
+  opacity: 0;
+  visibility: hidden;
+  transition: $transition;
+
+  &.is-open {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  &__nav {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    a {
+      text-decoration: none;
+      color: $color-text;
+      font-weight: 500;
+      font-size: 1.1rem;
+      padding: 0.5rem 0;
+      transition: $transition;
+
+      &:hover,
+      &.is-active {
+        color: $color-accent;
+        padding-left: 0.5rem;
+      }
+    }
+  }
+
+  &__divider {
+    height: 1px;
+    background: $color-border;
+    margin: 1rem 0;
+  }
+
+  &__cta {
+    background: $color-accent;
+    color: white !important;
+    text-align: center;
+    padding: 1rem !important;
+    border-radius: $radius-sm;
+    font-weight: 600;
+
+    &:hover {
+      background: $color-accent-hover !important;
+    }
+  }
+}
+
+// Animation pour le point d'aide
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba($color-success, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba($color-success, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba($color-success, 0);
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .tw-nav {
+    display: none;
+  }
+
+  .tw-actions .tw-btn--ghost {
+    display: none;
+  }
+
+  .tw-burger {
+    display: flex;
+  }
+
+  .tw-header {
+    padding: 1rem;
+  }
+}
+
+// Ajustement pour très petits écrans
+@media (max-width: 480px) {
+  .tw-brand__tag {
+    display: none; // On masque le tag pour gagner de la place
+  }
+
+  .tw-actions .tw-btn--primary {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+}

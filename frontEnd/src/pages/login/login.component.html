@@ -1,0 +1,100 @@
+<main class="login">
+  <section class="wrap">
+    <!-- Colonne gauche (branding) -->
+    <div class="brand">
+      <div class="brand__glass">
+        <div class="brand__badge">
+          <span class="dot"></span>
+          Plateforme Crédit • Scoring • FaceID
+        </div>
+
+        <h1 class="brand__title">
+          Bon retour 👋
+          <span>Connectez-vous pour accéder à vos dossiers et indicateurs.</span>
+        </h1>
+
+        <div class="brand__stats">
+          <div class="kpi">
+            <div class="kpi__v">Sécurisé</div>
+            <div class="kpi__s">Accès protégé (auth + biométrie)</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi__v">Décisionnel</div>
+            <div class="kpi__s">Scoring & dashboard</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colonne droite (formulaire) -->
+    <div class="card">
+      <div class="card__head">
+        <h2>Connexion</h2>
+        <p>Entrez vos identifiants pour continuer.</p>
+      </div>
+
+      <form class="form" [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div class="field">
+          <label for="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            placeholder="ex: user@exemple.com"
+            autocomplete="email"
+          />
+          <small class="err" *ngIf="showError('email')">
+            Email invalide.
+          </small>
+        </div>
+
+        <div class="field">
+          <label for="password">Mot de passe</label>
+
+          <div class="password">
+            <input
+              id="password"
+              [type]="hidePassword ? 'password' : 'text'"
+              formControlName="password"
+              placeholder="••••••••"
+              autocomplete="current-password"
+            />
+            <button type="button" class="password__toggle" (click)="hidePassword = !hidePassword"
+              [attr.aria-label]="hidePassword ? 'Afficher le mot de passe' : 'Masquer le mot de passe'">
+              {{ hidePassword ? 'Afficher' : 'Masquer' }}
+            </button>
+          </div>
+
+          <small class="err" *ngIf="showError('password')">
+            Mot de passe requis (min 6 caractères).
+          </small>
+        </div>
+
+        <div class="row">
+          <label class="check">
+            <input type="checkbox" formControlName="remember" />
+            <span>Se souvenir de moi</span>
+          </label>
+
+          <a class="link" routerLink="/forgot-password">Mot de passe oublié ?</a>
+        </div>
+
+        <button class="btn btn--primary" type="submit" [disabled]="loading">
+          <span *ngIf="!loading">Se connecter</span>
+          <span *ngIf="loading">Connexion…</span>
+        </button>
+
+        <div class="sep">
+          <span>ou</span>
+        </div>
+
+        <button class="btn btn--ghost" type="button" (click)="onFaceLogin()" [disabled]="loading">
+          Connexion FaceID
+          <span class="chip">Bêta</span>
+        </button>
+
+        <p class="hint" *ngIf="message">{{ message }}</p>
+      </form>
+    </div>
+  </section>
+</main>

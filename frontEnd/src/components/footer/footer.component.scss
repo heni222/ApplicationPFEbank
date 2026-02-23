@@ -1,0 +1,167 @@
+// Footer styles
+/* You can add global styles to this file, and also import other style files */
+// ===== Variables =====
+$color-primary: #0a2a44;          // Bleu banque profond
+$color-primary-light: #1e3a5f;
+$color-accent: #0a66c2;            // Bleu action
+$color-accent-hover: #004182;
+$color-background: #f4f7fc;        // Fond très clair
+$color-surface: #ffffff;
+$color-text: #1e2a3a;
+$color-text-light: #5e6f8d;
+$color-border: #e2e8f0;
+$color-error: #d32f2f;
+$color-success: #2e7d32;
+$shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.05);
+$shadow-md: 0 8px 24px rgba(0, 20, 50, 0.08);
+$shadow-lg: 0 20px 40px -10px rgba(0, 20, 40, 0.2);
+$radius: 20px;
+$radius-sm: 12px;
+$transition: all 0.2s ease;
+.tw-footer {
+  background: $color-surface;
+  border-top: 1px solid $color-border;
+  padding-top: 3rem;
+  margin-top: 3rem;
+
+  &__inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  &__top {
+    padding-bottom: 2rem;
+  }
+
+  &__brand {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+
+  &__logo {
+    width: 48px;
+    height: 48px;
+    background: $color-primary;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    svg {
+      width: 24px;
+      height: 24px;
+      fill: white;
+    }
+  }
+
+  &__title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: $color-primary;
+    line-height: 1.2;
+  }
+
+  &__subtitle {
+    color: $color-text-light;
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .tw-badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .tw-badge {
+    background: rgba($color-accent, 0.1);
+    color: $color-accent;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  &__cols {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+
+    @media (max-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (max-width: 480px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .tw-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    &__h {
+      font-weight: 600;
+      color: $color-primary;
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    a {
+      color: $color-text-light;
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: $transition;
+
+      &:hover {
+        color: $color-accent;
+      }
+    }
+  }
+
+  &__bottom {
+    border-top: 1px solid $color-border;
+    padding: 1.5rem 0;
+  }
+
+  &__bottom-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+
+    @media (max-width: 640px) {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+
+  &__copy {
+    color: $color-text-light;
+    font-size: 0.85rem;
+  }
+
+  &__legal {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+
+    a {
+      color: $color-text-light;
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: $transition;
+
+      &:hover {
+        color: $color-accent;
+      }
+    }
+  }
+}

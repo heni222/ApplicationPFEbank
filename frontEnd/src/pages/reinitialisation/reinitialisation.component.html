@@ -1,0 +1,54 @@
+<main class="rp">
+  <section class="container">
+
+    <!-- Carte -->
+    <div class="card">
+
+      <div class="card__header">
+        <div class="badge">
+          <span class="dot"></span>
+          Réinitialisation sécurisée
+        </div>
+
+        <h1>Nouveau mot de passe</h1>
+        <p>
+          Entrez votre email pour recevoir un lien sécurisé de réinitialisation.
+        </p>
+      </div>
+
+      <form class="form" [formGroup]="form" (ngSubmit)="onSubmit()">
+
+        <div class="field">
+          <label for="email">Adresse email</label>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            placeholder="ex: user@exemple.com"
+            autocomplete="email"
+          />
+
+          <small class="error" *ngIf="showError('email')">
+            Veuillez entrer un email valide.
+          </small>
+        </div>
+
+        <button class="btn btn--primary" type="submit" [disabled]="loading">
+          <span *ngIf="!loading">Envoyer le lien</span>
+          <span *ngIf="loading">Envoi en cours...</span>
+        </button>
+
+        <p class="message" *ngIf="message">
+          {{ message }}
+        </p>
+
+        <div class="links">
+          <a routerLink="/login">← Retour à la connexion</a>
+          <a routerLink="/singUp">Créer un compte</a>
+        </div>
+
+      </form>
+    </div>
+
+  </section>
+</main>

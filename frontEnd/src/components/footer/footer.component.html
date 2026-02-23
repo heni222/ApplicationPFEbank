@@ -1,0 +1,65 @@
+<footer class="tw-footer">
+  <div class="tw-footer__top">
+    <div class="tw-footer__inner">
+      <div class="tw-footer__brand">
+        <div class="tw-footer__logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2 2 7v2h20V7L12 2Zm8 9H4v9h16v-9ZM7 13h4v5H7v-5Zm6 0h4v5h-4v-5Z"/>
+          </svg>
+        </div>
+
+        <div>
+          <div class="tw-footer__title">CreditHub</div>
+          <div class="tw-footer__subtitle">
+            Gestion intelligente des dossiers de crédit • Scoring de risque • Authentification faciale
+          </div>
+
+          <div class="tw-badges">
+            <span class="tw-badge">Sécurité</span>
+            <span class="tw-badge">Traçabilité</span>
+            <span class="tw-badge">Décisionnel</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tw-footer__cols">
+        <div class="tw-col">
+          <div class="tw-col__h">Produit</div>
+          <a routerLink="/dashboard">Dashboard</a>
+          <a routerLink="/dossiers">Dossiers</a>
+          <a routerLink="/clients">Clients</a>
+          <a routerLink="/scoring">Scoring</a>
+        </div>
+
+        <div class="tw-col">
+          <div class="tw-col__h">Confiance</div>
+          <a routerLink="/security">Sécurité & chiffrement</a>
+          <a routerLink="/audit">Journalisation</a>
+          <a routerLink="/biometrie">Biométrie faciale</a>
+          <a routerLink="/privacy">Confidentialité</a>
+        </div>
+
+        <div class="tw-col">
+          <div class="tw-col__h">Support</div>
+          <a href="mailto:support&#64;credithub.tn">support&#64;credithub.tn</a>
+          <a routerLink="/help">Centre d’aide</a>
+          <a routerLink="/status">Statut du service</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tw-footer__bottom">
+    <div class="tw-footer__inner tw-footer__bottom-inner">
+      <div class="tw-footer__copy">
+        © {{ year }} CreditHub • Tous droits réservés
+      </div>
+
+      <div class="tw-footer__legal">
+        <a routerLink="/terms">Conditions</a>
+        <a routerLink="/privacy">Politique de confidentialité</a>
+        <a routerLink="/contact">Contact</a>
+      </div>
+    </div>
+  </div>
+</footer>

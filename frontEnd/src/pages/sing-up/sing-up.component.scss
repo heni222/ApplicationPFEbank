@@ -1,0 +1,339 @@
+// ===== Variables =====
+$color-primary: #0a2a44;          // Bleu banque profond
+$color-primary-light: #1e3a5f;
+$color-accent: #0a66c2;            // Bleu action
+$color-accent-hover: #004182;
+$color-background: #f4f7fc;        // Fond très clair
+$color-surface: #ffffff;
+$color-text: #1e2a3a;
+$color-text-light: #5e6f8d;
+$color-border: #e2e8f0;
+$color-error: #d32f2f;
+$color-success: #2e7d32;
+$shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.05);
+$shadow-md: 0 8px 24px rgba(0, 20, 50, 0.08);
+$shadow-lg: 0 20px 40px -10px rgba(0, 20, 40, 0.2);
+$radius: 20px;
+$radius-sm: 12px;
+$transition: all 0.2s ease;
+
+// ===== Mixins =====
+@mixin glass-effect($bg-opacity: 0.75) {
+  background: rgba($color-primary, $bg-opacity);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+// ===== Base & Reset =====
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: $color-background;
+  color: $color-text;
+  line-height: 1.5;
+}
+
+// ===== Page d'inscription =====
+.signup {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: radial-gradient(circle at 10% 30%, #d9e2ef, #b0c4de);
+
+  .wrap {
+    width: 100%;
+    max-width: 900px;      // Largeur maximale du formulaire (ajustez selon vos besoins)
+    margin: 0 auto;        // Centrage horizontal (sécurise)
+  }
+}
+
+
+
+// ===== Carte formulaire =====
+.card {
+  background: $color-surface;
+  border-radius: $radius;
+  box-shadow: $shadow-md;
+  padding: 2.5rem;
+  transition: $transition;
+  border: 1px solid $color-border;
+
+  &__head {
+    margin-bottom: 2rem;
+
+    h2 {
+      font-size: 2rem;
+      font-weight: 600;
+      color: $color-primary;
+      letter-spacing: -0.02em;
+    }
+
+    p {
+      color: $color-text-light;
+      font-size: 0.95rem;
+      margin-top: 0.25rem;
+    }
+  }
+}
+
+// ===== Formulaire =====
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+
+  .section {
+    border-top: 1px solid $color-border;
+    padding-top: 1.5rem;
+
+    &__title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: $color-primary;
+      margin-bottom: 1.25rem;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+  }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); // 2 colonnes par défaut (tablettes, desktop modéré)
+  gap: 1.5rem 1rem;
+  margin-bottom: 1rem;
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(4, 1fr); // 3 colonnes sur écrans larges
+  }
+
+  @media (min-width: 1280px) {
+    grid-template-columns: repeat(4, 1fr); // 4 colonnes sur très grands écrans
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr; // 1 colonne sur mobile
+  }
+}
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+
+    label {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: $color-text-light;
+    }
+
+    input,
+    select {
+      padding: 0.75rem 1rem;
+      border: 1.5px solid $color-border;
+      border-radius: $radius-sm;
+      font-size: 0.95rem;
+      transition: $transition;
+      background: white;
+      color: $color-text;
+
+      &:focus {
+        outline: none;
+        border-color: $color-accent;
+        box-shadow: 0 0 0 3px rgba($color-accent, 0.15);
+      }
+    }
+
+    .err {
+      font-size: 0.8rem;
+      color: $color-error;
+      margin-top: 0.2rem;
+    }
+
+    .muted {
+      font-size: 0.8rem;
+      color: $color-text-light;
+      margin-top: 0.2rem;
+    }
+
+    // Password field with toggle
+    .password {
+      display: flex;
+      align-items: center;
+      border: 1.5px solid $color-border;
+      border-radius: $radius-sm;
+      transition: $transition;
+      background: white;
+
+      &:focus-within {
+        border-color: $color-accent;
+        box-shadow: 0 0 0 3px rgba($color-accent, 0.15);
+      }
+
+      input {
+        flex: 1;
+        border: none;
+        padding: 0.75rem 1rem;
+        background: transparent;
+
+        &:focus {
+          outline: none;
+          box-shadow: none;
+        }
+      }
+
+      &__toggle {
+        background: transparent;
+        border: none;
+        padding: 0 1rem;
+        font-size: 0.85rem;
+        color: $color-accent;
+        cursor: pointer;
+        font-weight: 500;
+        transition: $transition;
+
+        &:hover {
+          color: $color-accent-hover;
+        }
+      }
+    }
+
+    // File input styling
+    &.file {
+      input[type="file"] {
+        padding: 0.5rem 0;
+        border: none;
+        background: transparent;
+        font-size: 0.9rem;
+        color: $color-text;
+      }
+    }
+
+    // Switch toggle (checkbox styled as switch)
+    .switch {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+
+      input {
+        width: 40px;
+        height: 20px;
+        appearance: none;
+        background: $color-border;
+        border-radius: 20px;
+        position: relative;
+        transition: $transition;
+        cursor: pointer;
+        border: none;
+
+        &:checked {
+          background: $color-accent;
+        }
+
+        &::before {
+          content: '';
+          position: absolute;
+          width: 16px;
+          height: 16px;
+          background: white;
+          border-radius: 50%;
+          top: 2px;
+          left: 2px;
+          transition: $transition;
+        }
+
+        &:checked::before {
+          left: 22px;
+        }
+      }
+
+      span {
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: $color-text;
+      }
+    }
+  }
+
+  .row {
+    margin: 1rem 0;
+  }
+
+  .check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+
+    input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: $color-accent;
+    }
+
+    span {
+      font-size: 0.95rem;
+      color: $color-text;
+    }
+  }
+
+  .btn {
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: $radius-sm;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: $transition;
+    width: 100%;
+
+    &--primary {
+      background: $color-accent;
+      color: white;
+
+      &:hover:not(:disabled) {
+        background: $color-accent-hover;
+        transform: translateY(-2px);
+        box-shadow: $shadow-sm;
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  .hint {
+    text-align: center;
+    font-size: 0.9rem;
+    color: $color-success;
+  }
+
+  .footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    font-size: 0.95rem;
+    color: $color-text-light;
+
+    .link {
+      color: $color-accent;
+      text-decoration: none;
+      font-weight: 500;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}

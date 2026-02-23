@@ -1,0 +1,230 @@
+<main class="signup">
+  <section class="wrap">
+    <!-- Formulaire -->
+    <div class="card">
+      <div class="card__head">
+        <h2>Inscription</h2>
+        <p>Remplissez le formulaire pour créer votre compte employé.</p>
+      </div>
+
+      <form class="form" [formGroup]="form" (ngSubmit)="onSubmit()">
+        <!-- Section: Identité -->
+        <div class="section">
+          <div class="section__title">Identité</div>
+          <div class="grid">
+            <div class="field">
+              <label for="fullName">Nom complet</label>
+              <input id="fullName" type="text" formControlName="fullName" placeholder="Ex: Henri Abdmouleh" />
+              <small class="err" *ngIf="showError('fullName')">Nom requis (min 3 caractères).</small>
+            </div>
+
+            <div class="field">
+              <label for="cin">CIN / Identifiant national</label>
+              <input id="cin" type="text" formControlName="cin" placeholder="Ex: 12345678" />
+              <small class="err" *ngIf="showError('cin')">CIN requis (8 à 12 caractères).</small>
+            </div>
+
+            <div class="field">
+              <label for="dob">Date de naissance</label>
+              <input id="dob" type="date" formControlName="dob" />
+              <small class="err" *ngIf="showError('dob')">Date de naissance requise.</small>
+            </div>
+
+            <div class="field">
+              <label for="phone">Téléphone</label>
+              <input id="phone" type="tel" formControlName="phone" placeholder="Ex: +216 22 222 222" />
+              <small class="err" *ngIf="showError('phone')">Téléphone invalide.</small>
+            </div>
+
+            <div class="field">
+              <label for="address">Adresse</label>
+              <input id="address" type="text" formControlName="address" placeholder="Rue, numéro..." />
+              <small class="err" *ngIf="showError('address')">Adresse requise.</small>
+            </div>
+
+            <div class="field">
+              <label for="city">Ville</label>
+              <input id="city" type="text" formControlName="city" placeholder="Tunis, Sfax..." />
+              <small class="err" *ngIf="showError('city')">Ville requise.</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Organisation -->
+        <div class="section">
+          <div class="section__title">Organisation</div>
+          <div class="grid">
+            <div class="field">
+              <label for="employeeId">Matricule employé</label>
+              <input id="employeeId" type="text" formControlName="employeeId" placeholder="Ex: EMP-2026-0012" />
+              <small class="err" *ngIf="showError('employeeId')">Matricule requis.</small>
+            </div>
+
+            <div class="field">
+              <label for="branch">Agence</label>
+              <select id="branch" formControlName="branch">
+                <option value="" disabled>Choisir une agence</option>
+                <option *ngFor="let b of branches" [value]="b">{{ b }}</option>
+              </select>
+              <small class="err" *ngIf="showError('branch')">Veuillez choisir une agence.</small>
+            </div>
+
+            <div class="field">
+              <label for="department">Département</label>
+              <select id="department" formControlName="department">
+                <option value="" disabled>Choisir un département</option>
+                <option value="CREDIT">Crédit</option>
+                <option value="RISK">Risque</option>
+                <option value="COMPLIANCE">Conformité</option>
+                <option value="OPS">Opérations</option>
+                <option value="IT">IT / Sécurité</option>
+              </select>
+              <small class="err" *ngIf="showError('department')">Département requis.</small>
+            </div>
+
+            <div class="field">
+              <label for="jobTitle">Poste</label>
+              <input id="jobTitle" type="text" formControlName="jobTitle" placeholder="Ex: Analyste risque" />
+              <small class="err" *ngIf="showError('jobTitle')">Poste requis.</small>
+            </div>
+
+            <div class="field">
+              <label for="manager">Responsable (optionnel)</label>
+              <input id="manager" type="text" formControlName="manager" placeholder="Nom du manager" />
+            </div>
+
+            <div class="field">
+              <label for="contractType">Type de contrat</label>
+              <select id="contractType" formControlName="contractType">
+                <option value="" disabled>Choisir</option>
+                <option value="CDI">CDI</option>
+                <option value="CDD">CDD</option>
+                <option value="STAGE">Stage</option>
+                <option value="CONSULTANT">Consultant</option>
+              </select>
+              <small class="err" *ngIf="showError('contractType')">Type de contrat requis.</small>
+            </div>
+
+            <div class="field">
+              <label for="startDate">Date d’embauche</label>
+              <input id="startDate" type="date" formControlName="startDate" />
+              <small class="err" *ngIf="showError('startDate')">Date d’embauche requise.</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Accès & Sécurité -->
+        <div class="section">
+          <div class="section__title">Accès & Sécurité</div>
+          <div class="grid">
+            <div class="field">
+              <label for="email">Email</label>
+              <input id="email" type="email" formControlName="email" placeholder="ex: user@exemple.com" />
+              <small class="err" *ngIf="showError('email')">Email invalide.</small>
+            </div>
+
+            <div class="field">
+              <label for="role">Rôle</label>
+              <select id="role" formControlName="role">
+                <option value="" disabled>Choisir un rôle</option>
+                <option value="ADMIN">Administrateur</option>
+                <option value="CREDIT">Chargé de crédit</option>
+                <option value="RISK">Analyste risque</option>
+                <option value="COMPLIANCE">Conformité</option>
+              </select>
+              <small class="err" *ngIf="showError('role')">Veuillez choisir un rôle.</small>
+            </div>
+
+            <div class="field">
+              <label for="accessLevel">Niveau d’accès</label>
+              <select id="accessLevel" formControlName="accessLevel">
+                <option value="" disabled>Choisir</option>
+                <option value="L1">L1 - Consultation</option>
+                <option value="L2">L2 - Traitement</option>
+                <option value="L3">L3 - Validation</option>
+              </select>
+              <small class="err" *ngIf="showError('accessLevel')">Niveau d’accès requis.</small>
+            </div>
+
+            <div class="field">
+              <label for="mfaMethod">Méthode MFA</label>
+              <select id="mfaMethod" formControlName="mfaMethod">
+                <option value="" disabled>Choisir</option>
+                <option value="APP">Application (TOTP)</option>
+                <option value="SMS">SMS</option>
+                <option value="EMAIL">Email</option>
+              </select>
+              <small class="err" *ngIf="showError('mfaMethod')">MFA requis.</small>
+            </div>
+
+            <div class="field">
+              <label for="password">Mot de passe</label>
+              <div class="password">
+                <input
+                  id="password"
+                  [type]="hidePassword ? 'password' : 'text'"
+                  formControlName="password"
+                  placeholder="••••••••"
+                />
+                <button type="button" class="password__toggle" (click)="hidePassword = !hidePassword">
+                  {{ hidePassword ? 'Afficher' : 'Masquer' }}
+                </button>
+              </div>
+              <small class="err" *ngIf="showError('password')">
+                Mot de passe requis (min 8, 1 maj, 1 chiffre).
+              </small>
+            </div>
+
+            <div class="field">
+              <label for="confirmPassword">Confirmer le mot de passe</label>
+              <input
+                id="confirmPassword"
+                [type]="hidePassword ? 'password' : 'text'"
+                formControlName="confirmPassword"
+                placeholder="••••••••"
+              />
+              <small class="err" *ngIf="passwordMismatch && (form.touched || form.dirty)">
+                Les mots de passe ne correspondent pas.
+              </small>
+            </div>
+
+            <div class="field file">
+              <label for="badgePhoto">Photo badge (optionnel)</label>
+              <input id="badgePhoto" type="file" (change)="onFileChange($event)" accept="image/*" />
+              <small class="muted">PNG/JPG – utilisée pour badge interne (pas FaceID).</small>
+            </div>
+
+            <div class="field">
+              <label class="switch">
+                <input type="checkbox" formControlName="enableFaceId" />
+                <span>Activer l’enrôlement FaceID</span>
+              </label>
+              <small class="muted">L’utilisateur complètera l’enrôlement à la première connexion.</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Terms -->
+        <div class="row">
+          <label class="check">
+            <input type="checkbox" formControlName="terms" />
+            <span>J’accepte les conditions d’utilisation</span>
+          </label>
+        </div>
+        <small class="err" *ngIf="showError('terms')">Vous devez accepter les conditions.</small>
+
+        <button class="btn btn--primary" type="submit" [disabled]="loading">
+          <span *ngIf="!loading">Créer mon compte</span>
+          <span *ngIf="loading">Création…</span>
+        </button>
+
+        <p class="hint" *ngIf="message">{{ message }}</p>
+
+        <div class="footer">
+          <span>Déjà un compte ?</span>
+          <a routerLink="/login" class="link">Se connecter</a>
+        </div>
+      </form>
+    </div>
+  </section>
+</main>
