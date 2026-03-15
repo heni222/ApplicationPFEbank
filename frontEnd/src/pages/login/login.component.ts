@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -18,6 +19,7 @@ export class LoginComponent {
   constructor(
     private fb: FormBuilder,
     private router: Router,
+    private authservice: AuthService,
   ) {
     this.form = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -31,7 +33,7 @@ export class LoginComponent {
     return !!c && c.invalid && (c.dirty || c.touched);
   }
 
-  async onSubmit() {
+  async login() {
     this.message = '';
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -39,14 +41,22 @@ export class LoginComponent {
     }
 
     this.loading = true;
+    console.log(this.form.value);
 
     try {
-      // TODO: ici tu appelles ton AuthService (API)
-      // Simulation:
-      await new Promise((res) => setTimeout(res, 700));
-
-      // Exemple: redirection après succès
-      this.router.navigateByUrl('/home');
+      this.authservice.login(this.form.value).subscribe({
+        next: (res) => {
+          // إذا ال login ناجح
+          console.log(this.form.value);
+          console.log('Login réussi', res);
+          // redirect بعد login
+          // this.router.navigateByUrl('/dashboard'); // أو أي page بعد login
+        },
+        error: (err) => {
+          // إذا صار خطأ
+          console.error('Erreur login', err);
+        },
+      });
     } catch (e) {
       this.message = 'Échec de connexion. Vérifiez vos identifiants.';
     } finally {

@@ -1,0 +1,55 @@
+<div class="verify-email-container">
+  <!-- Loading State -->
+  <div
+    *ngIf="verificationStatus === 'pending'"
+    class="verification-card pending"
+  >
+    <div class="spinner"></div>
+    <h2>Vérification en cours...</h2>
+    <p>Veuillez patienter pendant que nous vérifions votre adresse email.</p>
+  </div>
+
+  <!-- Success State -->
+  <div
+    *ngIf="verificationStatus === 'success'"
+    class="verification-card success"
+  >
+    <div class="success-icon">✓</div>
+    <h2>Email vérifié avec succès !</h2>
+    <p>
+      Votre adresse email a été vérifiée. Vous allez être redirigé vers la page
+      de connexion.
+    </p>
+    <a [routerLink]="['/login']" class="btn-primary">Aller à la connexion</a>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="verificationStatus === 'error'" class="verification-card error">
+    <div class="error-icon">✗</div>
+    <h2>Échec de la vérification</h2>
+    <p class="error-message">{{ errorMessage }}</p>
+
+    <!-- Resend Verification Form -->
+    <!-- <div *ngIf="showResendForm" class="resend-form">
+      <h3>Renvoyer le lien de vérification</h3>
+      <form (ngSubmit)="resendVerification()">
+        <div class="form-group">
+          <label for="email">Votre adresse email</label>
+          <input 
+            type="email" 
+            id="email" 
+            [(ngModel)]="userEmail" 
+            name="email" 
+            required
+            placeholder="Entrez votre email"
+          >
+        </div>
+        <button type="submit" class="btn-primary">Renvoyer le lien</button>
+      </form>
+    </div> -->
+
+    <a routerLink="/auth/register" class="btn-secondary"
+      >Créer un nouveau compte</a
+    >
+  </div>
+</div>

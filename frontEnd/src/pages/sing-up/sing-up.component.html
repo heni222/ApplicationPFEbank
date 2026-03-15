@@ -7,7 +7,7 @@
         <p>Remplissez le formulaire pour créer votre compte employé.</p>
       </div>
 
-      <form class="form" [formGroup]="form" (ngSubmit)="onSubmit()">
+      <form class="form" [formGroup]="form" (ngSubmit)="create()">
         <!-- Section: Identité -->
         <div class="section">
           <div class="section__title">Identité</div>
@@ -228,3 +228,10 @@
     </div>
   </section>
 </main>
+
+
+<div class="toast" *ngIf="toast.show" [class.success]="toast.type==='success'" [class.error]="toast.type==='error'" [class.info]="toast.type==='info'">
+  <span class="dot"></span>
+  <span class="txt">{{ toast.text }}</span>
+  <button type="button" class="x" (click)="toast.show=false">×</button>
+</div>
