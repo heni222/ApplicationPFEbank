@@ -17,4 +17,14 @@ router.post('/login', login);
 // Routes protégées
 router.get('/profile', protect, getProfile);
 
+router.get('/me', protect, (req, res) => {
+  res.status(200).json({
+    user: {
+      id: req.user._id,
+      email: req.user.email,
+      role: req.user.role
+    }
+  });
+});
+
 module.exports = router;

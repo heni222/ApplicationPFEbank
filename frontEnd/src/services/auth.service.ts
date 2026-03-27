@@ -1,19 +1,71 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:5000/auth';
+  private apiUrl = 'http://localhost:3000/auth';
+
+  // 🔥 état login
+  private isLoggedInSubject = new BehaviorSubject<boolean>(false);
+  isLoggedIn$ = this.isLoggedInSubject.asObservable();
+
+  // 🔥 user (اختياري)
+  private userSubject = new BehaviorSubject<any>(null);
+  user$ = this.userSubject.asObservable();
 
   constructor(private http: HttpClient) {}
 
+  // ✅ vérifier email
   verifyEmail(token: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/verify-email?token=${token}`);
   }
-  login(data:any): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/login`,data)
+
+  // ✅ login
+  login(data: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/login`, data, {
+      withCredentials: true,
+    });
+  }
+
+  // ✅ récupérer user depuis cookie
+  getMe(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/me`, {
+      withCredentials: true,
+    });
+  }
+
+  // 🔥 check auth au démarrage
+  checkAuth() {
+    this.getMe().subscribe({
+      next: (res) => {
+        this.isLoggedInSubject.next(true);
+        this.userSubject.next(res.user);
+      },
+      error: () => {
+        this.isLoggedInSubject.next(false);
+        this.userSubject.next(null);
+      }
+    });
+  }
+
+  // 🔥 après login
+  setLoggedIn(user: any) {
+    this.isLoggedInSubject.next(true);
+    this.userSubject.next(user);
+  }
+
+  // 🔥 logout
+  logout(): Observable<any> {
+    return this.http.post(`${this.apiUrl}/logout`, {}, {
+      withCredentials: true
+    });
+  }
+
+  clearAuth() {
+    this.isLoggedInSubject.next(false);
+    this.userSubject.next(null);
   }
 }

@@ -1,18 +1,21 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/user');
+const jwt = require("jsonwebtoken");
+const User = require("../models/user");
 const protect = async (req, res, next) => {
   try {
-    let token;
-
     // Vérifier le token dans le header Authorization
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-      token = req.headers.authorization.split(' ')[1];
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith("Bearer")
+    ) {
+      token = req.headers.authorization.split(" ")[1];
     }
+
+    let token = req.cookies.token;
 
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: 'Accès non autorisé'
+        message: "Non autorisé",
       });
     }
 
@@ -26,17 +29,17 @@ const protect = async (req, res, next) => {
       if (!user) {
         return res.status(401).json({
           success: false,
-          message: 'Utilisateur non trouvé'
+          message: "Utilisateur non trouvé",
         });
       }
 
       // Vérifier si l'email est vérifié
-      if (!user.isEmailVerified) {
+      if (!user.isVerified) {
         return res.status(401).json({
           success: false,
-          message: 'Veuillez vérifier votre email',
+          message: "Veuillez vérifier votre email",
           requiresVerification: true,
-          email: user.email
+          email: user.email,
         });
       }
 
@@ -45,19 +48,16 @@ const protect = async (req, res, next) => {
     } catch (jwtError) {
       return res.status(401).json({
         success: false,
-        message: 'Token invalide ou expiré'
+        message: "Token invalide ou expiré",
       });
     }
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Erreur d\'authentification',
-      error: error.message
+      message: "Erreur d'authentification",
+      error: error.message,
     });
   }
-};    
+};
 
-
-
-
-module.exports = {protect };
+module.exports = { protect };
