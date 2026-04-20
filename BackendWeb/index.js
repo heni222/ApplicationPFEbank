@@ -11,6 +11,7 @@ const cookieParser = require('cookie-parser');
 const mongoose= require('mongoose')
 const userRoutes=require('./routes/userRoutes')
 const authRoutes=require('./routes/authRoutes.js')
+const adminRoutes=require('./routes/adminRoutes.js')
 // MIDDLEWARES + ROUTES
 // Ce middleware active le CORS (Cross-Origin Resource Sharing).
 // En gros, il autorise ton backend à accepter des requêtes qui viennent d’autres domaines.
@@ -38,6 +39,7 @@ app.use('/users',userRoutes);
 app.use('/auth', authRoutes);
 
 
+app.use('/admin', adminRoutes);
 
 
 

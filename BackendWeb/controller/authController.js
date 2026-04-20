@@ -3,7 +3,7 @@ const EmailService = require("../services/emailService");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
-
+const sendEmail = require("../services/emailService"); // حسب اسم service متاعك
 // Générer un token JWT
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -107,6 +107,28 @@ const verifyEmail = async (req, res) => {
       success: false,
       message: "Erreur lors de la vérification",
       error: error.message,
+    });
+  }
+};
+// 🔥 logout controller
+const logout = (req, res) => {
+  try {
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: false, // خليها false في dev
+      sameSite: 'lax'
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Déconnexion réussie'
+    });
+
+  } catch (error) {
+    console.error('logout error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Erreur serveur'
     });
   }
 };
@@ -228,5 +250,108 @@ const getProfile = async (req, res) => {
     });
   }
 };
+//resetPassword controller
+const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password, confirmPassword } = req.body;
 
-module.exports = { getProfile, login, verifyEmail, resendVerificationEmail };
+    if (!password || !confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Mot de passe et confirmation requis",
+      });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Les mots de passe ne correspondent pas",
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Le mot de passe doit contenir au moins 6 caractères",
+      });
+    }
+
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Token invalide ou expiré",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    user.password = hashedPassword;
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Mot de passe réinitialisé avec succès",
+    });
+  } catch (error) {
+    console.error("resetPassword error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Erreur serveur",
+    });
+  }
+};
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.json({
+        success: true,
+        message: "Si cet email existe, un lien a été envoyé",
+      });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = Date.now() + 1000 * 60 * 60;
+
+    await user.save();
+
+    await EmailService.sendPasswordResetEmail(user, resetToken);
+
+    res.json({
+      success: true,
+      message: "Email envoyé avec succès",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Erreur serveur",
+    });
+  }
+};
+module.exports = {
+  getProfile,
+  login,
+  verifyEmail,
+  resendVerificationEmail,
+  forgotPassword,
+  resetPassword,
+  logout ,
+};
+
+
+

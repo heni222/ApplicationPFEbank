@@ -8,6 +8,7 @@ import { VerifyEmailComponent } from '../components/verify-email/verify-email.co
 import { DashboardAdminComponent } from '../Admin/dashboard-admin/dashboard-admin.component';
 import { authGuard } from '../guards/auth.guard';
 import { roleGuard } from '../guards/role.guard';
+import { ResetPasswordComponent } from '../pages/reset-password/reset-password.component';
  
 export const routes: Routes = [
   // ─── Routes publiques ───────────────────────────────────────────────
@@ -18,6 +19,7 @@ export const routes: Routes = [
   { path: 'singUp', component: SignupComponent },
   { path: 'forgot-password', component: ReinitialisationComponent },
   { path: 'auth/verify-email', component: VerifyEmailComponent },
+  {path: 'reset-password/:token',component: ResetPasswordComponent},
  
   // ─── Routes protégées par rôle ──────────────────────────────────────
   {

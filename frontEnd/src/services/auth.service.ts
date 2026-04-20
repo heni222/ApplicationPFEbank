@@ -47,7 +47,7 @@ export class AuthService {
       error: () => {
         this.isLoggedInSubject.next(false);
         this.userSubject.next(null);
-      }
+      },
     });
   }
 
@@ -59,13 +59,33 @@ export class AuthService {
 
   // 🔥 logout
   logout(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/logout`, {}, {
-      withCredentials: true
-    });
+    return this.http.post(
+      `${this.apiUrl}/logout`,
+      {},
+      {
+        withCredentials: true,
+      },
+    );
   }
 
   clearAuth() {
     this.isLoggedInSubject.next(false);
     this.userSubject.next(null);
+  }
+  // 🔥 forgot password (envoyer email)
+  forgotPassword(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/forgot-password`, { email });
+  }
+
+  // 🔥 reset password
+  resetPassword(
+    token: string,
+    password: string,
+    confirmPassword: string,
+  ): Observable<any> {
+    return this.http.post(`${this.apiUrl}/reset-password/${token}`, {
+      password,
+      confirmPassword,
+    });
   }
 }

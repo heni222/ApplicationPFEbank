@@ -1,7 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators, FormGroup } from '@angular/forms';
+import {
+  FormBuilder,
+  ReactiveFormsModule,
+  Validators,
+  FormGroup,
+} from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-reinitialisation',
@@ -11,12 +17,14 @@ import { RouterLink } from '@angular/router';
   styleUrls: ['./reinitialisation.component.scss'], // ✅ tableau obligatoire
 })
 export class ReinitialisationComponent {
-
   loading = false;
   message = '';
   form!: FormGroup;
-
-  constructor(private fb: FormBuilder) {
+  error: any;
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+  ) {
     this.form = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
     });
@@ -27,25 +35,17 @@ export class ReinitialisationComponent {
     return !!c && c.invalid && (c.dirty || c.touched);
   }
 
-  async onSubmit() {
-    this.message = '';
+  onSubmit() {
+    const email = this.form.value.email;
 
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-
-    this.loading = true;
-
-    try {
-      await new Promise((res) => setTimeout(res, 900));
-
-      this.message =
-        "Si un compte existe avec cet email, vous recevrez un lien de réinitialisation.";
-    } catch {
-      this.message = "Erreur lors de l’envoi. Veuillez réessayer.";
-    } finally {
-      this.loading = false;
-    }
+    this.authService.forgotPassword(email).subscribe({
+      next: (res) => {
+        console.log(res);
+        this.message = res.message;
+      },
+      error: (err) => {
+        this.error = err.error.message;
+      },
+    });
   }
 }
