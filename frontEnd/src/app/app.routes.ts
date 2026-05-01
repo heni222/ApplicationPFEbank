@@ -9,6 +9,8 @@ import { DashboardAdminComponent } from '../Admin/dashboard-admin/dashboard-admi
 import { authGuard } from '../guards/auth.guard';
 import { roleGuard } from '../guards/role.guard';
 import { ResetPasswordComponent } from '../pages/reset-password/reset-password.component';
+import { DashboardCreditComponent } from '../credit/dashboard-credit/dashboard-credit.component';
+import { DashboardAnalysteComponent } from '../Analyste/dashboard-analyste/dashboard-analyste.component';
  
 export const routes: Routes = [
   // ─── Routes publiques ───────────────────────────────────────────────
@@ -30,13 +32,13 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard_credit',
-    component: DashboardAdminComponent,
+    component: DashboardCreditComponent,
     canActivate: [authGuard, roleGuard],
     data: { roles: ['CREDIT'] },
   },
   {
     path: 'dashboard_analyste',
-    component: DashboardAdminComponent,
+    component: DashboardAnalysteComponent,
     canActivate: [authGuard, roleGuard],
     data: { roles: ['RISK'] },
   },

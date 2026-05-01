@@ -113,22 +113,21 @@ const verifyEmail = async (req, res) => {
 // 🔥 logout controller
 const logout = (req, res) => {
   try {
-    res.clearCookie('token', {
+    res.clearCookie("token", {
       httpOnly: true,
       secure: false, // خليها false في dev
-      sameSite: 'lax'
+      sameSite: "lax",
     });
 
     return res.status(200).json({
       success: true,
-      message: 'Déconnexion réussie'
+      message: "Déconnexion réussie",
     });
-
   } catch (error) {
-    console.error('logout error:', error);
+    console.error("logout error:", error);
     return res.status(500).json({
       success: false,
-      message: 'Erreur serveur'
+      message: "Erreur serveur",
     });
   }
 };
@@ -199,15 +198,15 @@ const login = async (req, res) => {
       return res.status(400).json({ message: "Email or password invalid" });
     }
 
-    const token = generateToken(user._id);
+const token = generateToken(user._id);
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-      maxAge: 24 * 60 * 60 * 1000,
-    });
-
+res.cookie("token", token, {
+  httpOnly: true,
+  secure: false,
+  sameSite: "lax",
+  path: "/",
+  maxAge: 24 * 60 * 60 * 1000,
+});
     return res.status(200).json({
       message: "Login success",
       token,
@@ -350,8 +349,5 @@ module.exports = {
   resendVerificationEmail,
   forgotPassword,
   resetPassword,
-  logout ,
+  logout,
 };
-
-
-

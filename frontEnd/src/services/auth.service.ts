@@ -6,7 +6,7 @@ import { Observable, BehaviorSubject } from 'rxjs';
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/auth';
+private apiUrl = '/api/auth';
 
   // 🔥 état login
   private isLoggedInSubject = new BehaviorSubject<boolean>(false);
@@ -25,11 +25,10 @@ export class AuthService {
 
   // ✅ login
   login(data: any): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/login`, data, {
-      withCredentials: true,
+    return this.http.post(`${this.apiUrl}/login`, data, {
+      withCredentials: true, // 🔥 لازم
     });
   }
-
   // ✅ récupérer user depuis cookie
   getMe(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/me`, {

@@ -7,7 +7,7 @@ import { CreateUserPayload } from '../interface/create-user-payload.model';
   providedIn: 'root',
 })
 export class UserService {
-  private apiUrl = 'http://localhost:3000/users';
+  private apiUrl = '/api/users';
 
   constructor(private http: HttpClient) {}
 
@@ -26,6 +26,6 @@ export class UserService {
     formData.append('badgePhoto', badgePhoto);
   }
 
-  return this.http.post('http://localhost:5000/users/create', formData);
+  return this.http.post(`${this.apiUrl}/create`,formData);
 }
 }

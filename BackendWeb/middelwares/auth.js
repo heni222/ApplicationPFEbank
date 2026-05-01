@@ -1,16 +1,11 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
+
 const protect = async (req, res, next) => {
   try {
-    // Vérifier le token dans le header Authorization
-    if (
-      req.headers.authorization &&
-      req.headers.authorization.startsWith("Bearer")
-    ) {
-      token = req.headers.authorization.split(" ")[1];
-    }
+    const token = req.cookies.token;
 
-    let token = req.cookies.token;
+    console.log("COOKIE TOKEN:", token);
 
     if (!token) {
       return res.status(401).json({
@@ -19,43 +14,33 @@ const protect = async (req, res, next) => {
       });
     }
 
-    try {
-      // Vérifier le token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("DECODED:", decoded);
 
-      // Récupérer l'utilisateur
-      const user = await User.findById(decoded.id);
+    const user = await User.findById(decoded.id);
 
-      if (!user) {
-        return res.status(401).json({
-          success: false,
-          message: "Utilisateur non trouvé",
-        });
-      }
-
-      // Vérifier si l'email est vérifié
-      if (!user.isVerified) {
-        return res.status(401).json({
-          success: false,
-          message: "Veuillez vérifier votre email",
-          requiresVerification: true,
-          email: user.email,
-        });
-      }
-
-      req.user = user;
-      next();
-    } catch (jwtError) {
+    if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Token invalide ou expiré",
+        message: "Utilisateur non trouvé",
       });
     }
+
+    if (!user.isVerified) {
+      return res.status(401).json({
+        success: false,
+        message: "Veuillez vérifier votre email",
+      });
+    }
+
+    req.user = user;
+    next();
   } catch (error) {
-    res.status(500).json({
+    console.error("AUTH ERROR:", error.message);
+
+    return res.status(401).json({
       success: false,
-      message: "Erreur d'authentification",
-      error: error.message,
+      message: "Token invalide ou expiré",
     });
   }
 };

@@ -35,7 +35,7 @@ export class LoginComponent {
     // Retourne true si le champ est invalide et modifié/touché
   }
 
-  async login() {
+  login() {
     this.message = ''; // Réinitialiser le message
 
     if (this.form.invalid) {

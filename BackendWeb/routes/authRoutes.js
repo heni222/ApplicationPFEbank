@@ -19,7 +19,7 @@ router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetPassword);
 router.post('/logout', logout);
 
-module.exports = router;
+
 
 // Routes protégées
 router.get("/profile", protect, getProfile);

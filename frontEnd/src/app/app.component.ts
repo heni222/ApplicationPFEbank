@@ -17,7 +17,10 @@ export class AppComponent {
   isLoggedIn$!: Observable<boolean>;
 
   constructor(private authService: AuthService) {
-    this.isLoggedIn$ = this.authService.isLoggedIn$;
+    this.isLoggedIn$ = this.authService.isLoggedIn$;  }
+  ngOnInit() {
+  setTimeout(() => {
     this.authService.checkAuth();
-  }
+  }, 500); // delay صغير باش cookie تتسجل
+}
 }
