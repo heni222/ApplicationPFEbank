@@ -3,14 +3,18 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
   selector: 'app-header',
-  imports: [RouterLinkActive,RouterLink],
+  imports: [RouterLinkActive, RouterLink],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
 export class HeaderComponent {
-isMenuOpen = false;
+  isMenuOpen = false;
   isScrolled = false;
 
+  // Et dans ngOnInit, vérifier aussi :
+  ngOnInit() {
+    this.isScrolled = window.scrollY > 10;
+  }
   toggleMenu() { this.isMenuOpen = !this.isMenuOpen; }
   closeMenu() { this.isMenuOpen = false; }
 

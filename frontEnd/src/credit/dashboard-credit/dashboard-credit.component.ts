@@ -1,566 +1,625 @@
 // dashboard-credit.component.ts
-import { Component, OnInit } from '@angular/core';
+import {
+  Component, OnInit, OnDestroy,
+  ChangeDetectionStrategy, ChangeDetectorRef
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import {
+  FormsModule, ReactiveFormsModule,
+  FormBuilder, FormGroup, Validators
+} from '@angular/forms';
+import { Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
-export interface Client {
-  _id: string;
-  fullName: string;
-  email: string;
-  phone: string;
-  address: string;
-  cin: string;
-  profession: string;
-  revenue: number;
-  monthlyCharges: number;
-  existingLoans: number;
-  createdAt: Date;
-}
+import {
+  CreditService, Client, CreditApplication,
+  CreditStatus, UserRole,
+  CreateClientDTO, CreateApplicationDTO, KPIs, MonthlyStat
+} from '../../services/credit.service';
+import { AuthService } from '../../services/auth.service';
 
-export interface CreditApplication {
-  _id: string;
-  clientId: string;
-  clientName: string;
-  amount: number;
-  duration: number;
-  monthlyPayment: number;
-  purpose: string;
-  status: 'EN_ATTENTE' | 'EN_ANALYSE' | 'ACCEPTE' | 'REFUSE';
-  documents: any[];
-  comments: any[];
-  createdAt: Date;
-  updatedAt: Date;
-  processedBy?: string;
-  rejectionReason?: string;
-}
+type View = 'dashboard' | 'applications' | 'clients';
 
 @Component({
   selector: 'app-dashboard-credit',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './dashboard-credit.component.html',
-  styleUrls: ['./dashboard-credit.component.scss']
+  styleUrls: ['./dashboard-credit.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DashboardCreditComponent implements OnInit {
-  // Données
-  applications: CreditApplication[] = [];
-  clients: Client[] = [];
+export class DashboardCreditComponent implements OnInit, OnDestroy {
+
+  private destroy$ = new Subject<void>();
+
+  // ── Rôle actuel (à récupérer depuis AuthService / JWT en prod) ──
+  // 'CHARGE_CREDIT' : crée les dossiers, upload docs, ajoute commentaires
+  // 'ANALYSTE'      : traite les statuts (EN_ANALYSE → ACCEPTE/REFUSE)
+  currentRole: UserRole = 'CHARGE_CREDIT'; // ← changer selon JWT
+
+  // ── UI ──
+  sidebarCollapsed = false;
+  currentView: View = 'dashboard';
   loading = false;
   message = '';
-  
-  // UI State
-  sidebarCollapsed = false;
-  currentView = 'dashboard';
-  searchTerm = '';
-  filterStatus: string = 'ALL';
-  filterAmount: string = 'ALL';
+  messageType: 'success' | 'error' = 'success';
+
+  // ── Data ──
+  clients: Client[] = [];
+  applications: CreditApplication[] = [];
+  filteredApplications: CreditApplication[] = [];
+
+  // ── KPIs ──
+  kpis: KPIs = {
+    total: 0, pending: 0, analyzing: 0,
+    accepted: 0, refused: 0, totalAmount: 0, approvalRate: 0
+  };
+  monthlyStats: MonthlyStat[] = [];
+  maxMonthlyCount = 1;
+
+  // ── Filters ──
+  searchTerm   = '';
+  filterStatus = 'ALL';
+  filterAmount = 'ALL';
+
+  // ── Modals ──
   selectedApplication: CreditApplication | null = null;
-  showNewApplicationModal = false;
-  
-  // Nouvelle demande
-  newApplication: any = {
-    clientId: '',
-    amount: 0,
-    duration: 0,
-    monthlyPayment: 0,
-    purpose: ''
-  };
-  
-  showDebtWarning = false;
-  
-  // Sidebar items
-  sidebarItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: '📊', active: true },
-    { id: 'applications', label: 'Dossiers', icon: '📋', active: false },
-    { id: 'clients', label: 'Clients', icon: '👥', active: false },
-    { id: 'documents', label: 'Documents', icon: '📎', active: false },
-    { id: 'analytics', label: 'Analytiques', icon: '📈', active: false },
-  ];
-  
-  // KPIs
-  totalApplications = 0;
-  pendingApplications = 0;
-  analyzingApplications = 0;
-  acceptedApplications = 0;
-  totalAmount = 0;
-  approvalRate = 0;
-  acceptanceRateChange = 0;
-  
-  // Statistiques
-  monthlyStats: any[] = [];
-  maxMonthlyCount = 0;
-  amountDistribution = {
-    small: 0,
-    medium: 0,
-    large: 0
-  };
-  
+  selectedClient: Client | null = null;
+  showClientModal      = false;
+  showApplicationModal = false;
+  showStatusModal      = false;
+  newCommentText       = '';
+
+  // ── Status update ──
+  statusUpdateTarget: CreditApplication | null = null;
+  pendingStatus: CreditStatus = 'EN_ANALYSE';
+  statusComment = '';
+
+  // ── Upload ──
+  selectedFile: File | null = null;
+  uploadStatus = '';
+  uploadError  = '';
+
+  // ── Forms ──
+  clientForm!: FormGroup;
+  applicationForm!: FormGroup;
+
+  // ── Simulation montant/taux ──
+  estimatedMonthly   = 0;
+  debtRatio          = 0;
+  debtWarning        = false;
+  selectedClientForApp: Client | null = null;
+
+  // ── Sidebar items selon rôle ──
+  get sidebarItems() {
+    const base = [
+      { id: 'dashboard'     as View, label: 'Tableau de bord', icon: '📊' },
+      { id: 'applications'  as View, label: 'Dossiers',         icon: '📋' },
+    ];
+    // Chargé crédit a accès aux clients
+    if (this.currentRole === 'CHARGE_CREDIT' || this.currentRole === 'ADMIN') {
+      base.push({ id: 'clients' as View, label: 'Clients', icon: '👥' });
+    }
+    return base;
+  }
+
+  constructor(
+    public creditService: CreditService,
+    private fb: FormBuilder,
+    private router: Router,
+    private cdr: ChangeDetectorRef,
+    private authService: AuthService
+  ) {}
+
   ngOnInit(): void {
-    this.loadData();
+    this.detectRole();
+    this.buildForms();
+    this.subscribeToData();
     this.setupKeyboardShortcuts();
   }
-  
-  loadData(): void {
-    this.loading = true;
-    
-    // Simuler chargement des données
-    setTimeout(() => {
-      this.loadApplications();
-      this.loadClients();
-      this.updateKPIs();
-      this.calculateStatistics();
-      this.loading = false;
-    }, 500);
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
-  
-  loadApplications(): void {
-    // Données simulées
-    this.applications = [
-      {
-        _id: '1',
-        clientId: '1',
-        clientName: 'Jean Dupont',
-        amount: 25000,
-        duration: 60,
-        monthlyPayment: 467,
-        purpose: 'ACHAT_VEHICULE',
-        status: 'EN_ATTENTE',
-        documents: [],
-        comments: [{
-          userId: 'user1',
-          userName: 'Système',
-          content: 'Demande créée',
-          createdAt: new Date()
-        }],
-        createdAt: new Date('2024-01-15'),
-        updatedAt: new Date('2024-01-15')
-      },
-      {
-        _id: '2',
-        clientId: '2',
-        clientName: 'Marie Martin',
-        amount: 150000,
-        duration: 240,
-        monthlyPayment: 985,
-        purpose: 'ACHAT_IMMOBILIER',
-        status: 'EN_ANALYSE',
-        documents: [],
-        comments: [{
-          userId: 'user1',
-          userName: 'Système',
-          content: 'Demande créée',
-          createdAt: new Date()
-        }],
-        createdAt: new Date('2024-01-10'),
-        updatedAt: new Date('2024-01-12')
-      },
-      {
-        _id: '3',
-        clientId: '1',
-        clientName: 'Jean Dupont',
-        amount: 5000,
-        duration: 24,
-        monthlyPayment: 219,
-        purpose: 'CONSOMMATION',
-        status: 'ACCEPTE',
-        documents: [],
-        comments: [],
-        createdAt: new Date('2023-12-01'),
-        updatedAt: new Date('2023-12-05')
-      }
-    ];
-  }
-  
-  loadClients(): void {
-    this.clients = [
-      {
-        _id: '1',
-        fullName: 'Jean Dupont',
-        email: 'jean.dupont@email.com',
-        phone: '0612345678',
-        address: '15 rue de Paris, 75001 Paris',
-        cin: '123456789',
-        profession: 'Ingénieur',
-        revenue: 3500,
-        monthlyCharges: 1200,
-        existingLoans: 0,
-        createdAt: new Date()
-      },
-      {
-        _id: '2',
-        fullName: 'Marie Martin',
-        email: 'marie.martin@email.com',
-        phone: '0698765432',
-        address: '8 avenue de la République, 69001 Lyon',
-        cin: '987654321',
-        profession: 'Médecin',
-        revenue: 5500,
-        monthlyCharges: 1800,
-        existingLoans: 120000,
-        createdAt: new Date()
-      },
-      {
-        _id: '3',
-        fullName: 'Pierre Bernard',
-        email: 'pierre.bernard@email.com',
-        phone: '0678912345',
-        address: '3 rue des Lilas, 13001 Marseille',
-        cin: '456789123',
-        profession: 'Commercial',
-        revenue: 2800,
-        monthlyCharges: 1000,
-        existingLoans: 5000,
-        createdAt: new Date()
-      }
-    ];
-  }
-  
-  updateKPIs(): void {
-    this.totalApplications = this.applications.length;
-    this.pendingApplications = this.applications.filter(a => a.status === 'EN_ATTENTE').length;
-    this.analyzingApplications = this.applications.filter(a => a.status === 'EN_ANALYSE').length;
-    this.acceptedApplications = this.applications.filter(a => a.status === 'ACCEPTE').length;
-    this.totalAmount = this.applications.filter(a => a.status === 'ACCEPTE').reduce((sum, a) => sum + a.amount, 0);
-    this.approvalRate = this.totalApplications > 0 ? Math.round((this.acceptedApplications / this.totalApplications) * 100) : 0;
-    this.acceptanceRateChange = 5; // Simulé
-  }
-  
-  calculateStatistics(): void {
-    // Calcul distribution des montants
-    this.amountDistribution = {
-      small: this.applications.filter(a => a.amount < 10000).length,
-      medium: this.applications.filter(a => a.amount >= 10000 && a.amount <= 50000).length,
-      large: this.applications.filter(a => a.amount > 50000).length
-    };
-    
-    // Statistiques mensuelles (simulées)
-    this.monthlyStats = [
-      { month: 'Jan', count: 12 },
-      { month: 'Fév', count: 15 },
-      { month: 'Mar', count: 18 },
-      { month: 'Avr', count: 22 },
-      { month: 'Mai', count: 20 },
-      { month: 'Juin', count: 25 }
-    ];
-    this.maxMonthlyCount = Math.max(...this.monthlyStats.map(m => m.count));
-  }
-  
-  // US2.1 - Créer une demande
-  openNewApplicationModal(): void {
-    this.newApplication = {
-      clientId: '',
-      amount: 0,
-      duration: 0,
-      monthlyPayment: 0,
-      purpose: ''
-    };
-    this.showDebtWarning = false;
-    this.showNewApplicationModal = true;
-  }
-  
-  closeNewApplicationModal(): void {
-    this.showNewApplicationModal = false;
-  }
-  
-  onClientSelect(): void {
-    this.calculateMonthlyPayment();
-    this.checkDebtRatio();
-  }
-  
-  calculateMonthlyPayment(): void {
-    if (this.newApplication.amount && this.newApplication.duration) {
-      const rate = 0.05; // Taux d'intérêt annuel de 5%
-      const monthlyRate = rate / 12;
-      const numberOfPayments = this.newApplication.duration;
-      
-      const monthlyPayment = this.newApplication.amount * 
-        (monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) / 
-        (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
-      
-      this.newApplication.monthlyPayment = Math.round(monthlyPayment);
-      this.checkDebtRatio();
-    }
-  }
-  
-  checkDebtRatio(): void {
-    if (this.newApplication.clientId) {
-      const client = this.clients.find(c => c._id === this.newApplication.clientId);
-      if (client) {
-        const totalMonthlyPayments = this.newApplication.monthlyPayment + 
-          (client.existingLoans / 12); // Simplification
-        const debtRatio = (totalMonthlyPayments / client.revenue) * 100;
-        this.showDebtWarning = debtRatio > 33;
+
+  // ──────────────────────────────────────────
+  //  Détection du rôle (depuis JWT / AuthService)
+  // ──────────────────────────────────────────
+
+  detectRole(): void {
+    // En production : lire le rôle depuis le token JWT
+    // const user = this.authService.getCurrentUser();
+    // this.currentRole = user?.role || 'CHARGE_CREDIT';
+
+    // Pour le dev, simuler selon localStorage ou token
+    const stored = localStorage.getItem('currentUser');
+    if (stored) {
+      try {
+        const user = JSON.parse(stored);
+        // Mapper les rôles backend → UserRole
+        const roleMap: Record<string, UserRole> = {
+          'charge_credit': 'CHARGE_CREDIT',
+          'analyste':      'ANALYSTE',
+          'admin':         'ADMIN',
+          'CHARGE_CREDIT': 'CHARGE_CREDIT',
+          'ANALYSTE':      'ANALYSTE',
+          'ADMIN':         'ADMIN'
+        };
+        this.currentRole = roleMap[user?.role] || 'CHARGE_CREDIT';
+      } catch {
+        this.currentRole = 'CHARGE_CREDIT';
       }
     }
   }
-  
-  isApplicationValid(): boolean {
-    return this.newApplication.clientId && 
-           this.newApplication.amount > 0 && 
-           this.newApplication.duration > 0 && 
-           !this.showDebtWarning;
+
+  get isChargeCredit(): boolean { return this.currentRole === 'CHARGE_CREDIT'; }
+  get isAnalyste(): boolean     { return this.currentRole === 'ANALYSTE'; }
+  get isAdmin(): boolean        { return this.currentRole === 'ADMIN'; }
+
+  // ──────────────────────────────────────────
+  //  Formulaires
+  // ──────────────────────────────────────────
+
+  buildForms(): void {
+    this.clientForm = this.fb.group({
+      fullName:      ['', [Validators.required, Validators.minLength(3)]],
+      email:         ['', [Validators.required, Validators.email]],
+      phone:         ['', Validators.required],
+      address:       ['', Validators.required],
+      city:          ['', Validators.required],
+      cin:           ['', [Validators.required, Validators.minLength(6)]],
+      birthDate:     ['', Validators.required],
+      profession:    ['', Validators.required],
+      employer:      ['', Validators.required],
+      revenue:       [0, [Validators.required, Validators.min(1)]],
+      monthlyCharges:[0, [Validators.required, Validators.min(0)]],
+      existingLoans: [0, [Validators.required, Validators.min(0)]]
+    });
+
+    this.applicationForm = this.fb.group({
+      clientId: ['', Validators.required],
+      amount:   [0, [Validators.required, Validators.min(1000), Validators.max(500000)]],
+      duration: [12, [Validators.required, Validators.min(6), Validators.max(360)]],
+      purpose:  ['CONSOMMATION', Validators.required]
+    });
+
+    this.applicationForm.valueChanges.pipe(
+      debounceTime(250),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.recalculate());
   }
-  
-  submitApplication(): void {
-    const client = this.clients.find(c => c._id === this.newApplication.clientId);
-    if (client) {
-      const newApp: CreditApplication = {
-        _id: Date.now().toString(),
-        clientId: client._id,
-        clientName: client.fullName,
-        amount: this.newApplication.amount,
-        duration: this.newApplication.duration,
-        monthlyPayment: this.newApplication.monthlyPayment,
-        purpose: this.newApplication.purpose,
-        status: 'EN_ATTENTE',
-        documents: [],
-        comments: [{
-          userId: 'current_user',
-          userName: 'Chargé de crédit',
-          content: 'Demande créée',
-          createdAt: new Date()
-        }],
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-      
-      this.applications.unshift(newApp);
-      this.updateKPIs();
-      this.showMessage('Demande de crédit créée avec succès', 'success');
-      this.closeNewApplicationModal();
-    }
+
+  // ──────────────────────────────────────────
+  //  Souscriptions aux données
+  // ──────────────────────────────────────────
+
+  subscribeToData(): void {
+    this.creditService.clients$.pipe(takeUntil(this.destroy$)).subscribe(c => {
+      this.clients = c;
+      this.cdr.markForCheck();
+    });
+
+    this.creditService.applications$.pipe(takeUntil(this.destroy$)).subscribe(a => {
+      this.applications = a;
+      this.applyFilters();
+      this.cdr.markForCheck();
+    });
+
+    this.creditService.kpis$.pipe(takeUntil(this.destroy$)).subscribe(k => {
+      this.kpis = k;
+      this.cdr.markForCheck();
+    });
+
+    this.creditService.monthlyStats$.pipe(takeUntil(this.destroy$)).subscribe(s => {
+      this.monthlyStats = s;
+      this.maxMonthlyCount = Math.max(...s.map(x => x.count), 1);
+      this.cdr.markForCheck();
+    });
+
+    this.creditService.loading$.pipe(takeUntil(this.destroy$)).subscribe(l => {
+      this.loading = l;
+      this.cdr.markForCheck();
+    });
   }
-  
-  // US2.3 - Consulter les dossiers
-  get filteredApplications(): CreditApplication[] {
-    let filtered = [...this.applications];
-    
+
+  // ──────────────────────────────────────────
+  //  US 2.3 – Filtres
+  // ──────────────────────────────────────────
+
+  applyFilters(): void {
+    let result = [...this.applications];
+
     if (this.searchTerm) {
-      filtered = filtered.filter(app => 
-        app.clientName.toLowerCase().includes(this.searchTerm.toLowerCase())
+      const q = this.searchTerm.toLowerCase();
+      result = result.filter(a =>
+        a.clientName.toLowerCase().includes(q) ||
+        a.purpose.toLowerCase().includes(q)
       );
     }
-    
-    if (this.filterStatus !== 'ALL') {
-      filtered = filtered.filter(app => app.status === this.filterStatus);
-    }
-    
-    if (this.filterAmount !== 'ALL') {
-      if (this.filterAmount === '0-10000') {
-        filtered = filtered.filter(app => app.amount < 10000);
-      } else if (this.filterAmount === '10000-50000') {
-        filtered = filtered.filter(app => app.amount >= 10000 && app.amount <= 50000);
-      } else if (this.filterAmount === '50000+') {
-        filtered = filtered.filter(app => app.amount > 50000);
-      }
-    }
-    
-    return filtered;
+
+    if (this.filterStatus !== 'ALL')
+      result = result.filter(a => a.status === this.filterStatus);
+
+    if (this.filterAmount === '0-10000')
+      result = result.filter(a => a.amount < 10000);
+    else if (this.filterAmount === '10000-50000')
+      result = result.filter(a => a.amount >= 10000 && a.amount <= 50000);
+    else if (this.filterAmount === '50000+')
+      result = result.filter(a => a.amount > 50000);
+
+    this.filteredApplications = result;
   }
-  
-  viewApplication(application: CreditApplication): void {
-    this.selectedApplication = application;
-  }
-  
-  closeApplicationDetail(): void {
-    this.selectedApplication = null;
-  }
-  
-  // US2.4 - Mettre à jour le statut
-  updateStatus(application: CreditApplication): void {
-    // Cette méthode peut ouvrir un modal ou directement appeler updateApplicationStatus
-    console.log('Update status for:', application.clientName);
-  }
-  
-  startAnalysis(application: CreditApplication): void {
-    this.updateApplicationStatus(application, 'EN_ANALYSE');
-  }
-  
-  acceptApplication(application: CreditApplication): void {
-    const reason = prompt('Ajouter un commentaire (optionnel)');
-    this.updateApplicationStatus(application, 'ACCEPTE', reason || undefined);
-  }
-  
-  rejectApplication(application: CreditApplication): void {
-    const reason = prompt('Motif du refus :');
-    if (reason) {
-      this.updateApplicationStatus(application, 'REFUSE', reason);
-    }
-  }
-  
-  updateApplicationStatus(application: CreditApplication, newStatus: any, comment?: string): void {
-    const index = this.applications.findIndex(a => a._id === application._id);
-    if (index !== -1) {
-      this.applications[index].status = newStatus;
-      this.applications[index].updatedAt = new Date();
-      
-      if (comment) {
-        if (!this.applications[index].comments) {
-          this.applications[index].comments = [];
-        }
-        this.applications[index].comments.push({
-          userId: 'current_user',
-          userName: 'Chargé de crédit',
-          content: `Statut mis à jour : ${this.getStatusLabel(newStatus)}. ${comment}`,
-          createdAt: new Date()
-        });
-      }
-      
-      this.updateKPIs();
-      this.showMessage(`Dossier ${this.getStatusLabel(newStatus)} avec succès`, 'success');
-      
-      if (this.selectedApplication && this.selectedApplication._id === application._id) {
-        this.selectedApplication = this.applications[index];
-      }
-    }
-  }
-  
-  // US2.5 - Consulter les informations clients
-  viewClientDetails(client: Client): void {
-    // Ouvrir modal avec détails client
-    console.log('View client details:', client);
-    this.showMessage(`Consultation des informations de ${client.fullName}`, 'success');
-  }
-  
-  getClientFinancials(clientId: string): any {
-    const client = this.clients.find(c => c._id === clientId);
-    return client || { revenue: 0, monthlyCharges: 0, existingLoans: 0 };
-  }
-  
-  getRemainingCapacity(clientId: string): number {
-    const client = this.clients.find(c => c._id === clientId);
-    if (client) {
-      const monthlyPayments = client.existingLoans / 12;
-      return client.revenue - client.monthlyCharges - monthlyPayments;
-    }
-    return 0;
-  }
-  
-  getDebtRatio(clientId: string): number {
-    const client = this.clients.find(c => c._id === clientId);
-    if (client) {
-      const monthlyPayments = client.existingLoans / 12;
-      const ratio = ((monthlyPayments + client.monthlyCharges) / client.revenue) * 100;
-      return Math.round(ratio);
-    }
-    return 0;
-  }
-  
-  // KPIs Trends
-  getKPITrend(type: string): { value: string; positive: boolean } {
-    const trends = {
-      pending: { value: '+3', positive: true },
-      amount: { value: '+15%', positive: true },
-      rate: { value: '+2%', positive: true }
-    };
-    return trends[type as keyof typeof trends] || { value: '0%', positive: true };
-  }
-  
-  // Documents
-  uploadDocument(application: CreditApplication): void {
-    // Implémenter upload de documents
-    console.log('Upload document for:', application.clientName);
-    this.showMessage('Fonctionnalité d\'upload de documents à implémenter', 'success');
-  }
-  
-  downloadDocument(doc: any): void {
-    // Implémenter téléchargement
-    console.log('Download document:', doc.name);
-  }
-  
-  // Utilitaires
-  getStatusClass(status: string): string {
-    switch(status) {
-      case 'EN_ATTENTE': return 'status-badge--pending';
-      case 'EN_ANALYSE': return 'status-badge--analyzing';
-      case 'ACCEPTE': return 'status-badge--accepted';
-      case 'REFUSE': return 'status-badge--rejected';
-      default: return '';
-    }
-  }
-  
-  getStatusLabel(status: string): string {
-    switch(status) {
-      case 'EN_ATTENTE': return 'En attente';
-      case 'EN_ANALYSE': return 'En analyse';
-      case 'ACCEPTE': return 'Accepté';
-      case 'REFUSE': return 'Refusé';
-      default: return status;
-    }
-  }
-  
-  getDocStatusClass(status: string): string {
-    return status === 'VALIDE' ? 'doc-status--valid' : 'doc-status--pending';
-  }
-  
-  getDocStatusLabel(status: string): string {
-    return status === 'VALIDE' ? 'Validé' : 'En attente';
-  }
-  
+
+  onSearchChange(): void { this.applyFilters(); }
+  onFilterChange(): void { this.applyFilters(); }
+
   resetFilters(): void {
-    this.searchTerm = '';
-    this.filterStatus = 'ALL';
-    this.filterAmount = 'ALL';
+    this.searchTerm = ''; this.filterStatus = 'ALL'; this.filterAmount = 'ALL';
+    this.applyFilters();
   }
-  
+
   filterByStatus(status: string): void {
     this.filterStatus = status;
-    this.setActiveView('applications');
+    this.applyFilters();
+    this.setView('applications');
   }
-  
-  refreshData(): void {
-    this.loadData();
+
+  // ──────────────────────────────────────────
+  //  US 2.1 – Créer client (Chargé crédit)
+  // ──────────────────────────────────────────
+
+  openClientModal(): void {
+    this.clientForm.reset({ revenue: 0, monthlyCharges: 0, existingLoans: 0 });
+    this.showClientModal = true;
   }
-  
-  setActiveView(viewId: string): void {
-    this.sidebarItems.forEach(item => {
-      item.active = item.id === viewId;
-    });
-    this.currentView = viewId;
+
+  closeClientModal(): void { this.showClientModal = false; }
+
+  submitClient(): void {
+    if (this.clientForm.invalid) { this.clientForm.markAllAsTouched(); return; }
+    this.loading = true;
+    this.creditService.createClient(this.clientForm.value as CreateClientDTO)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.loading = false;
+          this.showMessage('Client créé avec succès ✓', 'success');
+          this.closeClientModal();
+          this.cdr.markForCheck();
+        },
+        error: e => {
+          this.loading = false;
+          this.showMessage(e.message, 'error');
+          this.cdr.markForCheck();
+        }
+      });
   }
-  
-  setupKeyboardShortcuts(): void {
-    document.addEventListener('keydown', (e) => {
-      if (e.ctrlKey && e.key === 'n') {
-        e.preventDefault();
-        this.openNewApplicationModal();
+
+  // ──────────────────────────────────────────
+  //  US 2.1 – Créer dossier (Chargé crédit)
+  //  Statut initial toujours EN_ATTENTE (backend)
+  // ──────────────────────────────────────────
+
+  openApplicationModal(): void {
+    this.applicationForm.reset({ duration: 12, purpose: 'CONSOMMATION', amount: 0, clientId: '' });
+    this.estimatedMonthly = 0;
+    this.debtRatio = 0;
+    this.debtWarning = false;
+    this.selectedClientForApp = null;
+    this.showApplicationModal = true;
+  }
+
+  closeApplicationModal(): void { this.showApplicationModal = false; }
+
+  recalculate(): void {
+    const { amount, duration, clientId } = this.applicationForm.value;
+    if (amount > 0 && duration > 0) {
+      this.estimatedMonthly = this.creditService.calculateMonthly(+amount, +duration);
+    }
+    if (clientId) {
+      this.selectedClientForApp = this.clients.find(c => c._id === clientId) || null;
+      if (this.selectedClientForApp) {
+        this.debtRatio = this.creditService.calculateDebtRatio(
+          this.selectedClientForApp, this.estimatedMonthly
+        );
+        this.debtWarning = this.debtRatio > 33;
       }
-      if (e.ctrlKey && e.key === 'b') {
-        e.preventDefault();
-        this.sidebarCollapsed = !this.sidebarCollapsed;
+    }
+    this.cdr.markForCheck();
+  }
+
+  submitApplication(): void {
+    if (this.applicationForm.invalid) { this.applicationForm.markAllAsTouched(); return; }
+    if (this.debtWarning) {
+      this.showMessage('Taux d\'endettement > 33% — dossier refusé automatiquement', 'error');
+      return;
+    }
+    this.loading = true;
+    this.creditService.createApplication(this.applicationForm.value as CreateApplicationDTO)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.loading = false;
+          this.showMessage('Dossier créé — statut : En attente ✓', 'success');
+          this.closeApplicationModal();
+          this.cdr.markForCheck();
+        },
+        error: e => {
+          this.loading = false;
+          this.showMessage(e.message, 'error');
+          this.cdr.markForCheck();
+        }
+      });
+  }
+
+  // ──────────────────────────────────────────
+  //  US 2.2 – Documents (Chargé crédit)
+  // ──────────────────────────────────────────
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length || !this.selectedApplication) return;
+
+    const file = input.files[0];
+
+    // Validations côté client
+    const allowed = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+    if (!allowed.includes(file.type)) {
+      this.showMessage('Type non supporté : PDF, JPEG ou PNG uniquement', 'error');
+      input.value = ''; return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      this.showMessage('Fichier trop volumineux — maximum 5 Mo', 'error');
+      input.value = ''; return;
+    }
+
+    this.loading = true;
+    this.uploadStatus = 'Upload en cours...';
+    this.cdr.markForCheck();
+
+    this.creditService.uploadDocument(this.selectedApplication._id, file)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.loading = false;
+          this.uploadStatus = '';
+          this.showMessage('Document uploadé ✓', 'success');
+          this.refreshSelected();
+          input.value = '';
+          this.cdr.markForCheck();
+        },
+        error: e => {
+          this.loading = false;
+          this.uploadStatus = '';
+          this.showMessage(e.message || 'Erreur upload', 'error');
+          input.value = '';
+          this.cdr.markForCheck();
+        }
+      });
+  }
+
+  // Validation document (Analyste / Admin)
+  validateDocument(docId: string): void {
+    if (!this.selectedApplication) return;
+    this.creditService.validateDocument(
+      this.selectedApplication._id, docId, 'Agent connecté'
+    ).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.refreshSelected();
+        this.showMessage('Document validé ✓', 'success');
+        this.cdr.markForCheck();
+      },
+      error: e => this.showMessage(e.message, 'error')
+    });
+  }
+
+  // ──────────────────────────────────────────
+  //  US 2.4 – Mise à jour statut (Analyste)
+  //  Chargé crédit → pas accès à ce modal
+  //  Workflow :
+  //    EN_ATTENTE → EN_ANALYSE (analyste prend en charge)
+  //    EN_ANALYSE → ACCEPTE | REFUSE
+  // ──────────────────────────────────────────
+
+  openStatusModal(app: CreditApplication): void {
+    // Seul l'analyste (ou admin) peut changer le statut
+    if (this.isChargeCredit) {
+      this.showMessage('Seul un analyste peut modifier le statut d\'un dossier', 'error');
+      return;
+    }
+    const allowed = this.getAllowedStatuses(app.status);
+    if (allowed.length === 0) {
+      this.showMessage('Aucune transition possible pour ce statut', 'error');
+      return;
+    }
+    this.statusUpdateTarget = app;
+    this.pendingStatus = allowed[0];
+    this.statusComment = '';
+    this.showStatusModal = true;
+  }
+
+  closeStatusModal(): void { this.showStatusModal = false; this.statusUpdateTarget = null; }
+
+  confirmStatusUpdate(): void {
+    if (!this.statusUpdateTarget) return;
+    if (this.pendingStatus === 'REFUSE' && !this.statusComment.trim()) {
+      this.showMessage('Le motif du refus est obligatoire', 'error');
+      return;
+    }
+    this.loading = true;
+    this.creditService.updateStatus(
+      this.statusUpdateTarget._id,
+      this.pendingStatus,
+      'Analyste connecté',
+      this.statusComment || undefined
+    ).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.loading = false;
+        this.showMessage(
+          `Statut → ${this.getStatusLabel(this.pendingStatus)} ✓`, 'success'
+        );
+        this.closeStatusModal();
+        this.refreshSelected();
+        this.cdr.markForCheck();
+      },
+      error: e => {
+        this.loading = false;
+        this.showMessage(e.message, 'error');
+        this.cdr.markForCheck();
       }
     });
   }
-  
-  showMessage(message: string, type: 'success' | 'error'): void {
-    this.message = message;
-    setTimeout(() => {
-      this.message = '';
-    }, 3000);
+
+  /** Transitions selon rôle */
+  getAllowedStatuses(current: CreditStatus): CreditStatus[] {
+    return this.creditService.getAllowedTransitions(current, this.currentRole);
   }
-  
-  openNewClientModal(): void {
-    console.log('Open new client modal');
-    this.showMessage('Fonctionnalité d\'ajout de client à implémenter', 'success');
+
+  /** Indique si le bouton de statut doit être visible */
+  canChangeStatus(app: CreditApplication): boolean {
+    if (this.isChargeCredit) return false;
+    return !this.isFinalStatus(app.status) &&
+           this.getAllowedStatuses(app.status).length > 0;
   }
-  
-  // Méthodes additionnelles pour la compatibilité avec le template
-  toggleSidebar(): void {
-    this.sidebarCollapsed = !this.sidebarCollapsed;
+
+  // ──────────────────────────────────────────
+  //  US 2.5 – Consultation clients / dossiers
+  // ──────────────────────────────────────────
+
+  viewApplication(app: CreditApplication): void { this.selectedApplication = app; }
+  closeApplication(): void { this.selectedApplication = null; }
+
+  viewClientDetails(client: Client): void { this.selectedClient = client; }
+  closeClientDetails(): void { this.selectedClient = null; }
+
+  getClientApplications(clientId: string): CreditApplication[] {
+    return this.creditService.getClientApplications(clientId);
   }
-  
-  confirmLogout(): void {
-    if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
-      this.logout();
+
+  // ── Commentaires ──
+  submitComment(): void {
+    if (!this.newCommentText.trim() || !this.selectedApplication) return;
+    const userName = this.isAnalyste ? 'Analyste connecté' : 'Chargé crédit';
+    this.creditService.addComment(
+      this.selectedApplication._id, this.newCommentText, userName
+    ).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.newCommentText = '';
+        this.refreshSelected();
+        this.cdr.markForCheck();
+      },
+      error: e => this.showMessage(e.message, 'error')
+    });
+  }
+
+  // ──────────────────────────────────────────
+  //  Helpers
+  // ──────────────────────────────────────────
+
+  refreshSelected(): void {
+    if (this.selectedApplication) {
+      const updated = this.applications.find(a => a._id === this.selectedApplication!._id);
+      if (updated) this.selectedApplication = { ...updated };
     }
   }
-  
-  logout(): void {
-    // Implémenter la déconnexion
-    console.log('Logout');
+
+  setView(v: View): void { this.currentView = v; this.cdr.markForCheck(); }
+
+  getStatusLabel(s: string): string {
+    return this.creditService.getStatusLabel(s);
   }
-  
-  openProfile(): void {
-    console.log('Open profile');
+
+  getStatusClass(s: string): string {
+    return ({
+      EN_ATTENTE: 'status--pending',
+      EN_ANALYSE: 'status--analyzing',
+      ACCEPTE:    'status--accepted',
+      REFUSE:     'status--refused'
+    } as Record<string, string>)[s] ?? '';
+  }
+
+  getDocStatusLabel(s: string): string {
+    return ({ EN_ATTENTE: 'En attente', VALIDE: 'Validé', REJETE: 'Rejeté' } as Record<string, string>)[s] ?? s;
+  }
+
+  getDocStatusClass(s: string): string {
+    return ({ VALIDE: 'doc--valid', EN_ATTENTE: 'doc--pending', REJETE: 'doc--rejected' } as Record<string, string>)[s] ?? '';
+  }
+
+  isFinalStatus(s: CreditStatus): boolean {
+    return s === 'ACCEPTE' || s === 'REFUSE';
+  }
+
+  getClientFinancials(clientId: string) {
+    return this.clients.find(c => c._id === clientId)
+      ?? { revenue: 0, monthlyCharges: 0, existingLoans: 0 };
+  }
+
+  getRemainingCapacity(clientId: string): number {
+    const c = this.clients.find(cl => cl._id === clientId);
+    if (!c) return 0;
+    return Math.round(c.revenue - c.monthlyCharges - (c.existingLoans / 240));
+  }
+
+  getDebtRatio(clientId: string, monthly = 0): number {
+    const c = this.clients.find(cl => cl._id === clientId);
+    if (!c) return 0;
+    return this.creditService.calculateDebtRatio(c, monthly);
+  }
+
+  formatSize(bytes: number): string {
+    if (bytes < 1024) return bytes + ' o';
+    if (bytes < 1048576) return Math.round(bytes / 1024) + ' Ko';
+    return (bytes / 1048576).toFixed(1) + ' Mo';
+  }
+
+  amountDistribution() {
+    return {
+      small:  this.applications.filter(a => a.amount < 10000).length,
+      medium: this.applications.filter(a => a.amount >= 10000 && a.amount <= 50000).length,
+      large:  this.applications.filter(a => a.amount > 50000).length
+    };
+  }
+
+  trackByApp(_: number, a: CreditApplication): string { return a._id; }
+  trackByClient(_: number, c: Client): string { return c._id; }
+
+  showMessage(msg: string, type: 'success' | 'error' = 'success'): void {
+    this.message = msg; this.messageType = type;
+    setTimeout(() => { this.message = ''; this.cdr.markForCheck(); }, 3500);
+  }
+
+  setupKeyboardShortcuts(): void {
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        this.closeApplication();
+        this.closeClientDetails();
+        this.closeStatusModal();
+        this.cdr.markForCheck();
+      }
+      if (e.ctrlKey && e.key === 'n' && this.isChargeCredit) {
+        e.preventDefault();
+        this.openApplicationModal();
+      }
+    });
+  }
+
+  confirmLogout(): void {
+    if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) this.logout();
+  }
+
+  logout(): void {
+    this.authService.logout().subscribe({
+      next: () => {
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('authToken');
+        this.showMessage('Déconnexion réussie', 'success');
+        setTimeout(() => this.router.navigate(['/login']), 1000);
+      },
+      error: () => this.router.navigate(['/login'])
+    });
   }
 }

@@ -1,181 +1,264 @@
 <!-- dashboard-credit.component.html -->
 <div class="dashboard">
-  <!-- Sidebar (similaire mais avec des items adaptés) -->
+
+  <!-- ── Sidebar ── -->
   <aside class="sidebar" [class.collapsed]="sidebarCollapsed">
-    <!-- ... En-tête similaire ... -->
-    
+    <div class="sidebar__header">
+      <div class="logo" *ngIf="!sidebarCollapsed">
+        <span class="logo__icon">🏦</span>
+        <span class="logo__text">CreditHub</span>
+      </div>
+      <span class="logo__icon" *ngIf="sidebarCollapsed" style="font-size:26px">🏦</span>
+      <button class="sidebar__toggle" (click)="sidebarCollapsed = !sidebarCollapsed">
+        {{ sidebarCollapsed ? '→' : '←' }}
+      </button>
+    </div>
+
+    <!-- Badge rôle -->
+    <div class="role-badge" *ngIf="!sidebarCollapsed">
+      <span class="role-badge__icon">{{ isAnalyste ? '🔍' : isAdmin ? '⚙️' : '💼' }}</span>
+      <span class="role-badge__label">
+        {{ isAnalyste ? 'Analyste' : isAdmin ? 'Admin' : 'Chargé de crédit' }}
+      </span>
+    </div>
+
     <nav class="sidebar__nav">
-      <a
-        *ngFor="let item of sidebarItems"
-        class="sidebar__item"
-        [class.active]="item.active"
-        (click)="setActiveView(item.id)"
-      >
+      <a *ngFor="let item of sidebarItems" class="sidebar__item"
+         [class.active]="currentView === item.id"
+         (click)="setView(item.id)">
         <span class="sidebar__icon">{{ item.icon }}</span>
-        <span class="sidebar__label" *ngIf="!sidebarCollapsed">{{
-          item.label
-        }}</span>
+        <span class="sidebar__label" *ngIf="!sidebarCollapsed">{{ item.label }}</span>
       </a>
     </nav>
-    
-    <!-- ... Footer similaire ... -->
+
+    <div class="sidebar__bottom">
+      <div class="sidebar__action" (click)="confirmLogout()">
+        <span class="sidebar__icon">🚪</span>
+        <span class="sidebar__label" *ngIf="!sidebarCollapsed">Déconnexion</span>
+      </div>
+      <div class="shortcuts" *ngIf="!sidebarCollapsed">
+        <div class="shortcuts__item" *ngIf="isChargeCredit">
+          <span>Nouveau dossier</span><span class="shortcut">Ctrl+N</span>
+        </div>
+        <div class="shortcuts__item"><span>Fermer</span><span class="shortcut">Esc</span></div>
+      </div>
+    </div>
   </aside>
 
-  <!-- Main Content -->
+  <!-- ── Main ── -->
   <main class="main-content">
-    <!-- Hero Section avec KPIs crédit -->
+
+    <!-- Toast -->
+    <div class="toast" *ngIf="message"
+         [class.toast--success]="messageType==='success'"
+         [class.toast--error]="messageType==='error'">
+      {{ message }}
+    </div>
+
+    <!-- ── Hero ── -->
     <div class="hero">
       <div class="hero__bg">
-        <img
-          src="https://images.unsplash.com/photo-1557683316-973673baf926?w=1600&h=400&fit=crop"
-          alt="hero"
-          class="hero__img"
-        />
+        <img src="https://images.unsplash.com/photo-1557683316-973673baf926?w=1600&h=400&fit=crop"
+             alt="" class="hero__img"/>
         <div class="hero__overlay"></div>
       </div>
       <div class="hero__content">
         <div class="hero__badge">
           <div class="dot"></div>
-          <span>Plateforme de crédit</span>
+          <span>
+            {{ isAnalyste ? 'Interface Analyste — Traitement des dossiers'
+               : 'Interface Chargé de crédit — Création des dossiers' }}
+          </span>
         </div>
-        <h1 class="hero__title">Gestion des <span>Crédits</span></h1>
+        <h1 class="hero__title">Tableau de bord <span>Crédit</span></h1>
         <p class="hero__subtitle">
-          Gérez les demandes de crédit, analysez les dossiers et suivez les clients en temps réel.
+          {{ isAnalyste
+            ? 'Analysez les dossiers en attente, acceptez ou refusez les demandes.'
+            : 'Créez des dossiers clients, déposez les documents nécessaires.' }}
         </p>
+
+        <!-- Actions selon rôle -->
         <div class="hero__actions">
-          <button class="btn btn--primary" (click)="openNewApplicationModal()">
-            📝 Nouvelle demande
-          </button>
-          <button class="btn btn--ghost" (click)="refreshData()">
-            🔄 Actualiser
-          </button>
+          <ng-container *ngIf="isChargeCredit">
+            <button class="btn btn--primary" (click)="openApplicationModal()">📝 Nouveau dossier</button>
+            <button class="btn btn--ghost"   (click)="openClientModal()">👤 Nouveau client</button>
+          </ng-container>
+          <ng-container *ngIf="isAnalyste">
+            <button class="btn btn--primary" (click)="filterByStatus('EN_ATTENTE')">⏳ Dossiers en attente</button>
+            <button class="btn btn--ghost"   (click)="filterByStatus('EN_ANALYSE')">🔍 En cours d'analyse</button>
+          </ng-container>
+          <button class="btn btn--ghost" (click)="creditService.refreshData()">🔄 Actualiser</button>
         </div>
 
-        <!-- KPI Stats spécifiques crédit -->
+        <!-- KPIs -->
         <div class="hero__stats">
-          <div class="kpi">
-            <div class="kpi__v">{{ pendingApplications }}</div>
-            <div class="kpi__l">Dossiers en attente</div>
-            <div class="kpi__s">↑ {{ getKPITrend("pending").value }}</div>
+          <div class="kpi" (click)="filterByStatus('EN_ATTENTE')">
+            <div class="kpi__v">{{ kpis.pending }}</div>
+            <div class="kpi__l">En attente</div>
+            <div class="kpi__s">{{ isChargeCredit ? 'Créés' : 'À traiter' }}</div>
+          </div>
+          <div class="kpi" (click)="filterByStatus('EN_ANALYSE')">
+            <div class="kpi__v">{{ kpis.analyzing }}</div>
+            <div class="kpi__l">En analyse</div>
+            <div class="kpi__s">{{ isAnalyste ? 'Vos dossiers' : 'En cours' }}</div>
           </div>
           <div class="kpi">
-            <div class="kpi__v">{{ totalAmount }} €</div>
-            <div class="kpi__l">Encours total</div>
-            <div class="kpi__s">↑ {{ getKPITrend("amount").value }}</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi__v">{{ approvalRate }}%</div>
+            <div class="kpi__v">{{ kpis.approvalRate }}%</div>
             <div class="kpi__l">Taux d'acceptation</div>
-            <div class="kpi__s">↑ {{ getKPITrend("rate").value }}</div>
+            <div class="kpi__s">{{ kpis.accepted }} / {{ kpis.total }}</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi__v">{{ kpis.totalAmount | number:'1.0-0' }} €</div>
+            <div class="kpi__l">Encours accepté</div>
+            <div class="kpi__s">Dossiers acceptés</div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Dashboard View -->
+    <!-- ══════════════════════════════
+         DASHBOARD
+    ════════════════════════════════ -->
     <div class="section" *ngIf="currentView === 'dashboard'">
       <div class="section__head">
-        <div>
-          <h2>Tableau de bord crédit</h2>
-          <p>Vue d'ensemble de l'activité crédit</p>
-        </div>
+        <div><h2>Vue d'ensemble</h2><p>Activité crédit en temps réel</p></div>
+        <button class="btn btn--ghost btn--sm" (click)="creditService.refreshData()">🔄 Rafraîchir</button>
       </div>
 
-      <!-- Statistiques rapides -->
+      <!-- Stat cards -->
       <div class="grid grid--stats">
         <div class="stat-card" (click)="filterByStatus('EN_ATTENTE')">
           <div class="stat-card__icon">⏳</div>
-          <div class="stat-card__value">{{ pendingApplications }}</div>
+          <div class="stat-card__value">{{ kpis.pending }}</div>
           <div class="stat-card__label">En attente</div>
-          <div class="stat-card__trend positive">À traiter</div>
+          <div class="stat-card__trend positive">
+            {{ isChargeCredit ? 'Dossiers créés' : 'À prendre en charge' }}
+          </div>
         </div>
         <div class="stat-card" (click)="filterByStatus('EN_ANALYSE')">
           <div class="stat-card__icon">🔍</div>
-          <div class="stat-card__value">{{ analyzingApplications }}</div>
+          <div class="stat-card__value">{{ kpis.analyzing }}</div>
           <div class="stat-card__label">En analyse</div>
-          <div class="stat-card__trend positive">En cours</div>
+          <div class="stat-card__trend positive">En cours de traitement</div>
         </div>
         <div class="stat-card">
           <div class="stat-card__icon">✅</div>
-          <div class="stat-card__value">{{ acceptedApplications }}</div>
+          <div class="stat-card__value">{{ kpis.accepted }}</div>
           <div class="stat-card__label">Acceptés</div>
-          <div class="stat-card__trend positive">+{{ acceptanceRateChange }}%</div>
+          <div class="stat-card__trend positive">{{ kpis.approvalRate }}% du total</div>
         </div>
         <div class="stat-card">
-          <div class="stat-card__icon">📊</div>
-          <div class="stat-card__value">{{ totalApplications }}</div>
-          <div class="stat-card__label">Total dossiers</div>
-          <div class="stat-card__trend positive">Ce mois</div>
+          <div class="stat-card__icon">❌</div>
+          <div class="stat-card__value">{{ kpis.refused }}</div>
+          <div class="stat-card__label">Refusés</div>
+          <div class="stat-card__trend negative">
+            {{ kpis.total > 0 ? (kpis.refused / kpis.total * 100 | number:'1.0-0') : 0 }}%
+          </div>
         </div>
       </div>
 
-      <!-- Graphiques d'activité -->
+      <!-- Graphiques -->
       <div class="grid grid--analytics">
         <div class="card">
           <div class="card__icon">📈</div>
-          <h3>Demandes par mois</h3>
-          <div class="chart">
-            <div class="chart-bar" *ngFor="let month of monthlyStats">
-              <div class="chart-bar__label">{{ month.month }}</div>
+          <h3>Dossiers par période</h3>
+          <div class="chart" *ngIf="monthlyStats.length > 0; else noStats">
+            <div class="chart-bar" *ngFor="let m of monthlyStats">
+              <div class="chart-bar__label">{{ m.month }}</div>
               <div class="chart-bar__bg">
-                <div
-                  class="chart-bar__fill"
-                  [style.width.%]="(month.count / maxMonthlyCount) * 100"
-                ></div>
+                <div class="chart-bar__fill" [style.width.%]="(m.count / maxMonthlyCount) * 100"></div>
               </div>
-              <div class="chart-bar__value">{{ month.count }}</div>
+              <div class="chart-bar__value">{{ m.count }}</div>
             </div>
           </div>
+          <ng-template #noStats><p class="no-data">Aucune donnée disponible</p></ng-template>
         </div>
 
         <div class="card">
           <div class="card__icon">💰</div>
-          <h3>Répartition des montants</h3>
+          <h3>Répartition montants</h3>
           <div class="chart">
             <div class="chart-bar">
-              <div class="chart-bar__label">< 10k€</div>
+              <div class="chart-bar__label">&lt; 10k€</div>
               <div class="chart-bar__bg">
-                <div
-                  class="chart-bar__fill"
-                  [style.width.%]="(amountDistribution.small / totalApplications) * 100"
-                ></div>
+                <div class="chart-bar__fill"
+                     [style.width.%]="kpis.total > 0 ? (amountDistribution().small / kpis.total * 100) : 0">
+                </div>
               </div>
-              <div class="chart-bar__value">{{ amountDistribution.small }}</div>
+              <div class="chart-bar__value">{{ amountDistribution().small }}</div>
             </div>
             <div class="chart-bar">
-              <div class="chart-bar__label">10k - 50k€</div>
+              <div class="chart-bar__label">10-50k€</div>
               <div class="chart-bar__bg">
-                <div
-                  class="chart-bar__fill"
-                  [style.width.%]="(amountDistribution.medium / totalApplications) * 100"
-                ></div>
+                <div class="chart-bar__fill"
+                     [style.width.%]="kpis.total > 0 ? (amountDistribution().medium / kpis.total * 100) : 0">
+                </div>
               </div>
-              <div class="chart-bar__value">{{ amountDistribution.medium }}</div>
+              <div class="chart-bar__value">{{ amountDistribution().medium }}</div>
             </div>
             <div class="chart-bar">
-              <div class="chart-bar__label">> 50k€</div>
+              <div class="chart-bar__label">&gt; 50k€</div>
               <div class="chart-bar__bg">
-                <div
-                  class="chart-bar__fill"
-                  [style.width.%]="(amountDistribution.large / totalApplications) * 100"
-                ></div>
+                <div class="chart-bar__fill"
+                     [style.width.%]="kpis.total > 0 ? (amountDistribution().large / kpis.total * 100) : 0">
+                </div>
               </div>
-              <div class="chart-bar__value">{{ amountDistribution.large }}</div>
+              <div class="chart-bar__value">{{ amountDistribution().large }}</div>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- Workflow info selon rôle -->
+      <div class="workflow-info" *ngIf="isChargeCredit">
+        <div class="workflow-step active"><span class="step-num">1</span><span>Vous créez le dossier</span><span class="step-status">EN_ATTENTE</span></div>
+        <div class="workflow-arrow">→</div>
+        <div class="workflow-step"><span class="step-num">2</span><span>L'analyste prend en charge</span><span class="step-status">EN_ANALYSE</span></div>
+        <div class="workflow-arrow">→</div>
+        <div class="workflow-step"><span class="step-num">3</span><span>Décision finale</span><span class="step-status">ACCEPTÉ / REFUSÉ</span></div>
+      </div>
+
+      <div class="workflow-info" *ngIf="isAnalyste">
+        <div class="workflow-step"><span class="step-num">1</span><span>Chargé crédit crée</span><span class="step-status">EN_ATTENTE</span></div>
+        <div class="workflow-arrow">→</div>
+        <div class="workflow-step active"><span class="step-num">2</span><span>Vous analysez</span><span class="step-status">EN_ANALYSE</span></div>
+        <div class="workflow-arrow">→</div>
+        <div class="workflow-step active"><span class="step-num">3</span><span>Votre décision</span><span class="step-status">ACCEPTÉ / REFUSÉ</span></div>
+      </div>
+
+      <!-- Derniers dossiers -->
+      <div class="card" style="margin-top:20px">
+        <h3 style="margin:0 0 16px">Derniers dossiers</h3>
+        <div class="recent-list">
+          <div class="recent-item" *ngFor="let app of applications.slice(0,5); trackBy: trackByApp"
+               (click)="viewApplication(app)">
+            <div class="client-avatar">{{ app.clientName.charAt(0) }}</div>
+            <div style="flex:1">
+              <strong>{{ app.clientName }}</strong>
+              <div style="font-size:13px;opacity:.7">{{ app.purpose }} — {{ app.amount | number:'1.0-0' }} €</div>
+            </div>
+            <span class="status-badge" [class]="getStatusClass(app.status)">{{ getStatusLabel(app.status) }}</span>
+            <span style="font-size:12px;opacity:.6;margin-left:8px">{{ app.createdAt | date:'dd/MM' }}</span>
+          </div>
+          <p *ngIf="applications.length === 0" class="no-data">Aucun dossier</p>
+        </div>
+      </div>
     </div>
 
-    <!-- Credit Applications View (US2.3) -->
+    <!-- ══════════════════════════════
+         DOSSIERS (US 2.3 / 2.4 / 2.2)
+    ════════════════════════════════ -->
     <div class="section" *ngIf="currentView === 'applications'">
       <div class="section__head">
         <div>
           <h2>Dossiers de crédit</h2>
-          <p>Consultez et gérez toutes les demandes de crédit</p>
+          <p>{{ filteredApplications.length }} dossier(s) — 
+            <span *ngIf="isChargeCredit" class="role-hint">Mode : Consultation &amp; dépôt documents</span>
+            <span *ngIf="isAnalyste"     class="role-hint">Mode : Analyse &amp; décision</span>
+          </p>
         </div>
-        <button class="btn btn--primary" (click)="openNewApplicationModal()">
-          📝 Nouvelle demande
+        <button class="btn btn--primary" *ngIf="isChargeCredit" (click)="openApplicationModal()">
+          📝 Nouveau dossier
         </button>
       </div>
 
@@ -183,366 +266,562 @@
       <div class="filters">
         <div class="filters__search">
           <span class="search-icon">🔍</span>
-          <input
-            type="text"
-            [(ngModel)]="searchTerm"
-            placeholder="Rechercher par client..."
-            class="search-input"
-          />
+          <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()"
+                 placeholder="Rechercher par client ou objet..." class="search-input"/>
         </div>
-
         <div class="filters__controls">
-          <select [(ngModel)]="filterStatus" class="filter-select">
+          <select [(ngModel)]="filterStatus" (ngModelChange)="onFilterChange()" class="filter-select">
             <option value="ALL">Tous les statuts</option>
-            <option value="EN_ATTENTE">En attente</option>
-            <option value="EN_ANALYSE">En analyse</option>
-            <option value="ACCEPTE">Acceptés</option>
-            <option value="REFUSE">Refusés</option>
+            <option value="EN_ATTENTE">⏳ En attente</option>
+            <option value="EN_ANALYSE">🔍 En analyse</option>
+            <option value="ACCEPTE">✅ Acceptés</option>
+            <option value="REFUSE">❌ Refusés</option>
           </select>
-
-          <select [(ngModel)]="filterAmount" class="filter-select">
+          <select [(ngModel)]="filterAmount" (ngModelChange)="onFilterChange()" class="filter-select">
             <option value="ALL">Tous montants</option>
             <option value="0-10000">Moins de 10k€</option>
             <option value="10000-50000">10k€ - 50k€</option>
             <option value="50000+">Plus de 50k€</option>
           </select>
-
-          <button class="btn btn--ghost" (click)="resetFilters()">
-            🔄 Réinitialiser
-          </button>
+          <button class="btn btn--ghost" (click)="resetFilters()">🔄 Réinitialiser</button>
         </div>
       </div>
 
-      <!-- Applications Table -->
-      <div class="applications-table-container" *ngIf="!loading; else loadingTemplate">
-        <table class="applications-table" *ngIf="filteredApplications.length > 0; else noApplications">
+      <!-- Table -->
+      <div class="applications-table-container" *ngIf="filteredApplications.length > 0; else noApps">
+        <table class="applications-table">
           <thead>
             <tr>
-              <th>Client</th>
-              <th>Montant</th>
-              <th>Durée</th>
-              <th>Mensualité</th>
-              <th>Objet</th>
-              <th>Statut</th>
-              <th>Date</th>
-              <th>Actions</th>
+              <th>Client</th><th>Montant</th><th>Durée</th>
+              <th>Mensualité</th><th>Objet</th><th>Statut</th>
+              <th>Date</th><th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let application of filteredApplications">
+            <tr *ngFor="let app of filteredApplications; trackBy: trackByApp">
               <td class="client-cell">
-                <div class="client-avatar">
-                  {{ application.clientName.charAt(0) }}
-                </div>
-                <div class="client-info">
-                  <strong>{{ application.clientName }}</strong>
-                </div>
+                <div class="client-avatar">{{ app.clientName.charAt(0) }}</div>
+                <strong>{{ app.clientName }}</strong>
               </td>
-              <td class="amount-cell">{{ application.amount | number }} €</td>
-              <td>{{ application.duration }} mois</td>
-              <td>{{ application.monthlyPayment | number }} €</td>
-              <td>{{ application.purpose }}</td>
+              <td class="amount-cell">{{ app.amount | number:'1.0-0' }} €</td>
+              <td>{{ app.duration }} mois</td>
+              <td>{{ app.monthlyPayment | number:'1.0-0' }} €</td>
+              <td>{{ app.purpose }}</td>
               <td>
-                <span
-                  class="status-badge"
-                  [class]="getStatusClass(application.status)"
-                >
-                  {{ getStatusLabel(application.status) }}
+                <span class="status-badge" [class]="getStatusClass(app.status)">
+                  {{ getStatusLabel(app.status) }}
                 </span>
               </td>
-              <td>{{ application.createdAt | date:'dd/MM/yyyy' }}</td>
+              <td>{{ app.createdAt | date:'dd/MM/yyyy' }}</td>
               <td class="actions-cell">
-                <button
-                  class="action-btn"
-                  (click)="viewApplication(application)"
-                  title="Consulter"
-                >
-                  👁️
+                <!-- Voir dossier : tous les rôles -->
+                <button class="action-btn" (click)="viewApplication(app)" title="Consulter">👁️</button>
+
+                <!-- Changer statut : analyste seulement -->
+                <button class="action-btn action-btn--analyze"
+                        *ngIf="canChangeStatus(app)"
+                        (click)="openStatusModal(app)"
+                        title="{{ app.status === 'EN_ATTENTE' ? 'Prendre en charge' : 'Décider' }}">
+                  {{ app.status === 'EN_ATTENTE' ? '▶️' : '⚖️' }}
                 </button>
-                <button
-                  *ngIf="application.status === 'EN_ATTENTE'"
-                  class="action-btn"
-                  (click)="startAnalysis(application)"
-                  title="Commencer l'analyse"
-                >
-                  🔍
-                </button>
-                <button
-                  class="action-btn"
-                  (click)="updateStatus(application)"
-                  title="Mettre à jour le statut"
-                >
-                  📝
-                </button>
-               </td>
-             </tr>
+
+                <!-- Verrou pour chargé crédit -->
+                <span class="action-lock" *ngIf="isChargeCredit && !isFinalStatus(app.status)"
+                      title="Modification réservée à l'analyste">🔒</span>
+              </td>
+            </tr>
           </tbody>
         </table>
-
-        <ng-template #noApplications>
-          <div class="empty-state">
-            <div class="empty-state__icon">📋</div>
-            <h3>Aucun dossier trouvé</h3>
-            <p>Aucune demande de crédit ne correspond à vos critères</p>
-            <button class="btn btn--primary" (click)="resetFilters()">
-              Réinitialiser les filtres
-            </button>
-          </div>
-        </ng-template>
       </div>
 
-      <ng-template #loadingTemplate>
-        <div class="loading-state">
-          <div class="spinner"></div>
-          <p>Chargement des dossiers...</p>
+      <ng-template #noApps>
+        <div class="empty-state">
+          <div class="empty-state__icon">📋</div>
+          <h3>Aucun dossier trouvé</h3>
+          <p>Modifiez les filtres{{ isChargeCredit ? ' ou créez un nouveau dossier' : '' }}.</p>
+          <button class="btn btn--ghost" (click)="resetFilters()">Réinitialiser</button>
         </div>
       </ng-template>
     </div>
 
-    <!-- Clients View (US2.5) -->
+    <!-- ══════════════════════════════
+         CLIENTS (US 2.5 — Chargé crédit)
+    ════════════════════════════════ -->
     <div class="section" *ngIf="currentView === 'clients'">
       <div class="section__head">
-        <div>
-          <h2>Base clients</h2>
-          <p>Consultez les informations personnelles et financières des clients</p>
-        </div>
-        <button class="btn btn--primary" (click)="openNewClientModal()">
+        <div><h2>Base clients</h2><p>{{ clients.length }} client(s) enregistré(s)</p></div>
+        <button class="btn btn--primary" *ngIf="isChargeCredit" (click)="openClientModal()">
           👤 Nouveau client
         </button>
       </div>
 
-      <!-- Clients List -->
-      <div class="clients-container">
-        <div class="clients-grid">
-          <div class="client-card" *ngFor="let client of clients" (click)="viewClientDetails(client)">
-            <div class="client-card__header">
-              <div class="client-card__avatar">
-                {{ client.fullName.charAt(0) }}
-              </div>
-              <div class="client-card__info">
-                <h3>{{ client.fullName }}</h3>
-                <p>{{ client.email }}</p>
-              </div>
+      <div class="clients-grid">
+        <div class="client-card" *ngFor="let client of clients; trackBy: trackByClient"
+             (click)="viewClientDetails(client)">
+          <div class="client-card__header">
+            <div class="client-card__avatar">{{ client.fullName.charAt(0) }}</div>
+            <div class="client-card__info">
+              <h3>{{ client.fullName }}</h3>
+              <p>{{ client.email }}</p>
+              <small>{{ client.profession }} — {{ client.city }}</small>
             </div>
-            <div class="client-card__stats">
-              <div class="client-stat">
-                <span class="client-stat__label">Revenus mensuels</span>
-                <span class="client-stat__value">{{ client.revenue | number }} €</span>
-              </div>
-              <div class="client-stat">
-                <span class="client-stat__label">Charges mensuelles</span>
-                <span class="client-stat__value">{{ client.monthlyCharges | number }} €</span>
-              </div>
-              <div class="client-stat">
-                <span class="client-stat__label">Crédits en cours</span>
-                <span class="client-stat__value">{{ client.existingLoans | number }} €</span>
-              </div>
+          </div>
+          <div class="client-card__stats">
+            <div class="client-stat">
+              <span class="client-stat__label">Revenus</span>
+              <span class="client-stat__value">{{ client.revenue | number:'1.0-0' }} €</span>
             </div>
-            <div class="client-card__footer">
-              <span class="client-badge">{{ client.profession }}</span>
-              <button class="btn btn--small" (click)="$event.stopPropagation(); viewClientDetails(client)">
-                Voir détails
-              </button>
+            <div class="client-stat">
+              <span class="client-stat__label">Charges</span>
+              <span class="client-stat__value">{{ client.monthlyCharges | number:'1.0-0' }} €</span>
             </div>
+            <div class="client-stat">
+              <span class="client-stat__label">Dossiers</span>
+              <span class="client-stat__value">{{ getClientApplications(client._id).length }}</span>
+            </div>
+          </div>
+          <div class="client-card__footer">
+            <span class="client-badge">CIN : {{ client.cin }}</span>
+            <button class="btn btn--small btn--ghost"
+                    (click)="$event.stopPropagation(); viewClientDetails(client)">
+              Voir détails →
+            </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Application Detail Modal -->
-    <div class="modal modal--large" *ngIf="selectedApplication" (click)="closeApplicationDetail()">
-      <div class="modal__content" (click)="$event.stopPropagation()">
-        <div class="modal__header">
-          <h2>Dossier de crédit - {{ selectedApplication.clientName }}</h2>
-          <button class="modal__close" (click)="closeApplicationDetail()">✕</button>
+  </main>
+</div>
+
+<!-- ════════════════════════════════════════════
+     MODAL — Détail dossier
+═════════════════════════════════════════════ -->
+<div class="modal" *ngIf="selectedApplication" (click)="closeApplication()">
+  <div class="modal__content modal--large" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <div>
+        <h2>Dossier — {{ selectedApplication.clientName }}</h2>
+        <span class="status-badge" [class]="getStatusClass(selectedApplication.status)">
+          {{ getStatusLabel(selectedApplication.status) }}
+        </span>
+      </div>
+      <button class="modal__close" (click)="closeApplication()">✕</button>
+    </div>
+    <div class="modal__body">
+
+      <!-- Infos générales -->
+      <div class="detail-section">
+        <h3>Informations générales</h3>
+        <div class="detail-grid">
+          <div class="detail-item"><label>Montant</label><div class="detail-value">{{ selectedApplication.amount | number:'1.0-0' }} €</div></div>
+          <div class="detail-item"><label>Durée</label><div class="detail-value">{{ selectedApplication.duration }} mois</div></div>
+          <div class="detail-item"><label>Mensualité</label><div class="detail-value">{{ selectedApplication.monthlyPayment | number:'1.0-0' }} €</div></div>
+          <div class="detail-item"><label>Taux</label><div class="detail-value">{{ selectedApplication.interestRate }}%</div></div>
+          <div class="detail-item"><label>Objet</label><div class="detail-value">{{ selectedApplication.purpose }}</div></div>
+          <div class="detail-item"><label>Date création</label><div class="detail-value">{{ selectedApplication.createdAt | date:'dd/MM/yyyy HH:mm' }}</div></div>
+          <div class="detail-item" *ngIf="selectedApplication.processedBy">
+            <label>Traité par</label><div class="detail-value">{{ selectedApplication.processedBy }}</div>
+          </div>
+          <div class="detail-item" *ngIf="selectedApplication.rejectionReason">
+            <label>Motif refus</label>
+            <div class="detail-value" style="color:#ef4444">{{ selectedApplication.rejectionReason }}</div>
+          </div>
         </div>
-        <div class="modal__body">
-          <!-- Informations générales -->
-          <div class="detail-section">
-            <h3>Informations générales</h3>
-            <div class="detail-grid">
-              <div class="detail-item">
-                <label>Montant demandé</label>
-                <div class="detail-value">{{ selectedApplication.amount | number }} €</div>
-              </div>
-              <div class="detail-item">
-                <label>Durée</label>
-                <div class="detail-value">{{ selectedApplication.duration }} mois</div>
-              </div>
-              <div class="detail-item">
-                <label>Mensualité</label>
-                <div class="detail-value">{{ selectedApplication.monthlyPayment | number }} €</div>
-              </div>
-              <div class="detail-item">
-                <label>Objet du crédit</label>
-                <div class="detail-value">{{ selectedApplication.purpose }}</div>
-              </div>
-              <div class="detail-item">
-                <label>Statut actuel</label>
-                <div class="detail-value">
-                  <span class="status-badge" [class]="getStatusClass(selectedApplication.status)">
-                    {{ getStatusLabel(selectedApplication.status) }}
-                  </span>
-                </div>
-              </div>
-              <div class="detail-item">
-                <label>Date de demande</label>
-                <div class="detail-value">{{ selectedApplication.createdAt | date:'fullDate' }}</div>
-              </div>
-            </div>
-          </div>
+      </div>
 
-          <!-- Situation financière du client -->
-          <div class="detail-section">
-            <h3>Situation financière du client</h3>
-            <div class="financial-indicators">
-              <div class="indicator">
-                <div class="indicator__label">Revenus mensuels</div>
-                <div class="indicator__value">{{ getClientFinancials(selectedApplication.clientId).revenue | number }} €</div>
-              </div>
-              <div class="indicator">
-                <div class="indicator__label">Charges mensuelles</div>
-                <div class="indicator__value">{{ getClientFinancials(selectedApplication.clientId).monthlyCharges | number }} €</div>
-              </div>
-              <div class="indicator">
-                <div class="indicator__label">Crédits en cours</div>
-                <div class="indicator__value">{{ getClientFinancials(selectedApplication.clientId).existingLoans | number }} €</div>
-              </div>
-              <div class="indicator">
-                <div class="indicator__label">Capacité résiduelle</div>
-                <div class="indicator__value">{{ getRemainingCapacity(selectedApplication.clientId) | number }} €</div>
-              </div>
-              <div class="indicator">
-                <div class="indicator__label">Taux d'endettement</div>
-                <div class="indicator__value" [class.high-risk]="getDebtRatio(selectedApplication.clientId) > 33">
-                  {{ getDebtRatio(selectedApplication.clientId) }}%
-                </div>
-              </div>
-            </div>
+      <!-- Situation financière -->
+      <div class="detail-section">
+        <h3>Situation financière du client</h3>
+        <div class="financial-indicators">
+          <div class="indicator">
+            <div class="indicator__label">Revenus mensuels</div>
+            <div class="indicator__value">{{ getClientFinancials(selectedApplication.clientId).revenue | number:'1.0-0' }} €</div>
           </div>
-
-          <!-- Documents (US2.2) -->
-          <div class="detail-section">
-            <h3>Documents fournis</h3>
-            <div class="documents-list">
-              <div class="document-item" *ngFor="let doc of selectedApplication.documents">
-                <div class="document-item__icon">📄</div>
-                <div class="document-item__info">
-                  <div class="document-item__name">{{ doc.name }}</div>
-                  <div class="document-item__date">{{ doc.uploadedAt | date }}</div>
-                </div>
-                <div class="document-item__status">
-                  <span class="doc-status" [class]="getDocStatusClass(doc.status)">
-                    {{ getDocStatusLabel(doc.status) }}
-                  </span>
-                </div>
-                <button class="document-item__download" (click)="downloadDocument(doc)">📥</button>
-              </div>
-              <button class="btn btn--ghost" (click)="uploadDocument(selectedApplication)">
-                + Ajouter un document
-              </button>
-            </div>
+          <div class="indicator">
+            <div class="indicator__label">Charges mensuelles</div>
+            <div class="indicator__value">{{ getClientFinancials(selectedApplication.clientId).monthlyCharges | number:'1.0-0' }} €</div>
           </div>
-
-          <!-- Historique des commentaires -->
-          <div class="detail-section">
-            <h3>Historique de traitement</h3>
-            <div class="comments-timeline">
-              <div class="comment" *ngFor="let comment of selectedApplication.comments">
-                <div class="comment__avatar">{{ comment.userName.charAt(0) }}</div>
-                <div class="comment__content">
-                  <div class="comment__header">
-                    <strong>{{ comment.userName }}</strong>
-                    <span class="comment__date">{{ comment.createdAt | date:'short' }}</span>
-                  </div>
-                  <div class="comment__text">{{ comment.content }}</div>
-                </div>
-              </div>
+          <div class="indicator">
+            <div class="indicator__label">Capacité résiduelle</div>
+            <div class="indicator__value">{{ getRemainingCapacity(selectedApplication.clientId) | number:'1.0-0' }} €</div>
+          </div>
+          <div class="indicator">
+            <div class="indicator__label">Taux d'endettement</div>
+            <div class="indicator__value"
+                 [class.high-risk]="getDebtRatio(selectedApplication.clientId, selectedApplication.monthlyPayment) > 33">
+              {{ getDebtRatio(selectedApplication.clientId, selectedApplication.monthlyPayment) }}%
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Actions -->
-        <div class="modal__footer" *ngIf="selectedApplication.status !== 'ACCEPTE' && selectedApplication.status !== 'REFUSE'">
-          <button class="btn btn--ghost" (click)="closeApplicationDetail()">Fermer</button>
-          <button class="btn btn--danger" (click)="rejectApplication(selectedApplication)">Refuser</button>
-          <button class="btn btn--success" (click)="acceptApplication(selectedApplication)">Accepter</button>
+      <!-- Documents (US 2.2) -->
+      <div class="detail-section">
+        <div class="section-header-row">
+          <h3>Documents <span class="count-badge">{{ selectedApplication.documents.length }}</span></h3>
+        </div>
+
+        <div class="documents-list" *ngIf="selectedApplication.documents.length > 0">
+          <div class="document-item" *ngFor="let doc of selectedApplication.documents">
+            <div class="document-item__icon">📄</div>
+            <div class="document-item__info">
+              <div class="document-item__name">{{ doc.name }}</div>
+              <div class="document-item__meta">{{ formatSize(doc.size) }} — {{ doc.uploadedAt | date:'dd/MM/yyyy' }}</div>
+            </div>
+            <span class="doc-status" [class]="getDocStatusClass(doc.status)">
+              {{ getDocStatusLabel(doc.status) }}
+            </span>
+            <!-- Valider : analyste seulement -->
+            <button class="action-btn" *ngIf="doc.status === 'EN_ATTENTE' && (isAnalyste || isAdmin)"
+                    (click)="validateDocument(doc._id)" title="Valider le document">✅</button>
+            <!-- Télécharger -->
+            <a class="action-btn" [href]="creditService.getDocumentUrl(doc.url)" target="_blank"
+               title="Télécharger">📥</a>
+          </div>
+        </div>
+        <p class="no-data" *ngIf="selectedApplication.documents.length === 0">Aucun document déposé</p>
+
+        <!-- Upload : chargé crédit seulement, si dossier pas final -->
+        <div *ngIf="isChargeCredit && !isFinalStatus(selectedApplication.status)" style="margin-top:14px">
+          <label class="btn btn--ghost upload-label">
+            📎 Ajouter un document
+            <input type="file" accept=".pdf,.jpg,.jpeg,.png"
+                   (change)="onFileSelected($event)" style="display:none"/>
+          </label>
+          <span class="upload-hint">PDF, JPEG, PNG — max 5 Mo</span>
+          <div class="upload-progress" *ngIf="loading">
+            <div class="spinner-sm"></div> <span>{{ uploadStatus || 'Upload en cours...' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline statuts (US 2.6) -->
+      <div class="detail-section">
+        <h3>Suivi du dossier</h3>
+        <div class="timeline">
+          <div class="timeline-item" *ngFor="let h of selectedApplication.statusHistory">
+            <div class="timeline-dot" [class]="getStatusClass(h.status)"></div>
+            <div class="timeline-content">
+              <span class="status-badge" [class]="getStatusClass(h.status)">{{ getStatusLabel(h.status) }}</span>
+              <div class="timeline-meta">{{ h.changedBy }} — {{ h.changedAt | date:'dd/MM/yyyy HH:mm' }}</div>
+              <div class="timeline-comment" *ngIf="h.comment">{{ h.comment }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Commentaires -->
+      <div class="detail-section">
+        <h3>Historique de traitement</h3>
+        <div class="comments-timeline">
+          <div class="comment" *ngFor="let c of selectedApplication.comments">
+            <div class="comment__avatar">{{ c.userName.charAt(0) }}</div>
+            <div class="comment__content">
+              <div class="comment__header">
+                <strong>{{ c.userName }}</strong>
+                <span class="comment__date">{{ c.createdAt | date:'dd/MM HH:mm' }}</span>
+              </div>
+              <div class="comment__text">{{ c.content }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="comment-input" *ngIf="!isFinalStatus(selectedApplication.status)">
+          <input type="text" [(ngModel)]="newCommentText"
+                 placeholder="Ajouter un commentaire..." class="search-input"
+                 (keyup.enter)="submitComment()"/>
+          <button class="btn btn--primary" (click)="submitComment()"
+                  [disabled]="!newCommentText.trim()">Envoyer</button>
         </div>
       </div>
     </div>
 
-    <!-- New Application Modal (US2.1) -->
-    <div class="modal" *ngIf="showNewApplicationModal" (click)="closeNewApplicationModal()">
-      <div class="modal__content" (click)="$event.stopPropagation()">
-        <div class="modal__header">
-          <h2>Nouvelle demande de crédit</h2>
-          <button class="modal__close" (click)="closeNewApplicationModal()">✕</button>
+    <div class="modal__footer">
+      <button class="btn btn--ghost" (click)="closeApplication()">Fermer</button>
+
+      <!-- Chargé crédit : info seulement -->
+      <span class="role-info" *ngIf="isChargeCredit && !isFinalStatus(selectedApplication.status)">
+        🔒 Traitement réservé à l'analyste
+      </span>
+
+      <!-- Analyste : bouton de décision -->
+      <button class="btn btn--primary"
+              *ngIf="canChangeStatus(selectedApplication)"
+              (click)="openStatusModal(selectedApplication)">
+        {{ selectedApplication.status === 'EN_ATTENTE' ? '▶️ Prendre en charge' : '⚖️ Décider' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     MODAL — Détail client (US 2.5)
+═════════════════════════════════════════════ -->
+<div class="modal" *ngIf="selectedClient" (click)="closeClientDetails()">
+  <div class="modal__content modal--large" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <h2>Fiche client — {{ selectedClient.fullName }}</h2>
+      <button class="modal__close" (click)="closeClientDetails()">✕</button>
+    </div>
+    <div class="modal__body">
+      <div class="detail-section">
+        <h3>Informations personnelles</h3>
+        <div class="detail-grid">
+          <div class="detail-item"><label>CIN</label><div class="detail-value">{{ selectedClient.cin }}</div></div>
+          <div class="detail-item"><label>Naissance</label><div class="detail-value">{{ selectedClient.birthDate | date:'dd/MM/yyyy' }}</div></div>
+          <div class="detail-item"><label>Téléphone</label><div class="detail-value">{{ selectedClient.phone }}</div></div>
+          <div class="detail-item"><label>Email</label><div class="detail-value">{{ selectedClient.email }}</div></div>
+          <div class="detail-item"><label>Adresse</label><div class="detail-value">{{ selectedClient.address }}, {{ selectedClient.city }}</div></div>
+          <div class="detail-item"><label>Employeur</label><div class="detail-value">{{ selectedClient.employer }}</div></div>
         </div>
-        <div class="modal__body">
-          <div class="form-group">
-            <label>Client</label>
-            <select [(ngModel)]="newApplication.clientId" class="form-control" (change)="onClientSelect()">
-              <option value="">Sélectionner un client</option>
-              <option *ngFor="let client of clients" [value]="client._id">
-                {{ client.fullName }} - {{ client.email }}
-              </option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Montant demandé (€)</label>
-            <input
-              type="number"
-              [(ngModel)]="newApplication.amount"
-              class="form-control"
-              (change)="calculateMonthlyPayment()"
-              placeholder="Ex: 25000"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>Durée (mois)</label>
-            <input
-              type="number"
-              [(ngModel)]="newApplication.duration"
-              class="form-control"
-              (change)="calculateMonthlyPayment()"
-              placeholder="Ex: 60"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>Objet du crédit</label>
-            <select [(ngModel)]="newApplication.purpose" class="form-control">
-              <option value="ACHAT_VEHICULE">Achat véhicule</option>
-              <option value="TRAVAUX">Travaux</option>
-              <option value="CONSOMMATION">Consommation</option>
-              <option value="ETUDES">Études</option>
-              <option value="AUTRE">Autre</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Mensualité estimée</label>
-            <input
-              type="text"
-              [value]="(newApplication.monthlyPayment | number) + ' €'"
-              class="form-control"
-              disabled
-            />
-          </div>
-
-          <div class="alert" *ngIf="showDebtWarning" [class.alert--warning]="showDebtWarning">
-            ⚠️ Attention : Cette demande porterait le taux d'endettement du client au-delà de 33%
+      </div>
+      <div class="detail-section">
+        <h3>Situation financière</h3>
+        <div class="financial-indicators">
+          <div class="indicator"><div class="indicator__label">Revenus mensuels</div><div class="indicator__value">{{ selectedClient.revenue | number:'1.0-0' }} €</div></div>
+          <div class="indicator"><div class="indicator__label">Charges mensuelles</div><div class="indicator__value">{{ selectedClient.monthlyCharges | number:'1.0-0' }} €</div></div>
+          <div class="indicator"><div class="indicator__label">Crédits en cours</div><div class="indicator__value">{{ selectedClient.existingLoans | number:'1.0-0' }} €</div></div>
+          <div class="indicator">
+            <div class="indicator__label">Taux endettement</div>
+            <div class="indicator__value"
+                 [class.high-risk]="getDebtRatio(selectedClient._id) > 33">
+              {{ getDebtRatio(selectedClient._id) }}%
+            </div>
           </div>
         </div>
-        <div class="modal__footer">
-          <button class="btn btn--ghost" (click)="closeNewApplicationModal()">Annuler</button>
-          <button class="btn btn--primary" (click)="submitApplication()" [disabled]="!isApplicationValid()">
-            Soumettre la demande
+      </div>
+      <div class="detail-section">
+        <h3>Dossiers associés ({{ getClientApplications(selectedClient._id).length }})</h3>
+        <div class="recent-list">
+          <div class="recent-item" *ngFor="let app of getClientApplications(selectedClient._id)"
+               (click)="closeClientDetails(); viewApplication(app)">
+            <div style="flex:1">
+              <strong>{{ app.amount | number:'1.0-0' }} € — {{ app.duration }} mois</strong>
+              <div style="font-size:13px;opacity:.7">{{ app.purpose }} — {{ app.createdAt | date:'dd/MM/yyyy' }}</div>
+            </div>
+            <span class="status-badge" [class]="getStatusClass(app.status)">{{ getStatusLabel(app.status) }}</span>
+          </div>
+          <p class="no-data" *ngIf="getClientApplications(selectedClient._id).length === 0">Aucun dossier</p>
+        </div>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--ghost" (click)="closeClientDetails()">Fermer</button>
+      <button class="btn btn--primary" *ngIf="isChargeCredit"
+              (click)="closeClientDetails(); openApplicationModal()">
+        📝 Nouveau dossier
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     MODAL — Nouveau client (US 2.1)
+═════════════════════════════════════════════ -->
+<div class="modal" *ngIf="showClientModal" (click)="closeClientModal()">
+  <div class="modal__content modal--large" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <h2>Nouveau client</h2>
+      <button class="modal__close" (click)="closeClientModal()">✕</button>
+    </div>
+    <div class="modal__body" [formGroup]="clientForm">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nom complet *</label>
+          <input type="text" formControlName="fullName" class="form-control" placeholder="Ex: Jean Dupont"/>
+          <span class="form-error" *ngIf="clientForm.get('fullName')?.touched && clientForm.get('fullName')?.invalid">Minimum 3 caractères</span>
+        </div>
+        <div class="form-group">
+          <label>CIN *</label>
+          <input type="text" formControlName="cin" class="form-control" placeholder="Ex: 12345678"/>
+          <span class="form-error" *ngIf="clientForm.get('cin')?.touched && clientForm.get('cin')?.invalid">CIN invalide</span>
+        </div>
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" formControlName="email" class="form-control" placeholder="email@exemple.com"/>
+          <span class="form-error" *ngIf="clientForm.get('email')?.touched && clientForm.get('email')?.invalid">Email invalide</span>
+        </div>
+        <div class="form-group">
+          <label>Téléphone *</label>
+          <input type="text" formControlName="phone" class="form-control" placeholder="+216 XX XXX XXX"/>
+        </div>
+        <div class="form-group">
+          <label>Date de naissance *</label>
+          <input type="date" formControlName="birthDate" class="form-control"/>
+        </div>
+        <div class="form-group">
+          <label>Ville *</label>
+          <input type="text" formControlName="city" class="form-control" placeholder="Tunis, Sfax..."/>
+        </div>
+        <div class="form-group form-group--full">
+          <label>Adresse *</label>
+          <input type="text" formControlName="address" class="form-control" placeholder="Rue, numéro..."/>
+        </div>
+        <div class="form-group">
+          <label>Profession *</label>
+          <input type="text" formControlName="profession" class="form-control"/>
+        </div>
+        <div class="form-group">
+          <label>Employeur *</label>
+          <input type="text" formControlName="employer" class="form-control"/>
+        </div>
+        <div class="form-group">
+          <label>Revenus mensuels (€) *</label>
+          <input type="number" formControlName="revenue" class="form-control" min="0"/>
+          <span class="form-error" *ngIf="clientForm.get('revenue')?.touched && clientForm.get('revenue')?.invalid">Montant requis</span>
+        </div>
+        <div class="form-group">
+          <label>Charges mensuelles (€) *</label>
+          <input type="number" formControlName="monthlyCharges" class="form-control" min="0"/>
+        </div>
+        <div class="form-group">
+          <label>Crédits en cours (€)</label>
+          <input type="number" formControlName="existingLoans" class="form-control" min="0"/>
+        </div>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--ghost" (click)="closeClientModal()">Annuler</button>
+      <button class="btn btn--primary" (click)="submitClient()" [disabled]="clientForm.invalid || loading">
+        <span *ngIf="!loading">✓ Créer le client</span>
+        <span *ngIf="loading">Création...</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     MODAL — Nouveau dossier (US 2.1 — Chargé crédit)
+═════════════════════════════════════════════ -->
+<div class="modal" *ngIf="showApplicationModal" (click)="closeApplicationModal()">
+  <div class="modal__content" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <div>
+        <h2>Nouveau dossier de crédit</h2>
+        <span class="info-badge">Statut initial automatique : EN ATTENTE</span>
+      </div>
+      <button class="modal__close" (click)="closeApplicationModal()">✕</button>
+    </div>
+    <div class="modal__body" [formGroup]="applicationForm">
+      <div class="form-group">
+        <label>Client *</label>
+        <select formControlName="clientId" class="form-control">
+          <option value="">— Sélectionner un client —</option>
+          <option *ngFor="let c of clients" [value]="c._id">
+            {{ c.fullName }} ({{ c.profession }})
+          </option>
+        </select>
+      </div>
+      <div class="form-grid" style="grid-template-columns:1fr 1fr">
+        <div class="form-group">
+          <label>Montant (€) * <small>1 000 – 500 000</small></label>
+          <input type="number" formControlName="amount" class="form-control"
+                 min="1000" max="500000" placeholder="Ex: 25000"/>
+        </div>
+        <div class="form-group">
+          <label>Durée (mois) * <small>6 – 360</small></label>
+          <input type="number" formControlName="duration" class="form-control"
+                 min="6" max="360" placeholder="Ex: 60"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Objet du crédit *</label>
+        <select formControlName="purpose" class="form-control">
+          <option value="ACHAT_VEHICULE">Achat véhicule</option>
+          <option value="ACHAT_IMMOBILIER">Achat immobilier</option>
+          <option value="TRAVAUX">Travaux</option>
+          <option value="CONSOMMATION">Consommation</option>
+          <option value="AUTRE">Autre</option>
+        </select>
+      </div>
+
+      <!-- Résumé dynamique -->
+      <div class="app-summary" *ngIf="estimatedMonthly > 0">
+        <div class="app-summary__item">
+          <span>Mensualité estimée (5.5%)</span>
+          <strong>{{ estimatedMonthly | number:'1.0-0' }} €/mois</strong>
+        </div>
+        <div class="app-summary__item" *ngIf="selectedClientForApp">
+          <span>Taux d'endettement après crédit</span>
+          <strong [class.high-risk]="debtWarning">{{ debtRatio }}%</strong>
+        </div>
+        <div class="app-summary__item" *ngIf="applicationForm.value.amount > 0 && applicationForm.value.duration > 0">
+          <span>Coût total</span>
+          <strong>{{ (estimatedMonthly * applicationForm.value.duration) | number:'1.0-0' }} €</strong>
+        </div>
+      </div>
+
+      <div class="alert alert--warning" *ngIf="debtWarning">
+        ⚠️ Taux d'endettement > 33% — le dossier sera refusé automatiquement par le backend.
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--ghost" (click)="closeApplicationModal()">Annuler</button>
+      <button class="btn btn--primary" (click)="submitApplication()"
+              [disabled]="applicationForm.invalid || debtWarning || loading">
+        <span *ngIf="!loading">📝 Soumettre — statut : EN ATTENTE</span>
+        <span *ngIf="loading">Envoi en cours...</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     MODAL — Mise à jour statut (US 2.4 — Analyste)
+═════════════════════════════════════════════ -->
+<div class="modal" *ngIf="showStatusModal && statusUpdateTarget" (click)="closeStatusModal()">
+  <div class="modal__content" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <div>
+        <h2>{{ statusUpdateTarget.status === 'EN_ATTENTE' ? 'Prendre en charge le dossier' : 'Décision finale' }}</h2>
+        <span class="info-badge">🔍 Interface Analyste</span>
+      </div>
+      <button class="modal__close" (click)="closeStatusModal()">✕</button>
+    </div>
+    <div class="modal__body">
+      <div class="dossier-recap">
+        <strong>{{ statusUpdateTarget.clientName }}</strong>
+        — {{ statusUpdateTarget.amount | number:'1.0-0' }} € / {{ statusUpdateTarget.duration }} mois
+        <br/>
+        <span class="status-badge" [class]="getStatusClass(statusUpdateTarget.status)">
+          {{ getStatusLabel(statusUpdateTarget.status) }}
+        </span>
+      </div>
+
+      <div class="form-group" style="margin-top:20px">
+        <label>Nouveau statut *</label>
+        <div class="status-choices">
+          <button *ngFor="let s of getAllowedStatuses(statusUpdateTarget.status)"
+                  class="status-choice"
+                  [class.selected]="pendingStatus === s"
+                  [class]="'status-choice ' + getStatusClass(s)"
+                  (click)="pendingStatus = s">
+            {{ s === 'EN_ANALYSE' ? '▶️ Prendre en charge' :
+               s === 'ACCEPTE'   ? '✅ Accepter' :
+               s === 'REFUSE'    ? '❌ Refuser' : getStatusLabel(s) }}
           </button>
         </div>
       </div>
+
+      <div class="form-group">
+        <label>
+          Commentaire
+          <span *ngIf="pendingStatus === 'REFUSE'">* <em>(obligatoire pour un refus)</em></span>
+          <span *ngIf="pendingStatus !== 'REFUSE'">(optionnel)</span>
+        </label>
+        <textarea [(ngModel)]="statusComment" class="form-control" rows="3"
+          [placeholder]="pendingStatus === 'REFUSE'
+            ? 'Motif du refus obligatoire...'
+            : 'Commentaire sur la décision...'"></textarea>
+      </div>
     </div>
-  </main>
+    <div class="modal__footer">
+      <button class="btn btn--ghost" (click)="closeStatusModal()">Annuler</button>
+      <button class="btn btn--primary" (click)="confirmStatusUpdate()"
+              [disabled]="loading || (pendingStatus === 'REFUSE' && !statusComment.trim())">
+        <span *ngIf="!loading">✓ Confirmer</span>
+        <span *ngIf="loading">Mise à jour...</span>
+      </button>
+    </div>
+  </div>
 </div>

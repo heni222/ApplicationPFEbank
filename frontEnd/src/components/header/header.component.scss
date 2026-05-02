@@ -18,22 +18,45 @@ $shadow-lg: 0 20px 40px -10px rgba(0, 20, 40, 0.2);
 $radius: 20px;
 $radius-sm: 12px;
 $transition: all 0.2s ease;
+
+// Ajout d'un padding-top au body pour compenser le header fixe
+body {
+  padding-top: 80px; // Ajout d'une marge en haut pour éviter que le contenu ne soit caché sous le header
+}
+
 .tw-header {
   position: fixed;
+  padding: 1.5rem 2rem; // au lieu de 1rem 2rem
   top: 0;
   left: 0;
   width: 100%;
-  z-index: 1000;
-  background: transparent;
-  transition: $transition;
-  padding: 1rem 2rem;
+  z-index: 9999;
+  background: rgba($color-surface, 0.95); // ← toujours visible
+  backdrop-filter: blur(8px);
+  box-shadow: $shadow-sm;
+
+  // Alternative : ajout d'un élément pseudo pour créer de l'espace
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -20px; // Correspond à la marge négative pour compenser
+    left: 0;
+    width: 100%;
+    height: 90px;
+    background: transparent;
+    pointer-events: none;
+  }
 
   &.is-scrolled {
     background: rgba($color-surface, 0.95);
     -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
-
     box-shadow: $shadow-sm;
+    margin-bottom: 0; // Supprime la marge quand scrolled pour un effet plus propre
+    
+    &::after {
+      display: none; // Cache l'élément pseudo quand scrolled
+    }
   }
 
   &__inner {
@@ -314,6 +337,11 @@ $transition: all 0.2s ease;
 
   .tw-header {
     padding: 1rem;
+    margin-bottom: 15px; // Marge réduite sur mobile
+  }
+  
+  body {
+    padding-top: 70px; // Padding réduit sur mobile
   }
 }
 
@@ -326,5 +354,13 @@ $transition: all 0.2s ease;
   .tw-actions .tw-btn--primary {
     padding: 0.6rem 1rem;
     font-size: 0.9rem;
+  }
+  
+  .tw-header {
+    margin-bottom: 10px; // Marge encore plus réduite sur très petits écrans
+  }
+  
+  body {
+    padding-top: 60px; // Padding ajusté pour très petits écrans
   }
 }

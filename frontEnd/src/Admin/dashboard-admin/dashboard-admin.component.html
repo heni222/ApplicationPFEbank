@@ -1,28 +1,39 @@
 <div class="dashboard">
-  <!-- Sidebar -->
+  <!-- ================= SIDEBAR ================= -->
   <aside class="sidebar" [class.collapsed]="sidebarCollapsed">
     <div class="sidebar__header">
       <div class="logo" *ngIf="!sidebarCollapsed">
-        <span class="logo__icon">🎯</span>
-        <span class="logo__text">AdminHub</span>
+        <span class="logo__icon">🏦</span>
+        <span class="logo__text">CreditAdmin</span>
       </div>
+
       <div class="logo" *ngIf="sidebarCollapsed">
-        <span class="logo__icon">🎯</span>
+        <span class="logo__icon">🏦</span>
       </div>
+
       <button class="sidebar__toggle" (click)="toggleSidebar()">
         {{ sidebarCollapsed ? "→" : "←" }}
       </button>
     </div>
 
-    <!-- User Profile Section dans la sidebar -->
+    <!-- PROFILE -->
     <div class="sidebar__profile" *ngIf="!sidebarCollapsed">
       <div class="profile-card" (click)="openProfile()">
         <div class="profile-card__avatar">
-          {{ currentUser.avatar }}
+          {{
+          currentUser?.avatar ||
+          currentUser?.fullName?.charAt(0)?.toUpperCase()
+          }}
         </div>
+
         <div class="profile-card__info">
-          <div class="profile-card__name">{{ currentUser.fullName }}</div>
-          <div class="profile-card__role">{{ currentUser.role }}</div>
+          <div class="profile-card__name">
+            {{ currentUser?.fullName }}
+          </div>
+
+          <div class="profile-card__role">
+            {{ currentUser?.role }}
+          </div>
         </div>
       </div>
     </div>
@@ -33,10 +44,14 @@
       (click)="openProfile()"
     >
       <div class="profile-mini__avatar">
-        {{ currentUser.avatar }}
+        {{
+        currentUser?.avatar ||
+        currentUser?.fullName?.charAt(0)?.toUpperCase()
+        }}
       </div>
     </div>
 
+    <!-- NAVIGATION -->
     <nav class="sidebar__nav">
       <a
         *ngFor="let item of sidebarItems"
@@ -45,224 +60,243 @@
         (click)="setActiveView(item.id)"
       >
         <span class="sidebar__icon">{{ item.icon }}</span>
-        <span class="sidebar__label" *ngIf="!sidebarCollapsed">{{
-          item.label
-        }}</span>
+
+        <span class="sidebar__label" *ngIf="!sidebarCollapsed">
+          {{ item.label }}
+        </span>
       </a>
     </nav>
 
+    <!-- FOOTER -->
     <div class="sidebar__footer">
-      <!-- Actions de déconnexion -->
+      <div class="sidebar__action" (click)="openProfile()">
+        <span class="sidebar__icon">👤</span>
+
+        <span class="sidebar__label" *ngIf="!sidebarCollapsed">
+          Mon profil
+        </span>
+      </div>
+
       <div class="sidebar__action" (click)="confirmLogout()">
         <span class="sidebar__icon">🚪</span>
-        <span class="sidebar__label" *ngIf="!sidebarCollapsed"
-          >Déconnexion</span
-        >
-      </div>
-      <div
-        class="sidebar__action"
-        (click)="openProfile()"
-        *ngIf="!sidebarCollapsed"
-      >
-        <span class="sidebar__icon">👤</span>
-        <span class="sidebar__label">Mon profil</span>
+
+        <span class="sidebar__label" *ngIf="!sidebarCollapsed">
+          Déconnexion
+        </span>
       </div>
 
       <div class="shortcuts" *ngIf="!sidebarCollapsed">
         <div class="shortcuts__item">
+          <span class="shortcut">Ctrl + B</span>
+          <span class="shortcut-label">Sidebar</span>
+        </div>
+
+        <div class="shortcuts__item">
           <span class="shortcut">Ctrl + P</span>
           <span class="shortcut-label">Profil</span>
         </div>
+
         <div class="shortcuts__item">
           <span class="shortcut">Ctrl + Q</span>
-          <span class="shortcut-label">Quitter</span>
-        </div>
-        <div class="shortcuts__item">
-          <span class="shortcut">Ctrl + B</span>
-          <span class="shortcut-label">Réduire</span>
+          <span class="shortcut-label">Logout</span>
         </div>
       </div>
     </div>
   </aside>
 
-  <!-- Main Content -->
+  <!-- ================= MAIN CONTENT ================= -->
   <main class="main-content">
-    <!-- Message Toast -->
+
+    <!-- TOAST -->
     <div
       class="toast"
       *ngIf="message"
-      [class.toast--success]="message.includes('succès')"
-      [class.toast--error]="message.includes('Erreur')"
+      [class.toast--success]="message.toLowerCase().includes('succès')"
+      [class.toast--error]="message.toLowerCase().includes('erreur')"
     >
       {{ message }}
     </div>
 
-    <!-- Hero Section -->
+    <!-- ================= HERO ================= -->
     <div class="hero">
       <div class="hero__bg">
         <img
-          src="https://images.unsplash.com/photo-1557683316-973673baf926?w=1600&h=400&fit=crop"
-          alt="hero"
+          src="https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?q=80&w=1600&auto=format&fit=crop"
           class="hero__img"
+          alt="dashboard"
         />
+
         <div class="hero__overlay"></div>
       </div>
+
       <div class="hero__content">
+
         <div class="hero__badge">
           <div class="dot"></div>
-          <span>Interface d'administration</span>
+          <span>Plateforme bancaire intelligente</span>
         </div>
-        <h1 class="hero__title">Dashboard <span>Moderne & Interactif</span></h1>
+
+        <h1 class="hero__title">
+          Dashboard
+          <span>Administration Crédit</span>
+        </h1>
+
         <p class="hero__subtitle">
-          Gérez vos utilisateurs, analysez les performances et optimisez votre
-          plateforme en temps réel.
+          Gérez les utilisateurs, les permissions et les demandes de crédit
+          depuis une interface moderne et sécurisée.
         </p>
+
         <div class="hero__actions">
-          <button class="btn btn--primary" (click)="openUserModal()">
-            ➕ Nouvel utilisateur
+
+          <button
+            class="btn btn--primary"
+            *ngIf="hasPermission('create_users')"
+            (click)="openUserModal()"
+          >
+            ➕ Ajouter utilisateur
           </button>
+
           <button class="btn btn--ghost" (click)="getUsers()">
             🔄 Actualiser
           </button>
         </div>
 
-        <!-- KPI Stats -->
+        <!-- KPI -->
         <div class="hero__stats">
+
           <div class="kpi">
             <div class="kpi__v">{{ totalUsers }}</div>
-            <div class="kpi__l">Utilisateurs totaux</div>
-            <div class="kpi__s">↑ {{ getKPITrend("total").value }} ce mois</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi__v">{{ activeUsers }}</div>
-            <div class="kpi__l">Utilisateurs actifs</div>
+            <div class="kpi__l">Utilisateurs</div>
             <div class="kpi__s">
-              ↑ {{ getKPITrend("active").value }} ce mois
+              ↑ {{ getKPITrend("total").value }}
             </div>
           </div>
+
+          <div class="kpi">
+            <div class="kpi__v">{{ activeUsers }}</div>
+            <div class="kpi__l">Actifs</div>
+            <div class="kpi__s">
+              ↑ {{ getKPITrend("active").value }}
+            </div>
+          </div>
+
           <div class="kpi">
             <div class="kpi__v">{{ adminUsers }}</div>
-            <div class="kpi__l">Administrateurs</div>
-            <div class="kpi__s">↑ {{ getKPITrend("admin").value }} ce mois</div>
+            <div class="kpi__l">Admins</div>
+            <div class="kpi__s">
+              ↑ {{ getKPITrend("admin").value }}
+            </div>
           </div>
+
         </div>
       </div>
     </div>
 
-    <!-- Overview View -->
+    <!-- ================= OVERVIEW ================= -->
     <div class="section" *ngIf="currentView === 'overview'">
+
       <div class="section__head">
         <div>
           <h2>Aperçu général</h2>
-          <p>Statistiques et métriques clés de votre plateforme</p>
+          <p>Vue globale du système</p>
         </div>
       </div>
 
       <div class="grid grid--stats">
+
         <div class="stat-card">
           <div class="stat-card__icon">👥</div>
           <div class="stat-card__value">{{ totalUsers }}</div>
-          <div class="stat-card__label">Utilisateurs</div>
-          <div class="stat-card__trend positive">+12%</div>
+          <div class="stat-card__label">Total utilisateurs</div>
         </div>
+
         <div class="stat-card">
           <div class="stat-card__icon">✅</div>
           <div class="stat-card__value">{{ activeUsers }}</div>
-          <div class="stat-card__label">Actifs</div>
-          <div class="stat-card__trend positive">+8%</div>
+          <div class="stat-card__label">Utilisateurs actifs</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-card__icon">⭕</div>
-          <div class="stat-card__value">{{ inactiveUsers }}</div>
-          <div class="stat-card__label">Inactifs</div>
-          <div class="stat-card__trend negative">-3%</div>
-        </div>
+
         <div class="stat-card">
           <div class="stat-card__icon">👑</div>
           <div class="stat-card__value">{{ adminUsers }}</div>
-          <div class="stat-card__label">Admins</div>
-          <div class="stat-card__trend positive">+5%</div>
+          <div class="stat-card__label">Administrateurs</div>
         </div>
-      </div>
 
-      <div class="steps">
-        <div class="step">
-          <div class="step__n">1</div>
-          <div class="step__b">
-            <h3>Gestion des utilisateurs</h3>
-            <p>
-              Ajoutez, modifiez ou supprimez des utilisateurs en toute
-              simplicité
-            </p>
-          </div>
+        <div class="stat-card">
+          <div class="stat-card__icon">📊</div>
+          <div class="stat-card__value">{{ analystsCount }}</div>
+          <div class="stat-card__label">Analystes</div>
         </div>
-        <div class="step">
-          <div class="step__n">2</div>
-          <div class="step__b">
-            <h3>Contrôle des rôles</h3>
-            <p>Attribuez des permissions spécifiques selon les besoins</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step__n">3</div>
-          <div class="step__b">
-            <h3>Analyses avancées</h3>
-            <p>Suivez les performances et les tendances en temps réel</p>
-          </div>
-        </div>
+
       </div>
     </div>
 
-    <!-- Users View -->
+    <!-- ================= USERS ================= -->
     <div class="section" *ngIf="currentView === 'users'">
+
       <div class="section__head">
         <div>
           <h2>Gestion des utilisateurs</h2>
-          <p>Gérez tous les utilisateurs de votre plateforme</p>
+          <p>Administration des comptes utilisateurs</p>
         </div>
-        <button class="btn btn--primary" (click)="openUserModal()">
+
+        <button
+          class="btn btn--primary"
+          *ngIf="hasPermission('create_users')"
+          (click)="openUserModal()"
+        >
           ➕ Nouveau
         </button>
       </div>
 
-      <!-- Filters -->
+      <!-- FILTERS -->
       <div class="filters">
+
         <div class="filters__search">
           <span class="search-icon">🔍</span>
+
           <input
             type="text"
             [(ngModel)]="searchTerm"
-            placeholder="Rechercher par nom ou email..."
+            placeholder="Recherche..."
             class="search-input"
           />
         </div>
 
         <div class="filters__controls">
+
           <select [(ngModel)]="filterStatus" class="filter-select">
             <option value="ALL">Tous les statuts</option>
-            <option value="ACTIVE">Actifs</option>
-            <option value="INACTIVE">Inactifs</option>
+            <option value="ACTIVE">Actif</option>
+            <option value="INACTIVE">Inactif</option>
           </select>
 
           <select [(ngModel)]="filterRole" class="filter-select">
             <option value="ALL">Tous les rôles</option>
-            <option value="ADMIN">Admin</option>
-            <option value="MANAGER">Manager</option>
+            <option value="ADMIN">Administrateur</option>
+            <option value="MANAGER">Chargé crédit</option>
+            <option value="ANALYST">Analyste</option>
             <option value="USER">Utilisateur</option>
           </select>
 
           <button class="btn btn--ghost" (click)="resetFilters()">
-            🔄 Réinitialiser
+            🔄 Reset
           </button>
+
         </div>
       </div>
 
-      <!-- Users Table -->
-      <div class="users-table-container" *ngIf="!loading; else loadingTemplate">
+      <!-- TABLE -->
+      <div
+        class="users-table-container"
+        *ngIf="!loading; else loadingTemplate"
+      >
+
         <table
           class="users-table"
           *ngIf="filteredUsers.length > 0; else noUsers"
         >
+
           <thead>
             <tr>
               <th>Utilisateur</th>
@@ -272,17 +306,23 @@
               <th>Actions</th>
             </tr>
           </thead>
+
           <tbody>
+
             <tr *ngFor="let user of filteredUsers">
+
               <td class="user-cell">
                 <div class="user-avatar">
-                  {{ user.fullName.charAt(0) }}
+                  {{ user.fullName.charAt(0).toUpperCase() }}
                 </div>
+
                 <div class="user-info">
                   <strong>{{ user.fullName }}</strong>
                 </div>
               </td>
+
               <td>{{ user.email }}</td>
+
               <td>
                 <select
                   [value]="user.role"
@@ -290,488 +330,469 @@
                   class="role-select"
                   [class]="getRoleClass(user.role)"
                 >
-                  <option value="ADMIN">Admin</option>
-                  <option value="MANAGER">Manager</option>
+                  <option value="ADMIN">Administrateur</option>
+                  <option value="MANAGER">Chargé crédit</option>
+                  <option value="ANALYST">Analyste</option>
                   <option value="USER">Utilisateur</option>
                 </select>
               </td>
+
               <td>
                 <span
                   class="status-badge"
-                  [class]="getStatusClass(user.status)"
+                  [ngClass]="getStatusClass(user.status)"
                 >
-                  {{ user.status === "ACTIVE" ? "Actif" : "Inactif" }}
+                  {{
+                  user.status === 'ACTIVE'
+                  ? 'Actif'
+                  : 'Inactif'
+                  }}
                 </span>
               </td>
+
               <td class="actions-cell">
+
                 <button
                   class="action-btn"
                   (click)="toggleStatus(user)"
-                  [title]="user.status === 'ACTIVE' ? 'Désactiver' : 'Activer'"
                 >
-                  {{ user.status === "ACTIVE" ? "🔴" : "🟢" }}
+                  {{
+                  user.status === 'ACTIVE'
+                  ? '🔴'
+                  : '🟢'
+                  }}
                 </button>
+
                 <button
                   class="action-btn"
                   (click)="openUserModal(user)"
-                  title="Modifier"
                 >
                   ✏️
                 </button>
+
                 <button
                   class="action-btn"
+                  *ngIf="hasPermission('manage_permissions')"
+                  (click)="openPermissionsModal(user)"
+                >
+                  🔑
+                </button>
+
+                <button
+                  class="action-btn"
+                  *ngIf="hasPermission('delete_users')"
                   (click)="deleteUser(user)"
-                  title="Supprimer"
                 >
                   🗑️
                 </button>
+
               </td>
+
             </tr>
+
           </tbody>
+
         </table>
 
+        <!-- EMPTY -->
         <ng-template #noUsers>
           <div class="empty-state">
             <div class="empty-state__icon">👥</div>
-            <h3>Aucun utilisateur trouvé</h3>
-            <p>Aucun utilisateur ne correspond à vos critères de recherche</p>
-            <button class="btn btn--primary" (click)="resetFilters()">
-              Réinitialiser les filtres
-            </button>
+
+            <h3>Aucun utilisateur</h3>
+
+            <p>Aucun résultat trouvé</p>
           </div>
         </ng-template>
+
       </div>
 
+      <!-- LOADING -->
       <ng-template #loadingTemplate>
         <div class="loading-state">
           <div class="spinner"></div>
-          <p>Chargement des utilisateurs...</p>
+          <p>Chargement...</p>
         </div>
       </ng-template>
+
     </div>
 
-    <!-- Analytics View -->
+    <!-- ================= ANALYTICS ================= -->
     <div class="section" *ngIf="currentView === 'analytics'">
+
       <div class="section__head">
         <div>
           <h2>Analytiques</h2>
-          <p>Visualisez les métriques et performances</p>
+          <p>Statistiques de la plateforme</p>
         </div>
       </div>
 
       <div class="grid grid--analytics">
+
         <div class="card">
-          <div class="card__icon">📊</div>
+          <div class="card__icon">📈</div>
+
           <h3>Répartition des rôles</h3>
+
           <div class="chart">
+
             <div class="chart-bar">
               <div class="chart-bar__label">Admin</div>
+
               <div class="chart-bar__bg">
                 <div
                   class="chart-bar__fill"
                   [style.width.%]="(adminUsers / totalUsers) * 100"
                 ></div>
               </div>
-              <div class="chart-bar__value">{{ adminUsers }}</div>
+
+              <div class="chart-bar__value">
+                {{ adminUsers }}
+              </div>
             </div>
+
             <div class="chart-bar">
-              <div class="chart-bar__label">Manager</div>
+              <div class="chart-bar__label">Chargé crédit</div>
+
               <div class="chart-bar__bg">
                 <div
                   class="chart-bar__fill"
                   [style.width.%]="(managersCount / totalUsers) * 100"
                 ></div>
               </div>
-              <div class="chart-bar__value">{{ managersCount }}</div>
+
+              <div class="chart-bar__value">
+                {{ managersCount }}
+              </div>
             </div>
+
             <div class="chart-bar">
-              <div class="chart-bar__label">Utilisateur</div>
+              <div class="chart-bar__label">Analyste</div>
+
               <div class="chart-bar__bg">
                 <div
                   class="chart-bar__fill"
-                  [style.width.%]="(regularUsersCount / totalUsers) * 100"
+                  [style.width.%]="(analystsCount / totalUsers) * 100"
                 ></div>
               </div>
-              <div class="chart-bar__value">{{ regularUsersCount }}</div>
+
+              <div class="chart-bar__value">
+                {{ analystsCount }}
+              </div>
             </div>
+
           </div>
         </div>
 
-        <div class="card">
-          <div class="card__icon">📈</div>
-          <h3>Activité</h3>
-          <div class="stats-mini">
-            <div class="stat-mini">
-              <span class="stat-mini__label">Taux d'activité</span>
-              <span class="stat-mini__value"
-                >{{ ((activeUsers / totalUsers) * 100).toFixed(1) }}%</span
-              >
-            </div>
-            <div class="progress-circle">
-              <svg viewBox="0 0 36 36" class="circular-chart">
-                <path
-                  class="circle-bg"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                />
-                <path
-                  class="circle"
-                  [attr.stroke-dasharray]="
-                    (activeUsers / totalUsers) * 100 + ', 100'
-                  "
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                />
-                <text x="18" y="20.35" class="percentage">
-                  {{ ((activeUsers / totalUsers) * 100).toFixed(0) }}%
-                </text>
-              </svg>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
 
-    <!-- Settings View -->
-    <div class="section" *ngIf="currentView === 'settings'">
-      <div class="section__head">
-        <div>
-          <h2>Paramètres</h2>
-          <p>Configurez votre dashboard</p>
-        </div>
-      </div>
-
-      <div class="cta">
-        <div>
-          <h3>Préférences d'affichage</h3>
-          <p>Personnalisez l'apparence et le comportement du dashboard</p>
-        </div>
-        <button class="btn btn--primary">Sauvegarder</button>
-      </div>
-
-      <div class="steps">
-        <div class="step">
-          <div class="step__n">⚡</div>
-          <div class="step__b">
-            <h3>Notifications</h3>
-            <p>Configurez vos alertes et notifications</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step__n">🔒</div>
-          <div class="step__b">
-            <h3>Sécurité</h3>
-            <p>Gérez les paramètres de sécurité</p>
-          </div>
-        </div>
-      </div>
-    </div>
   </main>
 
-  <!-- User Modal -->
-  <div class="modal" *ngIf="showUserModal" (click)="closeUserModal()">
-    <div class="modal__content" (click)="$event.stopPropagation()">
+  <!-- ================= USER MODAL ================= -->
+  <div
+    class="modal"
+    *ngIf="showUserModal"
+    (click)="closeUserModal()"
+  >
+    <div
+      class="modal__content"
+      (click)="$event.stopPropagation()"
+    >
+
       <div class="modal__header">
-        <h2>{{ editingUser?._id ? "Modifier" : "Ajouter" }} un utilisateur</h2>
-        <button class="modal__close" (click)="closeUserModal()">✕</button>
+        <h2>
+          {{
+          editingUser?._id
+          ? 'Modifier utilisateur'
+          : 'Ajouter utilisateur'
+          }}
+        </h2>
+
+        <button
+          class="modal__close"
+          (click)="closeUserModal()"
+        >
+          ✕
+        </button>
       </div>
+
       <div class="modal__body" *ngIf="editingUser">
+
         <div class="form-group">
           <label>Nom complet</label>
+
           <input
             type="text"
-            [(ngModel)]="editingUser.fullName"
             class="form-control"
-            placeholder="John Doe"
+            [(ngModel)]="editingUser.fullName"
           />
         </div>
+
         <div class="form-group">
           <label>Email</label>
+
           <input
             type="email"
-            [(ngModel)]="editingUser.email"
             class="form-control"
-            placeholder="john@example.com"
+            [(ngModel)]="editingUser.email"
           />
         </div>
+
         <div class="form-group">
           <label>Rôle</label>
-          <select [(ngModel)]="editingUser.role" class="form-control">
+
+          <select
+            class="form-control"
+            [(ngModel)]="editingUser.role"
+          >
+            <option value="ADMIN">Administrateur</option>
+            <option value="MANAGER">Chargé crédit</option>
+            <option value="ANALYST">Analyste</option>
             <option value="USER">Utilisateur</option>
-            <option value="MANAGER">Manager</option>
-            <option value="ADMIN">Admin</option>
           </select>
         </div>
+
         <div class="form-group">
           <label>Statut</label>
-          <select [(ngModel)]="editingUser.status" class="form-control">
+
+          <select
+            class="form-control"
+            [(ngModel)]="editingUser.status"
+          >
             <option value="ACTIVE">Actif</option>
             <option value="INACTIVE">Inactif</option>
           </select>
         </div>
+
       </div>
+
       <div class="modal__footer">
-        <button class="btn btn--ghost" (click)="closeUserModal()">
+
+        <button
+          class="btn btn--ghost"
+          (click)="closeUserModal()"
+        >
           Annuler
         </button>
-        <button class="btn btn--primary" (click)="saveUser()">
+
+        <button
+          class="btn btn--primary"
+          (click)="saveUser()"
+        >
           Sauvegarder
         </button>
+
       </div>
+
     </div>
   </div>
 
-  <!-- Profile Modal -->
-  <!-- Profile Modal -->
-  <div class="modal" *ngIf="showProfileModal" (click)="closeProfileModal()">
+  <!-- ================= PROFILE MODAL ================= -->
+  <div
+    class="modal"
+    *ngIf="showProfileModal"
+    (click)="closeProfileModal()"
+  >
+
     <div
       class="modal__content modal__content--profile"
       (click)="$event.stopPropagation()"
     >
-      <!-- HEADER -->
+
       <div class="modal__header">
         <h2>Mon profil</h2>
-        <button class="modal__close" (click)="closeProfileModal()">✕</button>
+
+        <button
+          class="modal__close"
+          (click)="closeProfileModal()"
+        >
+          ✕
+        </button>
       </div>
 
-      <!-- BODY -->
       <div class="modal__body">
-        <!-- Avatar -->
+
         <div class="profile-avatar-large">
-  <div class="profile-avatar-large__circle profile-avatar-large__circle--image">
-    
-    <img
-      *ngIf="currentUser.photoUrl"
-      [src]="currentUser.photoUrl"
-      alt="Photo de profil"
-      class="profile-avatar-large__img"
-    />
 
-    <span *ngIf="!currentUser.photoUrl">
-      {{ currentUser?.avatar || currentUser?.fullName?.charAt(0) || 'U' }}
-    </span>
-  </div>
+          <div class="profile-avatar-large__circle">
 
-  <div class="profile-avatar-large__actions">
-    <label for="profileImageInput" class="btn btn--ghost">
-      Changer la photo
-    </label>
-    <input
-      id="profileImageInput"
-      type="file"
-      accept="image/*"
-      (change)="onProfileImageSelected($event)"
-      hidden
-    />
-  </div>
-</div>
+            <img
+              *ngIf="currentUser.photoUrl"
+              [src]="currentUser.photoUrl"
+              class="profile-avatar-large__img"
+            />
 
-        <!-- 🔥 FORM -->
+            <span *ngIf="!currentUser.photoUrl">
+              {{
+              currentUser?.avatar ||
+              currentUser?.fullName?.charAt(0)
+              }}
+            </span>
+
+          </div>
+
+          <label class="btn btn--ghost">
+            Changer photo
+
+            <input
+              type="file"
+              hidden
+              accept="image/*"
+              (change)="onProfileImageSelected($event)"
+            />
+          </label>
+
+        </div>
+
         <div class="form-grid">
+
           <div class="form-group">
-            <label>Nom complet</label>
+            <label>Nom</label>
+
             <input
               type="text"
-              [(ngModel)]="currentUser.fullName"
               class="form-control"
+              [(ngModel)]="currentUser.fullName"
             />
           </div>
 
           <div class="form-group">
             <label>Email</label>
+
             <input
               type="email"
-              [(ngModel)]="currentUser.email"
               class="form-control"
+              [(ngModel)]="currentUser.email"
             />
           </div>
 
           <div class="form-group">
             <label>Rôle</label>
+
             <input
               type="text"
+              class="form-control"
               [(ngModel)]="currentUser.role"
-              class="form-control"
               disabled
             />
           </div>
 
-          <div class="form-group">
-            <label>CIN</label>
-            <input
-              type="text"
-              [(ngModel)]="currentUser.cin"
-              class="form-control"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>Date de naissance</label>
-            <input
-              type="date"
-              [(ngModel)]="currentUser.dob"
-              class="form-control"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>Téléphone</label>
-            <input
-              type="text"
-              [(ngModel)]="currentUser.phone"
-              class="form-control"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>Adresse</label>
-            <input
-              type="text"
-              [(ngModel)]="currentUser.address"
-              class="form-control"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>Ville</label>
-            <input
-              type="text"
-              [(ngModel)]="currentUser.city"
-              class="form-control"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>Matricule</label>
-            <input
-              type="text"
-              [(ngModel)]="currentUser.employeeId"
-              class="form-control"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>Agence</label>
-            <input
-              type="text"
-              [(ngModel)]="currentUser.branch"
-              class="form-control"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>Département</label>
-            <input
-              type="text"
-              [(ngModel)]="currentUser.department"
-              class="form-control"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>Poste</label>
-            <input
-              type="text"
-              [(ngModel)]="currentUser.jobTitle"
-              class="form-control"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>Manager</label>
-            <input
-              type="text"
-              [(ngModel)]="currentUser.manager"
-              class="form-control"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>Type de contrat</label>
-            <input
-              type="text"
-              [(ngModel)]="currentUser.contractType"
-              class="form-control"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>Date de début</label>
-            <input
-              type="date"
-              [(ngModel)]="currentUser.startDate"
-              class="form-control"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>Statut</label>
-            <input
-              type="text"
-              [(ngModel)]="currentUser.status"
-              class="form-control"
-              disabled
-            />
-          </div>
-
-          <div class="form-group">
-            <label>Niveau d'accès</label>
-            <input
-              type="text"
-              [(ngModel)]="currentUser.accessLevel"
-              class="form-control"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>Méthode MFA</label>
-            <input
-              type="text"
-              [(ngModel)]="currentUser.mfaMethod"
-              class="form-control"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>Face ID activé</label>
-            <input
-              type="text"
-              [value]="currentUser.enableFaceId ? 'Oui' : 'Non'"
-              class="form-control"
-              disabled
-            />
-          </div>
-
-          <div class="form-group">
-            <label>Email vérifié</label>
-            <input
-              type="text"
-              [value]="currentUser.isVerified ? 'Oui' : 'Non'"
-              class="form-control"
-              disabled
-            />
-          </div>
-
-          <!-- Password -->
-          <div class="form-group form-group--full">
-            <label>Nouveau mot de passe</label>
-            <input
-              type="password"
-              [(ngModel)]="currentUser.newPassword"
-              placeholder="Laisser vide pour ne pas changer"
-              class="form-control"
-            />
-          </div>
         </div>
+
       </div>
 
-      <!-- FOOTER -->
       <div class="modal__footer">
-        <button class="btn btn--ghost" (click)="closeProfileModal()">
+
+        <button
+          class="btn btn--ghost"
+          (click)="closeProfileModal()"
+        >
           Annuler
         </button>
-        <button class="btn btn--primary" (click)="updateProfile()">
+
+        <button
+          class="btn btn--primary"
+          (click)="updateProfile()"
+        >
           Mettre à jour
         </button>
+
       </div>
+
+    </div>
+  </div>
+
+  <!-- ================= PERMISSIONS MODAL ================= -->
+  <div
+    class="modal"
+    *ngIf="showPermissionsModal"
+    (click)="closePermissionsModal()"
+  >
+
+    <div
+      class="modal__content modal__content--large"
+      (click)="$event.stopPropagation()"
+    >
+
+      <div class="modal__header">
+
+        <h2>
+          Permissions - {{ editingUser?.fullName }}
+        </h2>
+
+        <button
+          class="modal__close"
+          (click)="closePermissionsModal()"
+        >
+          ✕
+        </button>
+
+      </div>
+
+      <div class="modal__body">
+
+        <div class="permissions-container">
+
+          <div
+            *ngFor="let category of getPermissionCategories()"
+            class="permission-category"
+          >
+
+            <h3>{{ category }}</h3>
+
+            <div class="permissions-grid">
+
+              <div
+                *ngFor="let perm of getPermissionsByCategory(category)"
+                class="permission-item"
+              >
+
+                <label class="checkbox-label">
+
+                  <input
+                    type="checkbox"
+                    [checked]="isPermissionSelected(perm.id)"
+                    (change)="togglePermission(perm.id)"
+                  />
+
+                  <span class="checkbox-custom"></span>
+
+                  <div class="permission-info">
+                    <strong>{{ perm.name }}</strong>
+                    <small>{{ perm.description }}</small>
+                  </div>
+
+                </label>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="modal__footer">
+
+        <button
+          class="btn btn--ghost"
+          (click)="closePermissionsModal()"
+        >
+          Annuler
+        </button>
+
+        <button
+          class="btn btn--primary"
+          (click)="savePermissions()"
+        >
+          Sauvegarder
+        </button>
+
+      </div>
+
     </div>
   </div>
 </div>

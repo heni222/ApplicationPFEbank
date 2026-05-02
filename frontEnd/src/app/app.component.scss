@@ -1,0 +1,6 @@
+// Sur le container principal de la page (ex: router-outlet wrapper)
+.page-wrapper {
+  position: relative;
+  z-index: 1; // inférieur au header
+  margin: 50px
+}
