@@ -1,19 +1,26 @@
 const User = require("../models/user");
 const crypto = require("crypto");
 const EmailService = require("../services/emailService");
-const bcrypt = require("bcryptjs"); // Ajoutez cette ligne
+// ⚠️ NE PAS importer bcrypt ici - le modèle s'en occupe
 
 async function createUser(req, res) {
   try {
     console.log("BODY:", req.body);
     console.log("FILE:", req.file);
 
-    // ✅ HASHER LE MOT DE PASSE AVANT CRÉATION
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(req.body.password, saltRounds);
+    // 🔥 IMPORTANT: Ne pas hacher le mot de passe ici
+    // Le middleware pre('save') du modèle le fera automatiquement
+    
+    // Vérifier que les mots de passe correspondent
+    if (req.body.password !== req.body.confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        error: "Les mots de passe ne correspondent pas"
+      });
+    }
 
-    // ✅ 1) Créer l'utilisateur avec le mot de passe haché
-    const user = await User.create({
+    // Créer l'utilisateur avec le mot de passe en clair
+    const user = new User({
       fullName: req.body.fullName,
       cin: req.body.cin,
       dob: req.body.dob,
@@ -36,15 +43,19 @@ async function createUser(req, res) {
       accessLevel: req.body.accessLevel,
       mfaMethod: req.body.mfaMethod,
 
-      enableFaceId:
-        req.body.enableFaceId === "true" || req.body.enableFaceId === true,
-      password: hashedPassword, // Utiliser le mot de passe haché
+      enableFaceId: req.body.enableFaceId === "true" || req.body.enableFaceId === true,
+      password: req.body.password, // ⚠️ En clair - sera haché par le middleware
       terms: req.body.terms === "true" || req.body.terms === true,
 
       isVerified: false,
     });
 
-    // ✅ 2) Générer token après création
+    // Sauvegarder l'utilisateur (le middleware pre('save') va hacher le password)
+    await user.save();
+    
+    console.log("✅ User saved successfully, ID:", user._id);
+
+    // Générer token de vérification
     const rawToken = crypto.randomBytes(32).toString("hex");
     const tokenHash = crypto
       .createHash("sha256")
@@ -55,10 +66,9 @@ async function createUser(req, res) {
     user.emailVerifyTokenExpiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1h
     await user.save();
 
-    // ✅ 3) Envoyer l’email avec le template HTML professionnel
+    // Envoyer l'email de vérification
     let emailSent = true;
     try {
-      // Utiliser le service d'email avec le template complet
       await EmailService.sendVerificationEmail(user, rawToken);
       console.log(`✅ Email de vérification envoyé à ${user.email}`);
     } catch (mailErr) {
@@ -66,13 +76,17 @@ async function createUser(req, res) {
       console.error("❌ ERREUR ENVOI EMAIL:", mailErr);
     }
 
-    // ✅ 4) Réponse OK avec informations détaillées
+    // Exclure le mot de passe de la réponse
+    const userResponse = user.toObject();
+    delete userResponse.password;
+    delete userResponse.emailVerifyTokenHash;
+    delete userResponse.resetPasswordToken;
+
+    // Réponse succès
     return res.status(201).json({
       success: true,
       message: "Utilisateur créé avec succès",
-      userId: user._id,
-      email: user.email,
-      fullName: user.fullName,
+      user: userResponse,
       emailSent,
       verificationInfo: {
         message: emailSent
@@ -84,9 +98,8 @@ async function createUser(req, res) {
   } catch (err) {
     console.error("❌ ERREUR CRÉATION UTILISATEUR:", err);
 
-    // Gestion plus détaillée des erreurs
+    // Gestion des erreurs
     if (err.code === 11000) {
-      // Erreur de duplication (email ou employeeId déjà existant)
       const field = Object.keys(err.keyPattern)[0];
       return res.status(400).json({
         success: false,
@@ -95,7 +108,6 @@ async function createUser(req, res) {
     }
 
     if (err.name === "ValidationError") {
-      // Erreur de validation mongoose
       const errors = Object.values(err.errors).map((e) => e.message);
       return res.status(400).json({
         success: false,

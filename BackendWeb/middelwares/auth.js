@@ -44,5 +44,16 @@ const protect = async (req, res, next) => {
     });
   }
 };
+const authorize = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: `Rôle ${req.user.role} non autorisé pour cette action`
+      });
+    }
+    next();
+  };
+};
 
-module.exports = { protect };
+module.exports = { protect , authorize};

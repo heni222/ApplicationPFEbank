@@ -1,18 +1,21 @@
-import { Component, OnInit } from '@angular/core';
+// dashboard-admin.component.ts
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-
 import { AuthService } from '../../services/auth.service';
 import { AdminService } from '../../services/admin.service';
 
-// Interface User compatible avec AdminService
 export interface User {
   _id: string;
   fullName: string;
   email: string;
+  cin?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
   status: 'ACTIVE' | 'INACTIVE';
-  role: 'ADMIN' | 'USER' | 'CHARGE_CREDIT' | 'ANALYST';
+  role: 'ADMIN' | 'CREDIT' | 'ANALYST'; // ← rôles réels du système
   permissions: string[];
   lastLogin?: Date;
   createdAt?: Date;
@@ -34,6 +37,45 @@ export interface SidebarItem {
   requiredPermission?: string;
 }
 
+// Permissions disponibles par catégorie
+const ALL_PERMISSIONS: Permission[] = [
+  // Utilisateurs
+  { id: 'view_users', name: 'Voir utilisateurs', description: 'Afficher la liste des utilisateurs', category: 'Utilisateurs' },
+  { id: 'create_users', name: 'Créer utilisateurs', description: 'Ajouter de nouveaux utilisateurs', category: 'Utilisateurs' },
+  { id: 'edit_users', name: 'Modifier utilisateurs', description: 'Modifier les infos des utilisateurs', category: 'Utilisateurs' },
+  { id: 'delete_users', name: 'Supprimer utilisateurs', description: 'Supprimer des utilisateurs', category: 'Utilisateurs' },
+  { id: 'manage_roles', name: 'Gérer rôles', description: 'Modifier les rôles des utilisateurs', category: 'Utilisateurs' },
+  { id: 'manage_permissions', name: 'Gérer permissions', description: 'Modifier les permissions des utilisateurs', category: 'Utilisateurs' },
+  // Crédit
+  { id: 'view_credits', name: 'Voir crédits', description: 'Consulter les dossiers de crédit', category: 'Crédit' },
+  { id: 'create_credits', name: 'Créer crédits', description: 'Créer des dossiers de crédit', category: 'Crédit' },
+  { id: 'upload_documents', name: 'Upload documents', description: 'Déposer des documents', category: 'Crédit' },
+  // Analyse / Risque
+  { id: 'analyze_credits', name: 'Analyser crédits', description: 'Analyser et décider sur les dossiers', category: 'Risque' },
+  { id: 'approve_credits', name: 'Approuver crédits', description: 'Accepter ou refuser un dossier', category: 'Risque' },
+  { id: 'validate_documents', name: 'Valider documents', description: 'Valider les documents soumis', category: 'Risque' },
+  // Dashboard
+  { id: 'view_dashboard', name: 'Voir dashboard', description: 'Accès au tableau de bord', category: 'Dashboard' },
+  { id: 'view_analytics', name: 'Voir analytics', description: 'Accès aux statistiques', category: 'Dashboard' },
+  { id: 'view_reports', name: 'Voir rapports', description: 'Accès aux rapports', category: 'Dashboard' },
+  // Système
+  { id: 'manage_settings', name: 'Gérer paramètres', description: 'Modifier les paramètres système', category: 'Système' },
+];
+
+// Permissions par défaut selon le rôle
+const ROLE_DEFAULT_PERMISSIONS: Record<string, string[]> = {
+  ADMIN: ALL_PERMISSIONS.map(p => p.id), // tout
+  CREDIT: [
+    'view_credits', 'create_credits', 'upload_documents',
+    'view_dashboard', 'view_reports'
+  ],
+  ANALYST: [
+    'view_credits', 'analyze_credits', 'approve_credits',
+    'validate_documents', 'upload_documents',
+    'view_dashboard', 'view_analytics'
+  ],
+};
+
 @Component({
   selector: 'app-dashboard-admin',
   standalone: true,
@@ -42,14 +84,19 @@ export interface SidebarItem {
   styleUrls: ['./dashboard-admin.component.scss'],
 })
 export class DashboardAdminComponent implements OnInit {
+
+  // ── Data ──
   users: User[] = [];
-  permissions: Permission[] = [];
+  availablePermissions: Permission[] = ALL_PERMISSIONS;
   loading = false;
-  error = '';
   message = '';
+
+  // ── Filters ──
   searchTerm = '';
   filterStatus: 'ALL' | 'ACTIVE' | 'INACTIVE' = 'ALL';
-  filterRole: 'ALL' | 'ADMIN' | 'USER' | 'CHARGE_CREDIT' | 'ANALYST' = 'ALL';
+  filterRole: 'ALL' | 'CREDIT' | 'ANALYST' = 'ALL';  // ADMIN exclu de la liste
+
+  // ── UI ──
   sidebarCollapsed = false;
   currentView = 'overview';
   showUserModal = false;
@@ -58,77 +105,30 @@ export class DashboardAdminComponent implements OnInit {
   editingUser: User | null = null;
   selectedUserPermissions: string[] = [];
 
-  // KPIs
+  // ── KPIs ──
   totalUsers = 0;
   activeUsers = 0;
-  inactiveUsers = 0;
-  adminUsers = 0;
-  analystsCount = 0;
-  regularUsersCount = 0;
-  chargeCreditCount = 0;
+  creditCount = 0;  // rôle CREDIT
+  riskCount = 0;  // rôle RISK
 
-  managersCount = 0; // Alias pour chargeCreditCount
-
+  // ── Profil actuel ──
   currentUser: any = {
-    _id: '',
-    fullName: '',
-    email: '',
-    role: '',
-    avatar: '',
-    permissions: [],
-    photoUrl: '',
+    _id: '', fullName: '', email: '', role: '', avatar: '', permissions: [], photoUrl: ''
   };
 
   sidebarItems: SidebarItem[] = [
     { id: 'overview', label: 'Aperçu', icon: '📊', active: true, requiredPermission: 'view_dashboard' },
     { id: 'users', label: 'Utilisateurs', icon: '👥', active: false, requiredPermission: 'view_users' },
-    { id: 'permissions', label: 'Permissions', icon: '🔑', active: false, requiredPermission: 'manage_permissions' },
-    { id: 'roles', label: 'Rôles', icon: '👑', active: false, requiredPermission: 'manage_roles' },
     { id: 'analytics', label: 'Analytiques', icon: '📈', active: false, requiredPermission: 'view_analytics' },
     { id: 'settings', label: 'Paramètres', icon: '⚙️', active: false, requiredPermission: 'manage_settings' },
   ];
 
-  availablePermissions: Permission[] = [
-    { id: 'view_users', name: 'Voir utilisateurs', description: 'Afficher la liste des utilisateurs', category: 'Utilisateurs' },
-    { id: 'create_users', name: 'Créer utilisateurs', description: 'Ajouter des utilisateurs', category: 'Utilisateurs' },
-    { id: 'edit_users', name: 'Modifier utilisateurs', description: 'Modifier les utilisateurs', category: 'Utilisateurs' },
-    { id: 'delete_users', name: 'Supprimer utilisateurs', description: 'Supprimer les utilisateurs', category: 'Utilisateurs' },
-    { id: 'manage_roles', name: 'Gérer rôles', description: 'Gestion des rôles', category: 'Utilisateurs' },
-    { id: 'manage_permissions', name: 'Gérer permissions', description: 'Gestion des permissions', category: 'Utilisateurs' },
-    { id: 'view_credits', name: 'Voir crédits', description: 'Voir les crédits', category: 'Crédit' },
-    { id: 'create_credits', name: 'Créer crédits', description: 'Créer crédits', category: 'Crédit' },
-    { id: 'approve_credits', name: 'Approuver crédits', description: 'Validation crédits', category: 'Crédit' },
-    { id: 'analyze_credits', name: 'Analyser crédits', description: 'Analyse crédits', category: 'Crédit' },
-    { id: 'upload_documents', name: 'Upload documents', description: 'Uploader documents', category: 'Crédit' },
-    { id: 'validate_documents', name: 'Validation documents', description: 'Valider documents', category: 'Crédit' },
-    { id: 'view_dashboard', name: 'Voir dashboard', description: 'Accès dashboard', category: 'Dashboard' },
-    { id: 'view_analytics', name: 'Voir analytics', description: 'Voir analytics', category: 'Dashboard' },
-    { id: 'view_reports', name: 'Voir rapports', description: 'Voir rapports', category: 'Dashboard' },
-    { id: 'manage_settings', name: 'Gérer paramètres', description: 'Modifier paramètres', category: 'Système' },
-  ];
-
-  rolePermissions: { [key: string]: string[] } = {
-    ADMIN: [
-      'view_users', 'create_users', 'edit_users', 'delete_users', 'manage_roles', 'manage_permissions',
-      'view_credits', 'create_credits', 'approve_credits', 'analyze_credits', 'upload_documents', 'validate_documents',
-      'view_dashboard', 'view_analytics', 'view_reports', 'manage_settings'
-    ],
-    CHARGE_CREDIT: [
-      'view_credits', 'create_credits', 'approve_credits', 'upload_documents', 'validate_documents',
-      'view_dashboard', 'view_reports'
-    ],
-    ANALYST: [
-      'view_credits', 'analyze_credits', 'upload_documents', 'validate_documents',
-      'view_dashboard', 'view_analytics'
-    ],
-    USER: ['create_credits', 'upload_documents', 'view_dashboard']
-  };
-
   constructor(
     private adminService: AdminService,
     private authService: AuthService,
-    private router: Router
-  ) {}
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) { }
 
   ngOnInit(): void {
     this.loadCurrentUser();
@@ -136,83 +136,61 @@ export class DashboardAdminComponent implements OnInit {
     this.setupKeyboardShortcuts();
   }
 
+  // ──────────────────────────────────────────
+  //  Auth / Profil
+  // ──────────────────────────────────────────
+
   loadCurrentUser(): void {
     this.authService.getMe().subscribe({
       next: (res: any) => {
-        const user = res.user;
+        const user = res.user || res;
         this.currentUser = {
           ...user,
-          avatar: (user.fullName || 'U').charAt(0).toUpperCase(),
-          permissions: user.permissions?.length ? user.permissions : this.getDefaultPermissionsForRole(user.role)
+          avatar: (user.fullName || 'A').charAt(0).toUpperCase(),
+          permissions: user.permissions?.length
+            ? user.permissions
+            : ROLE_DEFAULT_PERMISSIONS[user.role] ?? []
         };
         localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
         this.filterSidebarByPermissions();
+        this.cdr.markForCheck();
       },
-      error: (err) => {
-        console.error(err);
-      }
+      error: err => console.error('loadCurrentUser:', err)
     });
   }
 
-  getDefaultPermissionsForRole(role: string): string[] {
-    return this.rolePermissions[role] || this.rolePermissions['USER'];
-  }
-
   filterSidebarByPermissions(): void {
-    const permissions = this.currentUser.permissions || [];
     this.sidebarItems = this.sidebarItems.filter(item => {
       if (!item.requiredPermission) return true;
-      return permissions.includes(item.requiredPermission) || this.currentUser.role === 'ADMIN';
+      return this.hasPermission(item.requiredPermission);
     });
   }
 
   hasPermission(permission: string): boolean {
-    return this.currentUser.permissions?.includes(permission) || this.currentUser.role === 'ADMIN';
+    return this.currentUser.role === 'ADMIN' ||
+      (this.currentUser.permissions || []).includes(permission);
   }
 
-  setupKeyboardShortcuts(): void {
-    document.addEventListener('keydown', (e) => {
-      if (e.ctrlKey && e.key === 'b') {
-        e.preventDefault();
-        this.toggleSidebar();
-      }
-      if (e.ctrlKey && e.key === 'p') {
-        e.preventDefault();
-        this.openProfile();
-      }
-      if (e.ctrlKey && e.key === 'q') {
-        e.preventDefault();
-        this.confirmLogout();
-      }
-    });
-  }
-
-  toggleSidebar(): void {
-    this.sidebarCollapsed = !this.sidebarCollapsed;
-  }
-
-  setActiveView(viewId: string): void {
-    const item = this.sidebarItems.find(i => i.id === viewId);
-    if (item?.requiredPermission && !this.hasPermission(item.requiredPermission)) {
-      this.showMessage('Permission insuffisante', 'error');
-      return;
-    }
-    this.sidebarItems.forEach(item => { item.active = item.id === viewId; });
-    this.currentView = viewId;
-  }
+  // ──────────────────────────────────────────
+  //  Utilisateurs — CRUD
+  //  NB : l'API doit filtrer les ADMIN côté backend
+  //  On filtre aussi côté front : on n'affiche pas les ADMIN
+  // ──────────────────────────────────────────
 
   getUsers(): void {
     this.loading = true;
     this.adminService.getUsers().subscribe({
       next: (res: any[]) => {
-        this.users = res;
+        // Exclure les ADMIN de la liste (un admin ne gère pas les autres admins)
+        this.users = res.filter(u => u.role !== 'ADMIN');
         this.updateKPIs();
         this.loading = false;
+        this.cdr.markForCheck();
       },
-      error: (err) => {
+      error: err => {
         console.error(err);
         this.loading = false;
-        this.showMessage('Erreur chargement utilisateurs', 'error');
+        this.showMsg('Erreur chargement utilisateurs', 'error');
       }
     });
   }
@@ -220,173 +198,124 @@ export class DashboardAdminComponent implements OnInit {
   updateKPIs(): void {
     this.totalUsers = this.users.length;
     this.activeUsers = this.users.filter(u => u.status === 'ACTIVE').length;
-    this.inactiveUsers = this.users.filter(u => u.status === 'INACTIVE').length;
-    this.adminUsers = this.users.filter(u => u.role === 'ADMIN').length;
-    this.chargeCreditCount = this.users.filter(u => u.role === 'CHARGE_CREDIT').length;
-    this.analystsCount = this.users.filter(u => u.role === 'ANALYST').length;
-    this.regularUsersCount = this.users.filter(u => u.role === 'USER').length;
-    this.managersCount = this.chargeCreditCount;
+    this.creditCount = this.users.filter(u => u.role === 'CREDIT').length;
+    this.riskCount = this.users.filter(u => u.role === 'ANALYST').length;
   }
 
   get filteredUsers(): User[] {
-    let filtered = [...this.users];
+    let list = [...this.users];
     if (this.searchTerm) {
-      const term = this.searchTerm.toLowerCase();
-      filtered = filtered.filter(user =>
-        user.fullName.toLowerCase().includes(term) || user.email.toLowerCase().includes(term)
+      const q = this.searchTerm.toLowerCase();
+      list = list.filter(u =>
+        u.fullName.toLowerCase().includes(q) ||
+        u.email.toLowerCase().includes(q)
       );
     }
-    if (this.filterStatus !== 'ALL') {
-      filtered = filtered.filter(user => user.status === this.filterStatus);
-    }
-    if (this.filterRole !== 'ALL') {
-      filtered = filtered.filter(user => user.role === this.filterRole);
-    }
-    return filtered;
+    if (this.filterStatus !== 'ALL') list = list.filter(u => u.status === this.filterStatus);
+    if (this.filterRole !== 'ALL') list = list.filter(u => u.role === this.filterRole);
+    return list;
   }
 
+  // ── Activer / Désactiver ──
   toggleStatus(user: User): void {
     const newStatus = user.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
     this.adminService.updateStatus(user._id, newStatus).subscribe({
       next: () => {
         user.status = newStatus;
         this.updateKPIs();
-        this.showMessage('Statut modifié avec succès', 'success');
+        this.showMsg(`Statut de ${user.fullName} modifié`, 'success');
+        this.cdr.markForCheck();
       },
-      error: (err) => { console.error(err); }
+      error: err => { console.error(err); this.showMsg('Erreur modification statut', 'error'); }
     });
   }
 
+  // ── Changer rôle (valeurs réelles : CREDIT / RISK) ──
   changeRole(user: User, event: Event): void {
-    const target = event.target as HTMLSelectElement;
-    const newRole = target.value as User['role'];
+    const newRole = (event.target as HTMLSelectElement).value as User['role'];
     this.adminService.updateRole(user._id, newRole).subscribe({
       next: () => {
         user.role = newRole;
-        user.permissions = this.getDefaultPermissionsForRole(newRole);
+        // Réinitialiser les permissions par défaut du nouveau rôle
+        user.permissions = [...(ROLE_DEFAULT_PERMISSIONS[newRole] ?? [])];
         this.updateKPIs();
-        this.showMessage('Rôle modifié avec succès', 'success');
+        this.showMsg(`Rôle de ${user.fullName} → ${this.getRoleLabel(newRole)}`, 'success');
+        this.cdr.markForCheck();
       },
-      error: (err) => { console.error(err); }
+      error: err => { console.error(err); this.showMsg('Erreur modification rôle', 'error'); }
     });
   }
 
+  // ── Modal création / édition ──
   openUserModal(user?: User): void {
-    if (user) {
-      this.editingUser = { ...user };
-    } else {
-      this.editingUser = {
-        _id: '',
-        fullName: '',
-        email: '',
-        status: 'ACTIVE',
-        role: 'USER',
-        permissions: this.getDefaultPermissionsForRole('USER')
-      };
-    }
+    this.editingUser = user
+      ? { ...user }
+      : { _id: '', fullName: '', email: '', status: 'ACTIVE', role: 'CREDIT', permissions: [...(ROLE_DEFAULT_PERMISSIONS['CREDIT'] ?? [])] };
     this.showUserModal = true;
   }
 
-  closeUserModal(): void {
-    this.showUserModal = false;
-    this.editingUser = null;
-  }
+  closeUserModal(): void { this.showUserModal = false; this.editingUser = null; }
 
   saveUser(): void {
     if (!this.editingUser) return;
     this.loading = true;
 
-    if (this.editingUser._id) {
-      this.adminService.updateUser(this.editingUser._id, this.editingUser).subscribe({
-        next: (updatedUser) => {
-          const index = this.users.findIndex(u => u._id === updatedUser._id);
-          if (index !== -1) this.users[index] = updatedUser;
-          this.updateKPIs();
-          this.showMessage('Utilisateur modifié avec succès', 'success');
-          this.closeUserModal();
-          this.loading = false;
-        },
-        error: (err) => {
-          console.error(err);
-          this.loading = false;
+    const obs = this.editingUser._id
+      ? this.adminService.updateUser(this.editingUser._id, this.editingUser)
+      : this.adminService.createUser(this.editingUser);
+
+    obs.subscribe({
+      next: (saved: any) => {
+        if (this.editingUser!._id) {
+          const idx = this.users.findIndex(u => u._id === saved._id);
+          if (idx !== -1) this.users[idx] = saved;
+        } else {
+          if (saved.role !== 'ADMIN') this.users.push(saved);
         }
-      });
-    } else {
-      this.adminService.createUser(this.editingUser).subscribe({
-        next: (newUser) => {
-          this.users.push(newUser);
-          this.updateKPIs();
-          this.showMessage('Utilisateur ajouté avec succès', 'success');
-          this.closeUserModal();
-          this.loading = false;
-        },
-        error: (err) => {
-          console.error(err);
-          this.loading = false;
-        }
-      });
-    }
-  }
-
-  deleteUser(user: User): void {
-    if (confirm(`Supprimer ${user.fullName} ?`)) {
-      this.adminService.deleteUser(user._id).subscribe({
-        next: () => {
-          this.users = this.users.filter(u => u._id !== user._id);
-          this.updateKPIs();
-          this.showMessage('Utilisateur supprimé', 'success');
-        },
-        error: (err) => { console.error(err); }
-      });
-    }
-  }
-
-  resetFilters(): void {
-    this.searchTerm = '';
-    this.filterStatus = 'ALL';
-    this.filterRole = 'ALL';
-  }
-
-  getStatusClass(status: string): string {
-    return status === 'ACTIVE' ? 'status-badge--active' : 'status-badge--inactive';
-  }
-
-  getRoleClass(role: string): string {
-    switch (role) {
-      case 'ADMIN': return 'role-badge--admin';
-      case 'CHARGE_CREDIT': return 'role-badge--manager';
-      case 'ANALYST': return 'role-badge--analyst';
-      default: return 'role-badge--user';
-    }
-  }
-
-  openProfile(): void {
-    this.showProfileModal = true;
-  }
-
-  closeProfileModal(): void {
-    this.showProfileModal = false;
-  }
-
-  updateProfile(): void {
-    this.adminService.updateProfile(this.currentUser).subscribe({
-      next: () => {
-        localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
-        this.showMessage('Profil mis à jour', 'success');
-        this.closeProfileModal();
+        this.updateKPIs();
+        this.showMsg(this.editingUser!._id ? 'Utilisateur modifié ✓' : 'Utilisateur créé ✓', 'success');
+        this.closeUserModal();
+        this.loading = false;
+        this.cdr.markForCheck();
       },
-      error: (err) => { console.error(err); }
+      error: err => {
+        console.error(err);
+        this.showMsg(err.message || 'Erreur', 'error');
+        this.loading = false;
+      }
     });
   }
 
-  // Permissions methods
+  deleteUser(user: User): void {
+    if (!confirm(`Supprimer ${user.fullName} ?`)) return;
+    this.adminService.deleteUser(user._id).subscribe({
+      next: () => {
+        this.users = this.users.filter(u => u._id !== user._id);
+        this.updateKPIs();
+        this.showMsg(`${user.fullName} supprimé`, 'success');
+        this.cdr.markForCheck();
+      },
+      error: err => { console.error(err); this.showMsg('Erreur suppression', 'error'); }
+    });
+  }
+
+  resetFilters(): void { this.searchTerm = ''; this.filterStatus = 'ALL'; this.filterRole = 'ALL'; }
+
+  // ──────────────────────────────────────────
+  //  Permissions
+  // ──────────────────────────────────────────
+
   openPermissionsModal(user: User): void {
     if (!this.hasPermission('manage_permissions')) {
-      this.showMessage('Permission insuffisante', 'error');
-      return;
+      this.showMsg('Permission insuffisante', 'error'); return;
     }
     this.editingUser = { ...user };
-    this.selectedUserPermissions = [...(user.permissions || this.getDefaultPermissionsForRole(user.role))];
+    // Permissions actuelles ou celles par défaut du rôle
+    this.selectedUserPermissions = [
+      ...(user.permissions?.length
+        ? user.permissions
+        : ROLE_DEFAULT_PERMISSIONS[user.role] ?? [])
+    ];
     this.showPermissionsModal = true;
   }
 
@@ -396,13 +325,35 @@ export class DashboardAdminComponent implements OnInit {
     this.selectedUserPermissions = [];
   }
 
-  togglePermission(permissionId: string): void {
-    const index = this.selectedUserPermissions.indexOf(permissionId);
-    if (index > -1) {
-      this.selectedUserPermissions.splice(index, 1);
+  togglePermission(permId: string): void {
+    const idx = this.selectedUserPermissions.indexOf(permId);
+    if (idx > -1) this.selectedUserPermissions.splice(idx, 1);
+    else this.selectedUserPermissions.push(permId);
+  }
+
+  isPermissionSelected(permId: string): boolean {
+    return this.selectedUserPermissions.includes(permId);
+  }
+
+  /** Sélectionner / désélectionner toute une catégorie */
+  toggleCategory(category: string): void {
+    const catPerms = this.getPermissionsByCategory(category).map(p => p.id);
+    const allSelected = catPerms.every(id => this.selectedUserPermissions.includes(id));
+    if (allSelected) {
+      this.selectedUserPermissions = this.selectedUserPermissions.filter(id => !catPerms.includes(id));
     } else {
-      this.selectedUserPermissions.push(permissionId);
+      catPerms.forEach(id => { if (!this.selectedUserPermissions.includes(id)) this.selectedUserPermissions.push(id); });
     }
+  }
+
+  isCategoryFullySelected(category: string): boolean {
+    return this.getPermissionsByCategory(category).every(p => this.selectedUserPermissions.includes(p.id));
+  }
+
+  /** Réinitialiser aux permissions par défaut du rôle */
+  resetToRoleDefaults(): void {
+    if (!this.editingUser) return;
+    this.selectedUserPermissions = [...(ROLE_DEFAULT_PERMISSIONS[this.editingUser.role] ?? [])];
   }
 
   savePermissions(): void {
@@ -410,15 +361,16 @@ export class DashboardAdminComponent implements OnInit {
     this.loading = true;
     this.adminService.updatePermissions(this.editingUser._id, this.selectedUserPermissions).subscribe({
       next: () => {
-        this.editingUser!.permissions = this.selectedUserPermissions;
-        const index = this.users.findIndex(u => u._id === this.editingUser!._id);
-        if (index !== -1) this.users[index].permissions = this.selectedUserPermissions;
-        this.showMessage('Permissions mises à jour', 'success');
+        const idx = this.users.findIndex(u => u._id === this.editingUser!._id);
+        if (idx !== -1) this.users[idx].permissions = [...this.selectedUserPermissions];
+        this.showMsg('Permissions mises à jour ✓', 'success');
         this.closePermissionsModal();
         this.loading = false;
+        this.cdr.markForCheck();
       },
-      error: (err) => {
+      error: err => {
         console.error(err);
+        this.showMsg('Erreur mise à jour permissions', 'error');
         this.loading = false;
       }
     });
@@ -428,18 +380,76 @@ export class DashboardAdminComponent implements OnInit {
     return [...new Set(this.availablePermissions.map(p => p.category))];
   }
 
-  getPermissionsByCategory(category: string): Permission[] {
-    return this.availablePermissions.filter(p => p.category === category);
+  getPermissionsByCategory(cat: string): Permission[] {
+    return this.availablePermissions.filter(p => p.category === cat);
   }
 
-  isPermissionSelected(permissionId: string): boolean {
-    return this.selectedUserPermissions.includes(permissionId);
+  // ──────────────────────────────────────────
+  //  Profil
+  // ──────────────────────────────────────────
+
+  openProfile(): void { this.showProfileModal = true; }
+  closeProfileModal(): void { this.showProfileModal = false; }
+
+  updateProfile(): void {
+    this.adminService.updateProfile(this.currentUser).subscribe({
+      next: () => {
+        localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+        this.showMsg('Profil mis à jour ✓', 'success');
+        this.closeProfileModal();
+        this.cdr.markForCheck();
+      },
+      error: err => { console.error(err); this.showMsg('Erreur mise à jour profil', 'error'); }
+    });
   }
 
-  // Utility methods
-  getKPITrend(type: string): { value: string; positive: boolean } {
-    const trends = { total: { value: '+12%', positive: true }, active: { value: '+8%', positive: true }, admin: { value: '+5%', positive: true } };
-    return trends[type as keyof typeof trends] || { value: '0%', positive: true };
+  onProfileImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.currentUser.photoUrl = reader.result as string;
+      localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+      this.cdr.markForCheck();
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+
+  // ──────────────────────────────────────────
+  //  Helpers
+  // ──────────────────────────────────────────
+
+  getRoleLabel(role: string): string {
+    return ({ ADMIN: 'Administrateur', CREDIT: 'Chargé crédit', ANALYST: 'Analyste risque' } as Record<string, string>)[role] ?? role;
+  }
+
+  getRoleClass(role: string): string {
+    return ({ ADMIN: 'role--admin', CREDIT: 'role--credit', ANALYST: 'role--ANALYST' } as Record<string, string>)[role] ?? '';
+  }
+
+  getStatusClass(status: string): string {
+    return status === 'ACTIVE' ? 'status-badge--active' : 'status-badge--inactive';
+  }
+
+  getKPITrend(type: string): { value: string } {
+    const map: Record<string, string> = { total: '+12%', active: '+8%', credit: '+3', ANALYST: '+2' };
+    return { value: map[type] ?? '0' };
+  }
+
+  setActiveView(viewId: string): void {
+    const item = this.sidebarItems.find(i => i.id === viewId);
+    if (item?.requiredPermission && !this.hasPermission(item.requiredPermission)) {
+      this.showMsg('Permission insuffisante', 'error'); return;
+    }
+    this.sidebarItems.forEach(i => i.active = i.id === viewId);
+    this.currentView = viewId;
+  }
+
+  toggleSidebar(): void { this.sidebarCollapsed = !this.sidebarCollapsed; }
+
+  showMsg(msg: string, type: 'success' | 'error' = 'success'): void {
+    this.message = msg;
+    setTimeout(() => { this.message = ''; this.cdr.markForCheck(); }, 3500);
   }
 
   confirmLogout(): void {
@@ -448,32 +458,25 @@ export class DashboardAdminComponent implements OnInit {
 
   logout(): void {
     this.authService.logout().subscribe({
-      next: () => {
-        localStorage.removeItem('currentUser');
-        localStorage.removeItem('authToken');
-        this.router.navigate(['/login']);
-      },
-      error: (err) => {
-        console.error(err);
-        this.router.navigate(['/login']);
-      }
+      next: () => { localStorage.removeItem('currentUser'); localStorage.removeItem('authToken'); this.router.navigate(['/login']); },
+      error: () => this.router.navigate(['/login'])
     });
   }
 
-  showMessage(msg: string, type: 'success' | 'error' = 'success'): void {
-    this.message = msg;
-    setTimeout(() => { this.message = ''; }, 3000);
+  setupKeyboardShortcuts(): void {
+    document.addEventListener('keydown', e => {
+      if (e.ctrlKey && e.key === 'b') { e.preventDefault(); this.toggleSidebar(); }
+      if (e.ctrlKey && e.key === 'p') { e.preventDefault(); this.openProfile(); }
+      if (e.ctrlKey && e.key === 'q') { e.preventDefault(); this.confirmLogout(); }
+    });
+  }
+  selectAllPermissions(): void {
+    this.selectedUserPermissions = this.availablePermissions.map(
+      (p: Permission) => p.id
+    );
   }
 
-  onProfileImageSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (!input.files?.length) return;
-    const file = input.files[0];
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.currentUser.photoUrl = reader.result as string;
-      localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
-    };
-    reader.readAsDataURL(file);
+  clearAllPermissions(): void {
+    this.selectedUserPermissions = [];
   }
 }

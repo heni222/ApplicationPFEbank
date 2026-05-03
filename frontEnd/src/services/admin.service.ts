@@ -13,7 +13,7 @@ export interface User {
   address?: string;
   city?: string;
   status: 'ACTIVE' | 'INACTIVE';
-  role: 'ADMIN' | 'USER' | 'CHARGE_CREDIT' | 'ANALYST';
+  role: 'ADMIN' | 'USER' | 'CREDIT' | 'ANALYST';
   permissions: string[];
   lastLogin?: Date;
   createdAt?: Date;
@@ -127,7 +127,7 @@ export class AdminService {
   }
 
   // 🔥 Changer le rôle d'un utilisateur
-  updateRole(userId: string, role: 'ADMIN' | 'USER' | 'CHARGE_CREDIT' | 'ANALYST'): Observable<User> {
+  updateRole(userId: string, role: 'ADMIN' | 'USER' | 'CREDIT' | 'ANALYST'): Observable<User> {
     return this.http.put<User>(`${this.apiUrl}/users/${userId}/role`, { role })
       .pipe(catchError(this.handleError));
   }
