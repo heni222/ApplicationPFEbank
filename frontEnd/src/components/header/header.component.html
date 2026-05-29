@@ -1,62 +1,52 @@
-<header class="tw-header" [class.is-scrolled]="isScrolled">
-  <div class="tw-header__inner">
-    <!-- Brand -->
-    <a class="tw-brand" routerLink="/">
-      <span class="tw-brand__mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24" class="tw-brand__icon">
-          <path d="M12 2 2 7v2h20V7L12 2Zm8 9H4v9h16v-9ZM7 13h4v5H7v-5Zm6 0h4v5h-4v-5Z"/>
-        </svg>
-      </span>
-      <span class="tw-brand__text">
-        <span class="tw-brand__name">CreditHub</span>
-        <span class="tw-brand__tag">Scoring & Crédit</span>
-      </span>
-    </a>
+<!-- Header HTML - À intégrer dans home.component.html -->
+<header class="topbar" [class.is-scrolled]="isScrolled">
+  <div class="topbar__inner">
+    <div class="topbar__brand">
+      <span class="topbar__logo">◆</span>
+      <span class="topbar__name">CréditFlow</span>
+      <span class="badge-custom badge-custom--info">Pro</span>
+    </div>
 
-    <!-- Desktop nav -->
-    <nav class="tw-nav" aria-label="Navigation principale">
-      <a routerLink="/home">Accueil</a>
-      <a routerLink="/dossiers">Dossiers</a>
-      <a routerLink="/scoring">Scoring</a>
-      <a routerLink="/clients">Clients</a>
-      <a routerLink="/singUp">Inscription</a>
+    <nav class="topbar__nav">
+      <a routerLink="/dossiers" routerLinkActive="active">Dossiers</a>
+      <a routerLink="/scoring" routerLinkActive="active">Scoring</a>
+      <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
     </nav>
 
-    <!-- Actions -->
-    <div class="tw-actions">
-      <button class="tw-btn tw-btn--ghost" type="button" (click)="openHelp()">
-        <span class="tw-dot" aria-hidden="true"></span>
-        Aide
+    <div class="topbar__actions">
+      <button class="theme-toggle" (click)="toggleTheme()" [title]="theme() === 'light' ? 'Mode sombre' : 'Mode clair'">
+        {{ theme() === 'light' ? '🌙' : '☀️' }}
       </button>
-
-      <a class="tw-btn tw-btn--primary" routerLink="login">
-        Connexion
+      <a class="btn-custom btn-custom--primary btn-custom--sm" routerLink="/login">
+        Se connecter
       </a>
-
-      <!-- Burger (mobile) -->
-      <button class="tw-burger" type="button"
-              aria-label="Ouvrir le menu"
-              [attr.aria-expanded]="isMenuOpen"
-              (click)="toggleMenu()">
-        <span></span><span></span><span></span>
+      <a class="btn-custom btn-custom--primary btn-custom--sm" routerLink="/singUp" (click)="closeMobileMenu()">
+        Inscription
+      </a>
+      <button class="burger-menu" (click)="toggleMobileMenu()" [attr.aria-expanded]="mobileMenuOpen">
+        <span></span>
+        <span></span>
+        <span></span>
       </button>
     </div>
   </div>
-
-  <!-- Mobile menu -->
-  <div class="tw-mobile" [class.is-open]="isMenuOpen">
-    <nav class="tw-mobile__nav" aria-label="Menu mobile">
-      <a (click)="closeMenu()" routerLink="/home" routerLinkActive="is-active">Accueil</a>
-      <a (click)="closeMenu()" routerLink="/dossiers" routerLinkActive="is-active">Dossiers</a>
-      <a (click)="closeMenu()" routerLink="/clients" routerLinkActive="is-active">Clients</a>
-      <a (click)="closeMenu()" routerLink="/scoring" routerLinkActive="is-active">Scoring</a>
-      <a (click)="closeMenu()" routerLink="/admin" routerLinkActive="is-active">Admin</a>
-
-      <div class="tw-mobile__divider"></div>
-
-      <a (click)="closeMenu()" routerLink="/auth/login" class="tw-mobile__cta">
-        Connexion
-      </a>
-    </nav>
-  </div>
 </header>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu" [class.is-open]="mobileMenuOpen">
+  <nav class="mobile-menu__nav">
+    <a routerLink="/dossiers" routerLinkActive="active" (click)="closeMobileMenu()">Dossiers</a>
+    <a routerLink="/scoring" routerLinkActive="active" (click)="closeMobileMenu()">Scoring</a>
+    <a routerLink="/dashboard" routerLinkActive="active" (click)="closeMobileMenu()">Dashboard</a>
+  </nav>
+  <div class="mobile-menu__divider"></div>
+  <div class="mobile-menu__actions">
+    <a class="btn-custom btn-custom--primary mobile-menu__btn" routerLink="/login" (click)="closeMobileMenu()">
+      Se connecter
+    </a>
+    <!-- Correction ici : routerLink pointe désormais vers /singUp -->
+    <a class="btn-custom btn-custom--primary mobile-menu__btn" routerLink="/singUp" (click)="closeMobileMenu()">
+      Inscription
+    </a>
+  </div>
+</div>

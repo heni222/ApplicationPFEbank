@@ -1,4 +1,4 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
@@ -7,24 +7,36 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
+// Dans le composant
 export class HeaderComponent {
-  isMenuOpen = false;
+  theme = signal<'light' | 'dark'>('light');
   isScrolled = false;
+  mobileMenuOpen = false;
 
-  // Et dans ngOnInit, vérifier aussi :
   ngOnInit() {
+    window.addEventListener('scroll', this.handleScroll.bind(this));
+  }
+
+  ngOnDestroy() {
+    window.removeEventListener('scroll', this.handleScroll.bind(this));
+  }
+
+  handleScroll() {
     this.isScrolled = window.scrollY > 10;
   }
-  toggleMenu() { this.isMenuOpen = !this.isMenuOpen; }
-  closeMenu() { this.isMenuOpen = false; }
 
-  openHelp() {
-    // TODO: ouvrir un drawer / modal aide
-    alert('Aide: consultez la documentation ou contactez l’admin.');
+  toggleTheme() {
+    this.theme.update(t => t === 'light' ? 'dark' : 'light');
+    document.body.classList.toggle('dark-theme', this.theme() === 'dark');
   }
 
-  @HostListener('window:scroll')
-  onScroll() {
-    this.isScrolled = window.scrollY > 6;
+  toggleMobileMenu() {
+    this.mobileMenuOpen = !this.mobileMenuOpen;
+    document.body.style.overflow = this.mobileMenuOpen ? 'hidden' : '';
+  }
+
+  closeMobileMenu() {
+    this.mobileMenuOpen = false;
+    document.body.style.overflow = '';
   }
 }

@@ -1,64 +1,122 @@
+<!-- Footer HTML - À intégrer dans home.component.html -->
 <footer class="tw-footer">
-  <div class="tw-footer__top">
-    <div class="tw-footer__inner">
-      <div class="tw-footer__brand">
-        <div class="tw-footer__logo" aria-hidden="true">
-          <svg viewBox="0 0 24 24">
-            <path d="M12 2 2 7v2h20V7L12 2Zm8 9H4v9h16v-9ZM7 13h4v5H7v-5Zm6 0h4v5h-4v-5Z"/>
-          </svg>
+  <div class="tw-footer__inner">
+    <div class="tw-footer__top">
+      
+      <!-- Brand Section -->
+      <div class="tw-footer__brand-section">
+        <div class="tw-footer__brand">
+          <div class="tw-footer__logo">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M2 17L12 22L22 17" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M2 12L12 17L22 12" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="tw-footer__title">CréditFlow</h3>
+            <p class="tw-footer__subtitle">Plateforme crédit nouvelle génération</p>
+          </div>
+        </div>
+        <div class="tw-badges">
+          <span class="tw-badge">🔒 Sécurité bancaire</span>
+          <span class="tw-badge">⚡ Scoring ML</span>
+          <span class="tw-badge">📊 Traçabilité ISO</span>
+        </div>
+      </div>
+
+      <!-- Footer Columns -->
+      <div class="tw-footer__cols">
+        
+        <!-- Column 1 - Produit -->
+        <div class="tw-col">
+          <div class="tw-col__header">
+            <span class="tw-col__icon">🚀</span>
+            <h4 class="tw-col__title">Produit</h4>
+          </div>
+          <div class="tw-col__links">
+            <a routerLink="/dossiers">📁 Gestion des dossiers</a>
+            <a routerLink="/scoring">🎯 Scoring intelligent</a>
+            <a routerLink="/dashboard">📈 Dashboard décisionnel</a>
+            <a href="#">🆕 Nouveautés</a>
+          </div>
         </div>
 
-        <div>
-          <div class="tw-footer__title">CreditHub</div>
-          <div class="tw-footer__subtitle">
-            Gestion intelligente des dossiers de crédit • Scoring de risque • Authentification faciale
+        <!-- Column 2 - Ressources -->
+        <div class="tw-col">
+          <div class="tw-col__header">
+            <span class="tw-col__icon">📚</span>
+            <h4 class="tw-col__title">Ressources</h4>
           </div>
+          <div class="tw-col__links">
+            <a href="#">📖 Documentation API</a>
+            <a href="#">📘 Guides d'utilisation</a>
+            <a href="#">🎓 Centre de formation</a>
+            <a href="#">💡 Blog & actualités</a>
+          </div>
+        </div>
 
-          <div class="tw-badges">
-            <span class="tw-badge">Sécurité</span>
-            <span class="tw-badge">Traçabilité</span>
-            <span class="tw-badge">Décisionnel</span>
+        <!-- Column 3 - Support -->
+        <div class="tw-col">
+          <div class="tw-col__header">
+            <span class="tw-col__icon">🎧</span>
+            <h4 class="tw-col__title">Support</h4>
+          </div>
+          <div class="tw-col__links">
+            <a href="#">❓ Aide & FAQ</a>
+            <a href="#">💬 Contactez-nous</a>
+            <a href="#">🛡️ Statut du service</a>
+            <a href="#">📅 Support premium</a>
+          </div>
+        </div>
+
+        <!-- Column 4 - Entreprise -->
+        <div class="tw-col">
+          <div class="tw-col__header">
+            <span class="tw-col__icon">🏢</span>
+            <h4 class="tw-col__title">Entreprise</h4>
+          </div>
+          <div class="tw-col__links">
+            <a href="#">ℹ️ À propos</a>
+            <a href="#">🌍 Carrières</a>
+            <a href="#">🔒 Sécurité & conformité</a>
+            <a href="#">📋 Mentions légales</a>
           </div>
         </div>
       </div>
 
-      <div class="tw-footer__cols">
-        <div class="tw-col">
-          <div class="tw-col__h">Produit</div>
-          <a routerLink="/dashboard">Dashboard</a>
-          <a routerLink="/dossiers">Dossiers</a>
-          <a routerLink="/clients">Clients</a>
-          <a routerLink="/scoring">Scoring</a>
-        </div>
-
-        <div class="tw-col">
-          <div class="tw-col__h">Confiance</div>
-          <a routerLink="/security">Sécurité & chiffrement</a>
-          <a routerLink="/audit">Journalisation</a>
-          <a routerLink="/biometrie">Biométrie faciale</a>
-          <a routerLink="/privacy">Confidentialité</a>
-        </div>
-
-        <div class="tw-col">
-          <div class="tw-col__h">Support</div>
-          <a href="mailto:support&#64;credithub.tn">support&#64;credithub.tn</a>
-          <a routerLink="/help">Centre d’aide</a>
-          <a routerLink="/status">Statut du service</a>
+      <!-- Newsletter Section -->
+      <div class="tw-footer__newsletter">
+        <div class="newsletter">
+          <h4 class="newsletter__title">📧 Restez informé</h4>
+          <p class="newsletter__text">Recevez nos actualités et conseils pour optimiser vos décisions de crédit.</p>
+          <form class="newsletter__form" (ngSubmit)="onNewsletterSubmit()">
+            <input type="email" class="newsletter__input" placeholder="votre@email.com" [(ngModel)]="newsletterEmail" name="email">
+            <button type="submit" class="newsletter__btn">S'abonner</button>
+          </form>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="tw-footer__bottom">
-    <div class="tw-footer__inner tw-footer__bottom-inner">
-      <div class="tw-footer__copy">
-        © {{ year }} CreditHub • Tous droits réservés
-      </div>
+    <!-- Bottom Section -->
+    <div class="tw-footer__bottom">
+      <div class="tw-footer__bottom-inner">
+        <div class="tw-footer__copy">
+          © 2024 CréditFlow – Tous droits réservés. 
+          <a routerLink="/conditions">Conditions d'utilisation</a>
+        </div>
+        
+        <div class="tw-footer__social">
+          <a href="#" class="social-link" aria-label="LinkedIn">🔗</a>
+          <a href="#" class="social-link" aria-label="Twitter">🐦</a>
+          <a href="#" class="social-link" aria-label="GitHub">💻</a>
+        </div>
 
-      <div class="tw-footer__legal">
-        <a routerLink="/terms">Conditions</a>
-        <a routerLink="/privacy">Politique de confidentialité</a>
-        <a routerLink="/contact">Contact</a>
+        <div class="tw-footer__legal">
+          <a routerLink="/privacy">Confidentialité</a>
+          <a routerLink="/legal">Mentions légales</a>
+          <a routerLink="/cookies">Cookies</a>
+        </div>
       </div>
     </div>
   </div>

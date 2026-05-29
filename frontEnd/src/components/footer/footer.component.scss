@@ -1,53 +1,86 @@
-// Footer styles
-/* You can add global styles to this file, and also import other style files */
+// ===== Footer Styles - Thème Banking Moderne =====
+// À intégrer dans le fichier home.component.scss
+
 // ===== Variables =====
-$color-primary: #0a2a44;          // Bleu banque profond
-$color-primary-light: #1e3a5f;
-$color-accent: #0a66c2;            // Bleu action
-$color-accent-hover: #004182;
-$color-background: #f4f7fc;        // Fond très clair
-$color-surface: #ffffff;
-$color-text: #1e2a3a;
-$color-text-light: #5e6f8d;
-$color-border: #e2e8f0;
-$color-error: #d32f2f;
-$color-success: #2e7d32;
-$shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.05);
-$shadow-md: 0 8px 24px rgba(0, 20, 50, 0.08);
-$shadow-lg: 0 20px 40px -10px rgba(0, 20, 40, 0.2);
+$color-primary: #0A2540;           // Bleu profond banking
+$color-primary-light: #1A4A6E;
+$color-accent: #0066FF;             // Bleu électrique
+$color-accent-hover: #0052CC;
+$color-success: #00C48C;
+$color-background: #F7F9FC;         // Fond très clair
+$color-surface: #FFFFFF;
+$color-text: #1D2939;
+$color-text-light: #667085;
+$color-border: #E4E7EC;
+$color-error: #FF4D4F;
+$shadow-sm: 0 1px 2px rgba(10, 37, 64, 0.05);
+$shadow-md: 0 4px 8px rgba(10, 37, 64, 0.06), 0 2px 4px rgba(10, 37, 64, 0.04);
+$shadow-lg: 0 12px 24px rgba(10, 37, 64, 0.08), 0 4px 8px rgba(10, 37, 64, 0.04);
 $radius: 20px;
 $radius-sm: 12px;
-$transition: all 0.2s ease;
+$radius-full: 9999px;
+$transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+// ===== FOOTER PRINCIPAL =====
 .tw-footer {
-  background: $color-surface;
-  border-top: 1px solid $color-border;
-  padding-top: 3rem;
-  margin-top: 3rem;
+  background: linear-gradient(180deg, rgba($color-background, 0.5) 0%, $color-surface 100%);
+  border-top: 1px solid rgba($color-border, 0.8);
+  margin-top: 60px;
+  position: relative;
+  overflow: hidden;
+
+  // Effet de glow subtil
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    left: 0;
+    right: 0;
+    height: 100px;
+    background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba($color-accent, 0.08), transparent);
+    pointer-events: none;
+  }
 
   &__inner {
     max-width: 1280px;
     margin: 0 auto;
-    padding: 0 2rem;
+    padding: 0 24px;
+    position: relative;
+    z-index: 2;
   }
 
   &__top {
-    padding-bottom: 2rem;
+    padding: 48px 0 32px;
+  }
+
+  // Section brand
+  &__brand-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 32px;
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid $color-border;
   }
 
   &__brand {
     display: flex;
-    gap: 1.5rem;
-    margin-bottom: 3rem;
+    align-items: center;
+    gap: 16px;
   }
 
   &__logo {
     width: 48px;
     height: 48px;
-    background: $color-primary;
-    border-radius: 12px;
+    background: linear-gradient(135deg, $color-accent, $color-primary);
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: $shadow-md;
+    transition: $transition;
 
     svg {
       width: 24px;
@@ -57,77 +90,184 @@ $transition: all 0.2s ease;
   }
 
   &__title {
-    font-size: 1.5rem;
+    font-size: 20px;
     font-weight: 700;
-    color: $color-primary;
-    line-height: 1.2;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, $color-primary, $color-accent);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin: 0;
+    line-height: 1.3;
   }
 
   &__subtitle {
     color: $color-text-light;
-    font-size: 0.9rem;
-    margin-top: 0.25rem;
-    margin-bottom: 1rem;
+    font-size: 13px;
+    margin-top: 4px;
   }
 
+  // Badges
   .tw-badges {
     display: flex;
-    gap: 0.5rem;
+    gap: 8px;
     flex-wrap: wrap;
   }
 
   .tw-badge {
     background: rgba($color-accent, 0.1);
+    backdrop-filter: blur(4px);
     color: $color-accent;
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.75rem;
+    padding: 6px 14px;
+    border-radius: $radius-full;
+    font-size: 12px;
     font-weight: 600;
-    text-transform: uppercase;
     letter-spacing: 0.3px;
+    border: 1px solid rgba($color-accent, 0.2);
+    transition: $transition;
+
+    &:hover {
+      background: rgba($color-accent, 0.18);
+      transform: translateY(-1px);
+    }
   }
 
+  // Colonnes
   &__cols {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 32px;
 
-    @media (max-width: 768px) {
+    @media (max-width: 992px) {
       grid-template-columns: repeat(2, 1fr);
+      gap: 40px;
     }
 
     @media (max-width: 480px) {
       grid-template-columns: 1fr;
+      gap: 32px;
     }
   }
 
   .tw-col {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 16px;
 
-    &__h {
-      font-weight: 600;
-      color: $color-primary;
-      font-size: 1rem;
-      margin-bottom: 0.5rem;
+    &__header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    &__icon {
+      font-size: 20px;
+    }
+
+    &__title {
+      font-weight: 700;
+      color: $color-text;
+      font-size: 16px;
+      letter-spacing: -0.01em;
+      margin: 0;
+    }
+
+    &__links {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
 
     a {
       color: $color-text-light;
       text-decoration: none;
-      font-size: 0.9rem;
+      font-size: 14px;
       transition: $transition;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      width: fit-content;
 
       &:hover {
         color: $color-accent;
+        transform: translateX(4px);
       }
     }
   }
 
+  // Section newsletter
+  &__newsletter {
+    margin-top: 48px;
+    padding: 32px;
+    background: linear-gradient(135deg, rgba($color-primary, 0.03), rgba($color-accent, 0.05));
+    border-radius: $radius;
+    border: 1px solid rgba($color-border, 0.6);
+  }
+
+  .newsletter {
+    &__title {
+      font-size: 18px;
+      font-weight: 600;
+      color: $color-text;
+      margin-bottom: 8px;
+    }
+
+    &__text {
+      font-size: 14px;
+      color: $color-text-light;
+      margin-bottom: 20px;
+    }
+
+    &__form {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+
+      @media (max-width: 480px) {
+        flex-direction: column;
+      }
+    }
+
+    &__input {
+      flex: 1;
+      padding: 12px 18px;
+      border: 1px solid $color-border;
+      border-radius: $radius-full;
+      font-size: 14px;
+      background: $color-surface;
+      transition: $transition;
+
+      &:focus {
+        outline: none;
+        border-color: $color-accent;
+        box-shadow: 0 0 0 3px rgba($color-accent, 0.1);
+      }
+    }
+
+    &__btn {
+      padding: 12px 24px;
+      background: linear-gradient(135deg, $color-accent, $color-accent-hover);
+      color: white;
+      border: none;
+      border-radius: $radius-full;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: $transition;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: $shadow-md;
+      }
+    }
+  }
+
+  // Section bottom
   &__bottom {
     border-top: 1px solid $color-border;
-    padding: 1.5rem 0;
+    padding: 24px 0 32px;
+    margin-top: 16px;
   }
 
   &__bottom-inner {
@@ -135,7 +275,7 @@ $transition: all 0.2s ease;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: 20px;
 
     @media (max-width: 640px) {
       flex-direction: column;
@@ -145,23 +285,126 @@ $transition: all 0.2s ease;
 
   &__copy {
     color: $color-text-light;
-    font-size: 0.85rem;
+    font-size: 13px;
+
+    a {
+      color: $color-accent;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  &__social {
+    display: flex;
+    gap: 16px;
+  }
+
+  .social-link {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba($color-background, 0.8);
+    border-radius: $radius-full;
+    color: $color-text-light;
+    text-decoration: none;
+    transition: $transition;
+
+    &:hover {
+      background: $color-accent;
+      color: white;
+      transform: translateY(-2px);
+    }
   }
 
   &__legal {
     display: flex;
-    gap: 1.5rem;
+    gap: 24px;
     flex-wrap: wrap;
 
     a {
       color: $color-text-light;
       text-decoration: none;
-      font-size: 0.85rem;
+      font-size: 13px;
       transition: $transition;
 
       &:hover {
         color: $color-accent;
       }
+    }
+  }
+}
+
+// ===== MODE SOMBRE =====
+:host-context(.dark-theme),
+:host.dark-theme {
+  .tw-footer {
+    background: linear-gradient(180deg, rgba(26, 31, 46, 0.8) 0%, rgba(26, 31, 46, 1) 100%);
+    
+    &::before {
+      background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba($color-accent, 0.12), transparent);
+    }
+  }
+
+  .tw-footer__newsletter {
+    background: linear-gradient(135deg, rgba($color-accent, 0.08), rgba($color-primary, 0.06));
+  }
+
+  .newsletter__input {
+    background: rgba(26, 31, 46, 0.8);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: $color-text;
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+  }
+
+  .social-link {
+    background: rgba(26, 31, 46, 0.9);
+    color: $color-text-light;
+
+    &:hover {
+      background: $color-accent;
+      color: white;
+    }
+  }
+}
+
+// ===== RESPONSIVE =====
+@media (max-width: 768px) {
+  .tw-footer {
+    margin-top: 40px;
+
+    &__top {
+      padding: 32px 0 24px;
+    }
+
+    &__brand-section {
+      flex-direction: column;
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    &__newsletter {
+      padding: 24px;
+      margin-top: 32px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .tw-footer {
+    &__inner {
+      padding: 0 16px;
+    }
+
+    &__newsletter {
+      padding: 20px;
     }
   }
 }

@@ -1,3 +1,4 @@
+<!-- login.component.html -->
 <main class="login">
   <section class="wrap">
     <!-- Colonne gauche (branding) -->
@@ -5,22 +6,26 @@
       <div class="brand__glass">
         <div class="brand__badge">
           <span class="dot"></span>
-          Plateforme Crédit • Scoring • FaceID
+          Plateforme Crédit • Scoring • Décisionnel
         </div>
 
         <h1 class="brand__title">
           Bon retour 👋
-          <span>Connectez-vous pour accéder à vos dossiers et indicateurs.</span>
+          <span>Connectez-vous pour accéder à vos dossiers, scores et indicateurs décisionnels.</span>
         </h1>
 
         <div class="brand__stats">
           <div class="kpi">
-            <div class="kpi__v">Sécurisé</div>
-            <div class="kpi__s">Accès protégé (auth + biométrie)</div>
+            <div class="kpi__v">Sécurité bancaire</div>
+            <div class="kpi__s">Authentification sécurisée & chiffrement SSL</div>
           </div>
           <div class="kpi">
             <div class="kpi__v">Décisionnel</div>
-            <div class="kpi__s">Scoring & dashboard</div>
+            <div class="kpi__s">Scoring ML & dashboard en temps réel</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi__v">Traçabilité</div>
+            <div class="kpi__s">Audit complet des décisions de crédit</div>
           </div>
         </div>
       </div>
@@ -30,27 +35,26 @@
     <div class="card">
       <div class="card__head">
         <h2>Connexion</h2>
-        <p>Entrez vos identifiants pour continuer.</p>
+        <p>Entrez vos identifiants pour accéder à votre espace.</p>
       </div>
 
       <form class="form" [formGroup]="form" (ngSubmit)="login()">
         <div class="field">
-          <label for="email">Email</label>
+          <label for="email">Email professionnel</label>
           <input
             id="email"
             type="email"
             formControlName="email"
-            placeholder="ex: user@exemple.com"
+            placeholder="ex: analyste@banque.fr"
             autocomplete="email"
           />
           <small class="err" *ngIf="showError('email')">
-            Email invalide.
+            Veuillez saisir une adresse email valide.
           </small>
         </div>
 
         <div class="field">
           <label for="password">Mot de passe</label>
-
           <div class="password">
             <input
               id="password"
@@ -64,9 +68,8 @@
               {{ hidePassword ? 'Afficher' : 'Masquer' }}
             </button>
           </div>
-
           <small class="err" *ngIf="showError('password')">
-            Mot de passe requis (min 6 caractères).
+            Le mot de passe doit contenir au moins 6 caractères.
           </small>
         </div>
 
@@ -75,19 +78,17 @@
             <input type="checkbox" formControlName="remember" />
             <span>Se souvenir de moi</span>
           </label>
-
           <a class="link" routerLink="/forgot-password">Mot de passe oublié ?</a>
         </div>
 
         <button class="btn btn--primary" type="submit" [disabled]="loading">
           <span *ngIf="!loading">Se connecter</span>
-          <span *ngIf="loading">Connexion…</span>
+          <span *ngIf="loading">Connexion en cours…</span>
         </button>
 
         <div class="sep">
-          <span>ou</span>
+          <span>Accès sécurisé</span>
         </div>
-
 
         <p class="hint" *ngIf="message">{{ message }}</p>
       </form>

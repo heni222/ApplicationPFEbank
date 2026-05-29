@@ -1,0 +1,168 @@
+// ─────────────────────────────────────────────────────────────
+//  DESIGN TOKENS  –  Banking App Theme
+//  Palette: Deep Navy + Electric Blue + Emerald + Cloud White
+// ─────────────────────────────────────────────────────────────
+
+// ── Raw palette ──────────────────────────────────────────────
+$navy-950: #040E1F;
+$navy-900: #0A2540;
+$navy-800: #0D3260;
+$navy-700: #0F3F7A;
+$navy-600: #154D96;
+
+$blue-600: #0052CC;
+$blue-500: #0066FF;
+$blue-400: #3385FF;
+$blue-300: #80AEFF;
+$blue-100: #D6E6FF;
+$blue-050: #EBF2FF;
+
+$green-600: #00976B;
+$green-500: #00C48C;
+$green-400: #33D3A3;
+$green-100: #CCF5EB;
+$green-050: #E5FAF4;
+
+$amber-500: #F59E0B;
+$amber-100: #FEF3C7;
+
+$red-500:   #EF4444;
+$red-100:   #FEE2E2;
+
+$neutral-950: #0A0F1A;
+$neutral-900: #111827;
+$neutral-800: #1F2937;
+$neutral-700: #374151;
+$neutral-600: #4B5563;
+$neutral-500: #6B7280;
+$neutral-400: #9CA3AF;
+$neutral-300: #D1D5DB;
+$neutral-200: #E5E7EB;
+$neutral-100: #F3F4F6;
+$neutral-050: #F7F9FC;
+$white:       #FFFFFF;
+
+// ── Semantic tokens (light mode default) ─────────────────────
+:root {
+  // Surface
+  --color-bg:            #{$neutral-050};
+  --color-surface-0:     #{$white};
+  --color-surface-1:     #{$neutral-050};
+  --color-surface-2:     #{$neutral-100};
+  --color-surface-glass: rgba(255,255,255,0.72);
+
+  // Brand
+  --color-brand:         #{$blue-500};
+  --color-brand-hover:   #{$blue-600};
+  --color-brand-light:   #{$blue-050};
+  --color-brand-muted:   #{$blue-100};
+
+  // Accent
+  --color-ink:           #{$navy-900};
+  --color-ink-secondary: #{$neutral-600};
+  --color-ink-tertiary:  #{$neutral-400};
+  --color-ink-inverse:   #{$white};
+
+  // Semantic
+  --color-success:       #{$green-500};
+  --color-success-light: #{$green-050};
+  --color-warning:       #{$amber-500};
+  --color-warning-light: #{$amber-100};
+  --color-danger:        #{$red-500};
+  --color-danger-light:  #{$red-100};
+
+  // Border
+  --color-border:        rgba(10,37,64,0.08);
+  --color-border-strong: rgba(10,37,64,0.16);
+
+  // Shadows (elevation system)
+  --shadow-xs:    0 1px 3px rgba(10,37,64,0.06), 0 1px 2px rgba(10,37,64,0.04);
+  --shadow-sm:    0 2px 8px rgba(10,37,64,0.07), 0 1px 3px rgba(10,37,64,0.05);
+  --shadow-md:    0 8px 24px rgba(10,37,64,0.10), 0 2px 8px rgba(10,37,64,0.06);
+  --shadow-lg:    0 16px 48px rgba(10,37,64,0.12), 0 4px 12px rgba(10,37,64,0.07);
+  --shadow-xl:    0 28px 64px rgba(10,37,64,0.15), 0 8px 24px rgba(10,37,64,0.08);
+  --shadow-brand: 0 8px 32px rgba(0,102,255,0.22), 0 2px 8px rgba(0,102,255,0.12);
+
+  // Radius
+  --radius-sm:   8px;
+  --radius-md:   14px;
+  --radius-lg:   20px;
+  --radius-xl:   28px;
+  --radius-2xl:  36px;
+  --radius-full: 9999px;
+
+  // Spacing (4px base)
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  // Typography scale
+  --text-xs:   11px;
+  --text-sm:   13px;
+  --text-base: 15px;
+  --text-lg:   17px;
+  --text-xl:   20px;
+  --text-2xl:  24px;
+  --text-3xl:  30px;
+  --text-4xl:  38px;
+  --text-5xl:  48px;
+
+  // Font weights
+  --weight-regular:   400;
+  --weight-medium:    500;
+  --weight-semibold:  600;
+  --weight-bold:      700;
+  --weight-extrabold: 800;
+  --weight-black:     900;
+
+  // Transitions
+  --ease-out-quint:  cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring:     cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast:   120ms;
+  --duration-base:   200ms;
+  --duration-slow:   350ms;
+
+  // Layout
+  --container-max:  1280px;
+  --sidebar-w:      260px;
+}
+
+// ── Dark mode ─────────────────────────────────────────────────
+[data-theme="dark"] {
+  --color-bg:            #{$navy-950};
+  --color-surface-0:     #{$navy-900};
+  --color-surface-1:     #{$navy-800};
+  --color-surface-2:     #{$neutral-800};
+  --color-surface-glass: rgba(13,50,96,0.65);
+
+  --color-brand:         #{$blue-400};
+  --color-brand-hover:   #{$blue-300};
+  --color-brand-light:   rgba(0,102,255,0.12);
+  --color-brand-muted:   rgba(0,102,255,0.18);
+
+  --color-ink:           #{$white};
+  --color-ink-secondary: #{$neutral-300};
+  --color-ink-tertiary:  #{$neutral-500};
+
+  --color-success-light: rgba(0,196,140,0.12);
+  --color-warning-light: rgba(245,158,11,0.12);
+  --color-danger-light:  rgba(239,68,68,0.12);
+
+  --color-border:        rgba(255,255,255,0.07);
+  --color-border-strong: rgba(255,255,255,0.13);
+
+  --shadow-xs:    0 1px 3px rgba(0,0,0,0.3);
+  --shadow-sm:    0 2px 8px rgba(0,0,0,0.25);
+  --shadow-md:    0 8px 24px rgba(0,0,0,0.28);
+  --shadow-lg:    0 16px 48px rgba(0,0,0,0.34);
+  --shadow-xl:    0 28px 64px rgba(0,0,0,0.40);
+  --shadow-brand: 0 8px 32px rgba(0,102,255,0.35);
+}

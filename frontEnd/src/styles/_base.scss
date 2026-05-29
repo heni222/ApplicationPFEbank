@@ -1,0 +1,121 @@
+// ─────────────────────────────────────────────────────────────
+//  GLOBAL BASE STYLES  –  Banking App Theme
+// ─────────────────────────────────────────────────────────────
+
+@use 'tokens';
+@use 'mixins' as m;
+
+// ── Font imports ──────────────────────────────────────────────
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+
+// ── Reset & base ──────────────────────────────────────────────
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: var(--text-base);
+  font-weight: var(--weight-regular);
+  line-height: 1.6;
+  color: var(--color-ink);
+  background: var(--color-bg);
+  min-height: 100dvh;
+  transition:
+    background var(--duration-slow) var(--ease-out-quint),
+    color var(--duration-slow) var(--ease-out-quint);
+}
+
+// ── Typography system ─────────────────────────────────────────
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: var(--weight-bold);
+  line-height: 1.2;
+  color: var(--color-ink);
+  letter-spacing: -0.025em;
+}
+
+h1 { font-size: var(--text-4xl); font-weight: var(--weight-extrabold); letter-spacing: -0.035em; }
+h2 { font-size: var(--text-3xl); font-weight: var(--weight-bold); }
+h3 { font-size: var(--text-2xl); }
+h4 { font-size: var(--text-xl); }
+h5 { font-size: var(--text-lg); }
+h6 { font-size: var(--text-base); }
+
+p {
+  color: var(--color-ink-secondary);
+  line-height: 1.65;
+  max-width: 68ch;
+}
+
+a {
+  color: var(--color-brand);
+  text-decoration: none;
+  transition: color var(--duration-fast) ease;
+
+  &:hover { color: var(--color-brand-hover); }
+}
+
+strong { font-weight: var(--weight-semibold); }
+
+// ── Scrollbar ─────────────────────────────────────────────────
+::-webkit-scrollbar        { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  {
+  background: var(--color-border-strong);
+  border-radius: var(--radius-full);
+  &:hover { background: var(--color-ink-tertiary); }
+}
+
+// ── Selection ─────────────────────────────────────────────────
+::selection {
+  background: var(--color-brand-muted);
+  color: var(--color-brand);
+}
+
+// ── Layout utilities ──────────────────────────────────────────
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--space-6);
+
+  @include m.breakpoint('md') { padding-inline: var(--space-4); }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+// ── Page transition ───────────────────────────────────────────
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.page-enter {
+  animation: page-in var(--duration-slow) var(--ease-out-quint) both;
+}
+
+// ── Divider ───────────────────────────────────────────────────
+.divider {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: var(--space-6) 0;
+}

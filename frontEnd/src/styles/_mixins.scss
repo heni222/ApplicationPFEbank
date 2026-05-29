@@ -1,0 +1,118 @@
+// ─────────────────────────────────────────────────────────────
+//  MIXINS & UTILITIES  –  Banking App Theme
+// ─────────────────────────────────────────────────────────────
+
+@use 'tokens' as *;
+
+// ── Glass card ────────────────────────────────────────────────
+@mixin glass($blur: 16px, $opacity: 0.72) {
+  background: rgba(255, 255, 255, $opacity);
+  backdrop-filter: blur($blur) saturate(1.4);
+  -webkit-backdrop-filter: blur($blur) saturate(1.4);
+  border: 1px solid var(--color-border);
+
+  [data-theme="dark"] & {
+    background: rgba(13, 50, 96, $opacity - 0.1);
+  }
+}
+
+// ── Elevated card ─────────────────────────────────────────────
+@mixin card($level: 'md') {
+  background: var(--color-surface-0);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+
+  @if $level == 'sm'  { box-shadow: var(--shadow-sm); }
+  @if $level == 'md'  { box-shadow: var(--shadow-md); }
+  @if $level == 'lg'  { box-shadow: var(--shadow-lg); }
+  @if $level == 'xl'  { box-shadow: var(--shadow-xl); }
+}
+
+// ── Smooth hover lift ─────────────────────────────────────────
+@mixin hover-lift($y: -3px, $shadow: var(--shadow-lg)) {
+  transition:
+    transform var(--duration-base) var(--ease-out-quint),
+    box-shadow var(--duration-base) var(--ease-out-quint);
+
+  &:hover {
+    transform: translateY($y);
+    box-shadow: $shadow;
+  }
+}
+
+// ── Focus ring (accessible) ───────────────────────────────────
+@mixin focus-ring($color: var(--color-brand)) {
+  &:focus-visible {
+    outline: 2.5px solid $color;
+    outline-offset: 3px;
+    border-radius: inherit;
+  }
+}
+
+// ── Truncate text ─────────────────────────────────────────────
+@mixin truncate {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+// ── Flex center ───────────────────────────────────────────────
+@mixin flex-center($gap: 0) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  @if $gap > 0 { gap: $gap; }
+}
+
+// ── Responsive breakpoints ────────────────────────────────────
+@mixin breakpoint($bp) {
+  @if $bp == 'sm'  { @media (max-width: 640px)  { @content; } }
+  @if $bp == 'md'  { @media (max-width: 768px)  { @content; } }
+  @if $bp == 'lg'  { @media (max-width: 1024px) { @content; } }
+  @if $bp == 'xl'  { @media (max-width: 1280px) { @content; } }
+}
+
+// ── Gradient text ─────────────────────────────────────────────
+@mixin gradient-text($from: var(--color-brand), $to: var(--color-success)) {
+  background: linear-gradient(135deg, $from, $to);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+// ── Status badge colors ───────────────────────────────────────
+@mixin status-color($status) {
+  @if $status == 'success' {
+    color: var(--color-success);
+    background: var(--color-success-light);
+  }
+  @if $status == 'warning' {
+    color: var(--color-warning);
+    background: var(--color-warning-light);
+  }
+  @if $status == 'danger' {
+    color: var(--color-danger);
+    background: var(--color-danger-light);
+  }
+  @if $status == 'info' {
+    color: var(--color-brand);
+    background: var(--color-brand-light);
+  }
+}
+
+// ── Shimmer skeleton ──────────────────────────────────────────
+@mixin skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-2) 25%,
+    var(--color-surface-1) 50%,
+    var(--color-surface-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

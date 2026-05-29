@@ -1,0 +1,83 @@
+// ─────────────────────────────────────────────────────────────
+//  CardComponent STYLES  –  card.component.scss
+// ─────────────────────────────────────────────────────────────
+
+// In card.component.scss and button.component.scss
+@use '../../styles/mixins' as m;
+
+:host { display: block; height: 100%; }
+
+.card {
+  background: var(--color-surface-0);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  height: 100%;
+  transition:
+    transform var(--duration-base) var(--ease-out-quint),
+    box-shadow var(--duration-base) var(--ease-out-quint);
+
+  // ── Elevation levels ───────────────────────────────────────
+  &--flat    { box-shadow: none; }
+  &--sm      { box-shadow: var(--shadow-sm); }
+  &--md      { box-shadow: var(--shadow-md); }
+  &--lg      { box-shadow: var(--shadow-lg); }
+
+  // ── Glass variant ──────────────────────────────────────────
+  &--glass {
+    @include m.glass;
+  }
+
+  // ── Hoverable ──────────────────────────────────────────────
+  &--hover {
+    cursor: pointer;
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+    }
+  }
+
+  // ── Clickable (pressed state) ──────────────────────────────
+  &--hover:active {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+
+  // ── Brand accent bar ───────────────────────────────────────
+  &--accent-top {
+    border-top: 3px solid var(--color-brand);
+  }
+  &--accent-success {
+    border-top: 3px solid var(--color-success);
+  }
+
+  // ── Padding ────────────────────────────────────────────────
+  &--padded &__body  { padding: var(--space-6); }
+
+  // ── Sections ───────────────────────────────────────────────
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-5) var(--space-6);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  &__title {
+    font-size: var(--text-base);
+    font-weight: var(--weight-semibold);
+    color: var(--color-ink);
+    letter-spacing: -0.015em;
+  }
+
+  &__body {
+    padding: var(--space-6);
+  }
+
+  &__footer {
+    padding: var(--space-4) var(--space-6);
+    border-top: 1px solid var(--color-border);
+    background: var(--color-surface-1);
+  }
+}

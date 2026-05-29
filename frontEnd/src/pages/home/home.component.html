@@ -1,134 +1,154 @@
-<main class="pg">
-  <!-- HERO -->
+<!-- home.component.html -->
+<main class="home page-enter">
+
+
+  <!-- ── HERO ────────────────────────────────────────────── -->
   <section class="hero">
-    <div class="hero__bg" aria-hidden="true">
-      <img class="hero__img" src="assets/images/hero-fintech.jpg" alt="" />
-      <div class="hero__overlay"></div>
-    </div>
+    <div class="hero__bg-mesh" aria-hidden="true"></div>
+    <div class="container hero__inner">
+      <div class="hero__content">
+        <div class="hero__eyebrow">
+          <span class="pulse-dot"></span>
+          Plateforme crédit &nbsp;·&nbsp; Scoring ML &nbsp;·&nbsp; Décisionnel
+        </div>
 
-    <div class="hero__content">
-      <div class="hero__badge">
-        <span class="dot"></span>
-        Plateforme crédit • Scoring • FaceID
+        <h1 class="hero__title">
+          Décisions de crédit
+          <br>
+          <span class="hero__title--accent">plus rapides,&nbsp;plus sûres.</span>
+        </h1>
+
+        <p class="hero__subtitle">
+          Une plateforme bancaire centralisée pour gérer les dossiers de crédit,
+          évaluer automatiquement le risque client et piloter les décisions avec
+          clarté et traçabilité.
+        </p>
+
+        <div class="hero__cta">
+          <app-btn variant="primary" size="lg" routerLink="/dossiers/new" iconRight="→">
+            Démarrer un dossier
+          </app-btn>
+          <app-btn variant="ghost" size="lg" routerLink="/scoring">
+            Explorer le scoring
+          </app-btn>
+        </div>
+
+        <!-- KPI strip -->
+        <div class="kpi-strip">
+          @for (k of kpis; track k.label) {
+            <div class="kpi-strip__item">
+              <span class="kpi-strip__val">{{ k.value }}</span>
+              <span class="kpi-strip__label">{{ k.label }}</span>
+              <span class="kpi-strip__sub">{{ k.sub }}</span>
+            </div>
+          }
+        </div>
       </div>
 
-      <h1 class="hero__title">
-        Accélérez le cycle de crédit
-        <span>avec une gestion centralisée & un scoring intelligent</span>
-      </h1>
-
-      <p class="hero__subtitle">
-        Une application web sécurisée pour gérer les dossiers de crédit, évaluer automatiquement le risque
-        et renforcer l’accès via authentification biométrique faciale.
-      </p>
-
-      <div class="hero__actions">
-        <a class="btn btn--primary" routerLink="/dossiers">
-          Démarrer un dossier
-          <span class="btn__chip">Nouveau</span>
-        </a>
-        <a class="btn btn--ghost" routerLink="/scoring">
-          Voir le scoring
-        </a>
-      </div>
-
-      <div class="hero__stats">
-        <div class="kpi">
-          <div class="kpi__v">3</div>
-          <div class="kpi__l">Rôles métiers</div>
-          <div class="kpi__s">Admin • Crédit • Risque</div>
+      <!-- Hero visual -->
+      <div class="hero__visual" aria-hidden="true">
+        <div class="hero-card">
+          <div class="hero-card__head">
+            <span class="hero-card__icon">📊</span>
+            <div>
+              <div class="hero-card__label">Dossier #4821</div>
+              <app-badge variant="success" [dot]="true">Accepté</app-badge>
+            </div>
+          </div>
+          <div class="hero-card__score">
+            <div class="score-ring">
+              <svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="34" fill="none" stroke="var(--color-surface-2)" stroke-width="6"/>
+              <circle cx="40" cy="40" r="34" fill="none" stroke="var(--color-success)" stroke-width="6"
+                stroke-dasharray="213.6" stroke-dashoffset="53.4" stroke-linecap="round"
+                transform="rotate(-90 40 40)"/></svg>
+              <span>75</span>
+            </div>
+            <div class="score-info">
+              <div class="score-info__label">Score de risque</div>
+              <div class="score-info__level score-info__level--low">Risque faible</div>
+            </div>
+          </div>
+          <div class="hero-card__metrics">
+            <div class="metric">
+              <span class="metric__label">Montant</span>
+              <span class="metric__val">€ 24 000</span>
+            </div>
+            <div class="metric">
+              <span class="metric__label">Durée</span>
+              <span class="metric__val">48 mois</span>
+            </div>
+            <div class="metric">
+              <span class="metric__label">Taux d'endettement</span>
+              <span class="metric__val">28 %</span>
+            </div>
+          </div>
         </div>
-        <div class="kpi">
-          <div class="kpi__v">4</div>
-          <div class="kpi__l">Statuts dossier</div>
-          <div class="kpi__s">En cours • Analyse • Accepté • Refusé</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi__v">ML</div>
-          <div class="kpi__l">Scoring risque</div>
-          <div class="kpi__s">Faible • Moyen • Élevé</div>
-        </div>
+        <!-- decorative chips -->
+        <div class="float-chip float-chip--1">✅ Revenus stables</div>
+        <div class="float-chip float-chip--2">⚡ Score calculé</div>
       </div>
     </div>
   </section>
 
-  <!-- FEATURES -->
-  <section class="section">
-    <div class="section__head">
-      <h2>Tout le nécessaire pour décider plus vite</h2>
-      <p>Digitalisation, traçabilité, indicateurs et sécurité biométrique.</p>
-    </div>
+  <!-- ── FEATURES ─────────────────────────────────────────── -->
+  <section class="section features">
+    <div class="container">
+      <div class="section__head">
+        <h2>Tout le nécessaire pour décider mieux</h2>
+        <p>Digitalisation, traçabilité et scoring intelligent réunis en une seule interface.</p>
+      </div>
 
-    <div class="grid">
-      <article class="card">
-        <div class="card__icon">📁</div>
-        <h3>Dossiers de crédit</h3>
-        <p>Création, saisie (montant, durée, revenus, charges) et suivi du statut.</p>
-        <a routerLink="/dossiers" class="card__link">Gérer les dossiers →</a>
-      </article>
-
-      <article class="card">
-        <div class="card__icon">🧠</div>
-        <h3>Scoring de risque</h3>
-        <p>Score basé sur ratio d’endettement, capacité de remboursement, stabilité des revenus.</p>
-        <a routerLink="/scoring" class="card__link">Explorer le scoring →</a>
-      </article>
-
-      <article class="card">
-        <div class="card__icon">📊</div>
-        <h3>Dashboard décisionnel</h3>
-        <p>Répartition des statuts, niveaux de risque et visualisations.</p>
-        <a routerLink="/dashboard" class="card__link">Voir le dashboard →</a>
-      </article>
-
-      <article class="card">
-        <div class="card__icon">🛡️</div>
-        <h3>FaceID sécurisé</h3>
-        <p>Capture webcam, comparaison d’empreinte faciale et fallback par login classique.</p>
-        <a routerLink="/auth/login" class="card__link">Se connecter →</a>
-      </article>
+      <div class="features__grid">
+        @for (f of features; track f.label) {
+          <app-card [hover]="true" elevation="md" [padded]="true">
+            <div class="feature-card">
+              <div class="feature-card__top">
+                <div class="feature-card__icon-wrap">{{ f.icon }}</div>
+                <app-badge [variant]="f.badge">{{ f.badgeText }}</app-badge>
+              </div>
+              <h3 class="feature-card__title">{{ f.label }}</h3>
+              <p class="feature-card__desc">{{ f.desc }}</p>
+              <a [routerLink]="f.link" class="feature-card__link">{{ f.linkLabel }} →</a>
+            </div>
+          </app-card>
+        }
+      </div>
     </div>
   </section>
 
-  <!-- PROCESS -->
-  <section class="section section--alt">
-    <div class="section__head">
-      <h2>Un parcours simple, orienté métier</h2>
-      <p>Du dépôt de la demande à la décision, avec scoring et traçabilité.</p>
-    </div>
+  <!-- ── PROCESS ──────────────────────────────────────────── -->
+  <section class="section process">
+    <div class="container">
+      <div class="section__head">
+        <h2>Un parcours simple, orienté métier</h2>
+        <p>Du dépôt de la demande à la décision, avec scoring et traçabilité intégrale.</p>
+      </div>
 
-    <div class="steps">
-      <div class="step">
-        <div class="step__n">1</div>
-        <div class="step__b">
-          <h3>Créer un dossier</h3>
-          <p>Saisir les informations et uploader les documents nécessaires.</p>
+      <div class="steps">
+        @for (s of steps; track s.n) {
+          <div class="step">
+            <div class="step__num">{{ s.n }}</div>
+            <div class="step__connector" aria-hidden="true"></div>
+            <div class="step__content">
+              <h3 class="step__title">{{ s.title }}</h3>
+              <p class="step__desc">{{ s.desc }}</p>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- CTA banner -->
+      <div class="cta-banner">
+        <div class="cta-banner__glow" aria-hidden="true"></div>
+        <div class="cta-banner__text">
+          <h3>Prêt à simuler un dossier de crédit ?</h3>
+          <p>Données simulées, environnement sécurisé, interface claire et intuitive.</p>
         </div>
+        <app-btn variant="primary" size="lg" routerLink="/dossiers/new">
+          Créer un dossier
+        </app-btn>
       </div>
-
-      <div class="step">
-        <div class="step__n">2</div>
-        <div class="step__b">
-          <h3>Calculer le risque</h3>
-          <p>Générer un score et une classification (faible/moyen/élevé).</p>
-        </div>
-      </div>
-
-      <div class="step">
-        <div class="step__n">3</div>
-        <div class="step__b">
-          <h3>Décider & suivre</h3>
-          <p>Mettre à jour le statut et consulter les indicateurs décisionnels.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="cta">
-      <div class="cta__text">
-        <h3>Prêt à simuler un dossier de crédit ?</h3>
-        <p>Données simulées, environnement sécurisé, interface claire et intuitive.</p>
-      </div>
-      <a class="btn btn--primary" routerLink="/dossiers/new">Créer un dossier</a>
     </div>
   </section>
+
 </main>

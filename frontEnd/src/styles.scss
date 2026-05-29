@@ -1,19 +1,490 @@
-/* You can add global styles to this file, and also import other style files */
-// ===== Variables =====
-$color-primary: #0a2a44;          // Bleu banque profond
-$color-primary-light: #1e3a5f;
-$color-accent: #0a66c2;            // Bleu action
-$color-accent-hover: #004182;
-$color-background: #f4f7fc;        // Fond très clair
-$color-surface: #ffffff;
-$color-text: #1e2a3a;
+// styles.scss
+// ============================================
+// GLOBAL STYLES - BANKING THEME
+// ============================================
+
+// ===== 1. TOKENS (CSS Custom Properties) =====
+:root {
+  // Couleurs primaires
+  --color-primary-deep: #0A2540;
+  --color-primary-electric: #0066FF;
+  --color-success: #00C48C;
+  --color-background-light: #F7F9FC;
+  
+  // Couleurs secondaires
+  --color-white: #FFFFFF;
+  --color-black: #000000;
+  --color-gray-50: #F8F9FA;
+  --color-gray-100: #F1F3F5;
+  --color-gray-200: #E9ECEF;
+  --color-gray-300: #DEE2E6;
+  --color-gray-400: #CED4DA;
+  --color-gray-500: #ADB5BD;
+  --color-gray-600: #6C757D;
+  --color-gray-700: #495057;
+  --color-gray-800: #343A40;
+  --color-gray-900: #212529;
+  
+  // Couleurs sémantiques
+  --color-danger: #DC2626;
+  --color-warning: #F59E0B;
+  --color-info: #3B82F6;
+  
+  // Ombres
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 20px 32px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.06);
+  --shadow-2xl: 0 32px 48px rgba(0, 0, 0, 0.15);
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.02);
+  
+  // Border radius
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+  --radius-2xl: 28px;
+  --radius-full: 9999px;
+  
+  // Espacements
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  --spacing-3xl: 64px;
+  
+  // Transitions
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// ===== 2. VARIABLES SCSS =====
+// Couleurs primaires
+$color-primary-deep: #0A2540;
+$color-primary-electric: #0066FF;
+$color-success: #00C48C;
+$color-background-light: #F7F9FC;
+
+// Couleurs secondaires
+$color-white: #FFFFFF;
+$color-black: #000000;
+$color-gray-50: #F8F9FA;
+$color-gray-100: #F1F3F5;
+$color-gray-200: #E9ECEF;
+$color-gray-300: #DEE2E6;
+$color-gray-400: #CED4DA;
+$color-gray-500: #ADB5BD;
+$color-gray-600: #6C757D;
+$color-gray-700: #495057;
+$color-gray-800: #343A40;
+$color-gray-900: #212529;
 $color-text-light: #5e6f8d;
-$color-border: #e2e8f0;
-$color-error: #d32f2f;
-$color-success: #2e7d32;
-$shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.05);
-$shadow-md: 0 8px 24px rgba(0, 20, 50, 0.08);
-$shadow-lg: 0 20px 40px -10px rgba(0, 20, 40, 0.2);
-$radius: 20px;
+
+// Couleurs sémantiques
+$color-danger: #DC2626;
+$color-warning: #F59E0B;
+$color-info: #3B82F6;
+
+// Ombres
+$shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.03);
+$shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+$shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
+$shadow-xl: 0 20px 32px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.06);
+$shadow-2xl: 0 32px 48px rgba(0, 0, 0, 0.15);
+$shadow-card: 0 8px 24px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.02);
+
+// Glassmorphisme
+$glass-bg: rgba(255, 255, 255, 0.85);
+$glass-blur: blur(12px);
+$glass-border: 1px solid rgba(255, 255, 255, 0.3);
+
+// Border radius
 $radius-sm: 12px;
-$transition: all 0.2s ease;
+$radius-md: 16px;
+$radius-lg: 20px;
+$radius-xl: 24px;
+$radius-2xl: 28px;
+$radius-full: 9999px;
+
+// Typographie
+$font-family-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+$font-family-display: 'Satoshi', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+// Espacements
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+$spacing-2xl: 48px;
+$spacing-3xl: 64px;
+
+// Transitions
+$transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+$transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+$transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+
+// Z-index
+$z-modal: 1000;
+$z-toast: 1100;
+$z-sidebar: 100;
+$z-dropdown: 200;
+
+// Breakpoints
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+$breakpoint-2xl: 1536px;
+
+// ===== 3. MIXINS =====
+// Mode sombre
+@mixin dark-mode {
+  [data-theme="dark"] & {
+    @content;
+  }
+}
+
+// Responsive
+@mixin respond-to($breakpoint) {
+  @if $breakpoint == sm {
+    @media (min-width: $breakpoint-sm) { @content; }
+  }
+  @else if $breakpoint == md {
+    @media (min-width: $breakpoint-md) { @content; }
+  }
+  @else if $breakpoint == lg {
+    @media (min-width: $breakpoint-lg) { @content; }
+  }
+  @else if $breakpoint == xl {
+    @media (min-width: $breakpoint-xl) { @content; }
+  }
+  @else if $breakpoint == 2xl {
+    @media (min-width: $breakpoint-2xl) { @content; }
+  }
+}
+
+// Flexbox
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+// Typographie
+@mixin heading-1 {
+  font-size: 3rem;
+  font-weight: 700;
+  font-family: $font-family-display;
+  line-height: 1.2;
+}
+
+@mixin heading-2 {
+  font-size: 2rem;
+  font-weight: 600;
+  font-family: $font-family-display;
+  line-height: 1.3;
+}
+
+@mixin heading-3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-family: $font-family-display;
+  line-height: 1.4;
+}
+
+@mixin body-text {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+@mixin small-text {
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+// Animations
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(10px); }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideOut {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideInUp {
+  from { transform: translateY(50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.95); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+// ===== 4. BASE STYLES =====
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: $font-family-primary;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: $color-gray-800;
+  background: $color-background-light;
+}
+
+// Mode sombre pour body
+[data-theme="dark"] body {
+  background: $color-gray-900;
+  color: $color-gray-200;
+}
+
+// Typographie globale
+h1, .h1 {
+  @include heading-1;
+}
+
+h2, .h2 {
+  @include heading-2;
+}
+
+h3, .h3 {
+  @include heading-3;
+}
+
+// Liens - version sans color.scale
+a {
+  color: $color-primary-electric;
+  text-decoration: none;
+  transition: $transition-fast;
+  
+  &:hover {
+    color: #0052cc; // Version plus foncée manuelle
+  }
+  
+  [data-theme="dark"] &:hover {
+    color: #3385ff; // Version plus claire manuelle
+  }
+}
+
+// Sélection
+::selection {
+  background: rgba($color-primary-electric, 0.2);
+  color: $color-primary-electric;
+}
+
+// Scrollbar personnalisée
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: $color-gray-100;
+  border-radius: $radius-full;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: $color-gray-800;
+}
+
+::-webkit-scrollbar-thumb {
+  background: $color-gray-400;
+  border-radius: $radius-full;
+  
+  &:hover {
+    background: $color-gray-500;
+  }
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: $color-gray-600;
+  
+  &:hover {
+    background: $color-gray-500;
+  }
+}
+
+// ===== 5. CLASSES UTILITAIRES =====
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 $spacing-lg;
+}
+
+// Animations globales
+.fade-in {
+  animation: fadeIn $transition-base;
+}
+
+.fade-out {
+  animation: fadeOut $transition-base;
+}
+
+.slide-in {
+  animation: slideIn $transition-base;
+}
+
+.slide-out {
+  animation: slideOut $transition-base;
+}
+
+// Texte
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.text-primary { color: $color-primary-electric; }
+.text-success { color: $color-success; }
+.text-danger { color: $color-danger; }
+.text-warning { color: $color-warning; }
+.text-info { color: $color-info; }
+
+// Marges
+.m-0 { margin: 0; }
+.mt-0 { margin-top: 0; }
+.mb-0 { margin-bottom: 0; }
+.ml-0 { margin-left: 0; }
+.mr-0 { margin-right: 0; }
+
+.mt-xs { margin-top: $spacing-xs; }
+.mt-sm { margin-top: $spacing-sm; }
+.mt-md { margin-top: $spacing-md; }
+.mt-lg { margin-top: $spacing-lg; }
+.mt-xl { margin-top: $spacing-xl; }
+
+.mb-xs { margin-bottom: $spacing-xs; }
+.mb-sm { margin-bottom: $spacing-sm; }
+.mb-md { margin-bottom: $spacing-md; }
+.mb-lg { margin-bottom: $spacing-lg; }
+.mb-xl { margin-bottom: $spacing-xl; }
+
+// Paddings
+.p-0 { padding: 0; }
+.pt-0 { padding-top: 0; }
+.pb-0 { padding-bottom: 0; }
+.pl-0 { padding-left: 0; }
+.pr-0 { padding-right: 0; }
+
+.p-xs { padding: $spacing-xs; }
+.p-sm { padding: $spacing-sm; }
+.p-md { padding: $spacing-md; }
+.p-lg { padding: $spacing-lg; }
+.p-xl { padding: $spacing-xl; }
+
+// Display
+.d-flex { display: flex; }
+.d-block { display: block; }
+.d-inline { display: inline; }
+.d-inline-block { display: inline-block; }
+.d-none { display: none; }
+
+.flex-column { @include flex-column; }
+.flex-center { @include flex-center; }
+.flex-between { @include flex-between; }
+.flex-wrap { flex-wrap: wrap; }
+
+// Width / Height
+.w-100 { width: 100%; }
+.h-100 { height: 100%; }
+.vh-100 { min-height: 100vh; }
+
+// Position
+.relative { position: relative; }
+.absolute { position: absolute; }
+.fixed { position: fixed; }
+.sticky { position: sticky; }
+
+// Cursors
+.cursor-pointer { cursor: pointer; }
+.cursor-default { cursor: default; }
+.cursor-not-allowed { cursor: not-allowed; }
+
+// Overflow
+.overflow-hidden { overflow: hidden; }
+.overflow-auto { overflow: auto; }
+.overflow-scroll { overflow: scroll; }
+
+// Border radius
+.rounded-sm { border-radius: $radius-sm; }
+.rounded-md { border-radius: $radius-md; }
+.rounded-lg { border-radius: $radius-lg; }
+.rounded-xl { border-radius: $radius-xl; }
+.rounded-2xl { border-radius: $radius-2xl; }
+.rounded-full { border-radius: $radius-full; }
+
+// Ombres
+.shadow-sm { box-shadow: $shadow-sm; }
+.shadow-md { box-shadow: $shadow-md; }
+.shadow-lg { box-shadow: $shadow-lg; }
+.shadow-xl { box-shadow: $shadow-xl; }
+.shadow-2xl { box-shadow: $shadow-2xl; }
+.shadow-card { box-shadow: $shadow-card; }
+.shadow-none { box-shadow: none; }
+
+// ===== 6. MODE SOMBRE =====
+// Détection automatique du mode sombre système
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+}
+
+// Support du mode sombre manuel
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+}

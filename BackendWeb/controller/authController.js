@@ -195,18 +195,18 @@ const login = async (req, res) => {
     const ok = await bcrypt.compare(password, user.password);
 
     if (!ok) {
-      return res.status(400).json({ message: "Email or password invalid" });
+      return res.status(400).json({ message: "Password invalid" });
     }
 
-const token = generateToken(user._id);
+    const token = generateToken(user._id);
 
-res.cookie("token", token, {
-  httpOnly: true,
-  secure: false,
-  sameSite: "lax",
-  path: "/",
-  maxAge: 24 * 60 * 60 * 1000,
-});
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 24 * 60 * 60 * 1000,
+    });
     return res.status(200).json({
       message: "Login success",
       token,

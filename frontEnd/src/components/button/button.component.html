@@ -1,0 +1,20 @@
+<!-- button.component.html -->
+<button
+  class="btn"
+  [ngClass]="classes"
+  [type]="type"
+  [disabled]="disabled || loading"
+  [attr.aria-disabled]="disabled || loading"
+>
+  @if (loading) {
+    <span class="btn__spinner" aria-hidden="true"></span>
+  } @else if (iconLeft) {
+    <span class="btn__icon" aria-hidden="true">{{ iconLeft }}</span>
+  }
+
+  <ng-content />
+
+  @if (iconRight && !loading) {
+    <span class="btn__icon" aria-hidden="true">{{ iconRight }}</span>
+  }
+</button>

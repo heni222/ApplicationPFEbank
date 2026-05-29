@@ -1,0 +1,168 @@
+// ─────────────────────────────────────────────────────────────
+//  BtnComponent STYLES  –  button.component.scss
+// ─────────────────────────────────────────────────────────────
+
+// In card.component.scss and button.component.scss
+// In card.component.scss and button.component.scss
+@use '../../styles/mixins' as m;
+
+:host { display: contents; }
+
+.btn {
+  // Base
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-full);
+  font-family: inherit;
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+  transition:
+    transform var(--duration-base) var(--ease-out-quint),
+    box-shadow var(--duration-base) var(--ease-out-quint),
+    background var(--duration-fast) ease,
+    opacity var(--duration-fast) ease;
+
+  @include m.focus-ring;
+
+  // Ripple pseudo
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.12);
+    opacity: 0;
+    transition: opacity var(--duration-fast) ease;
+  }
+  &:active::after { opacity: 1; }
+
+  // ── Sizes ──────────────────────────────────────────────────
+  &--xs {
+    padding: 5px 12px;
+    font-size: var(--text-xs);
+    height: 28px;
+  }
+  &--sm {
+    padding: 8px 16px;
+    font-size: var(--text-sm);
+    height: 36px;
+  }
+  &--md {
+    padding: 11px 22px;
+    font-size: var(--text-base);
+    height: 44px;
+  }
+  &--lg {
+    padding: 14px 28px;
+    font-size: var(--text-lg);
+    height: 52px;
+  }
+  &--xl {
+    padding: 16px 36px;
+    font-size: var(--text-xl);
+    height: 60px;
+  }
+
+  // ── Variants ───────────────────────────────────────────────
+  &--primary {
+    background: var(--color-brand);
+    color: #fff;
+    box-shadow: var(--shadow-brand);
+
+    &:hover:not(:disabled) {
+      background: var(--color-brand-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 12px 36px rgba(0,102,255,0.30);
+    }
+    &:active:not(:disabled) { transform: translateY(0); }
+  }
+
+  &--secondary {
+    background: var(--color-brand-light);
+    color: var(--color-brand);
+    border: 1.5px solid var(--color-brand-muted);
+
+    &:hover:not(:disabled) {
+      background: var(--color-brand-muted);
+      transform: translateY(-1px);
+    }
+  }
+
+  &--ghost {
+    background: transparent;
+    color: var(--color-ink-secondary);
+    border: 1.5px solid var(--color-border-strong);
+
+    &:hover:not(:disabled) {
+      background: var(--color-surface-2);
+      color: var(--color-ink);
+    }
+  }
+
+  &--danger {
+    background: var(--color-danger);
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(239,68,68,0.22);
+
+    &:hover:not(:disabled) {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+    }
+  }
+
+  &--success {
+    background: var(--color-success);
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(0,196,140,0.22);
+
+    &:hover:not(:disabled) {
+      filter: brightness(1.06);
+      transform: translateY(-1px);
+    }
+  }
+
+  // ── States ─────────────────────────────────────────────────
+  &--loading {
+    pointer-events: none;
+    opacity: 0.75;
+    .btn__icon--spinner { display: block; }
+  }
+
+  &:disabled {
+    opacity: 0.42;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  &--full { width: 100%; }
+
+  // ── Icon slot ──────────────────────────────────────────────
+  &__icon {
+    display: flex;
+    flex-shrink: 0;
+    font-size: 1em;
+  }
+
+  &__spinner {
+    display: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.35);
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: btn-spin 0.6s linear infinite;
+  }
+
+  @keyframes btn-spin {
+    to { transform: rotate(360deg); }
+  }
+}
