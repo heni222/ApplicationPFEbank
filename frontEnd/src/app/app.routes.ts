@@ -40,7 +40,7 @@ export const routes: Routes = [
     path: 'dashboard_analyste',
     component: DashboardAnalysteComponent,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['RISK'] },
+    data: { roles: ['ANALYST'] },
   },
  
   // ─── 404 ────────────────────────────────────────────────────────────

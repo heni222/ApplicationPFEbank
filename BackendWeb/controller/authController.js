@@ -288,9 +288,8 @@ const resetPassword = async (req, res) => {
       });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    user.password = hashedPassword;
+    // ✅ Assignation en clair – le middleware pre('save') du modèle hachera automatiquement
+    user.password = password;
     user.resetPasswordToken = null;
     user.resetPasswordExpires = null;
 

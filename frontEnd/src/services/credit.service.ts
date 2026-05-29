@@ -355,7 +355,7 @@ export class CreditService {
 
   /** URL publique d'un document (servi par express.static) */
   getDocumentUrl(relativePath: string): string {
-    return `http://localhost:3000/${relativePath}`;
+    return `http://localhost:3000${relativePath}`;
   }
 
   // ──────────────────────────────────────────

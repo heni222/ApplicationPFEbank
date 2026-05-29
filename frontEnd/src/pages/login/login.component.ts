@@ -59,7 +59,7 @@ export class LoginComponent {
               this.router.navigate(['/dashboard_admin']);
             } else if (user.role === 'CREDIT') {
               this.router.navigate(['/dashboard_credit']);
-            } else if (user.role === 'RISK') {
+            } else if (user.role === 'ANALYST') {
               this.router.navigate(['/dashboard_analyste']);
             }
           });

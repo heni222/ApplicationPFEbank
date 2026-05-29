@@ -1,1 +1,940 @@
-<p>dashboard-analyste works!</p>
+<!-- dashboard-analyste.component.html -->
+<div class="dashboard">
+
+  <!-- ═══════════════════════════ SIDEBAR ═══════════════════════════ -->
+  <aside class="sidebar" [class.collapsed]="sidebarCollapsed">
+    <div class="sidebar__header">
+      <div class="logo" *ngIf="!sidebarCollapsed">
+        <div class="logo__icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="logo__text">CreditHub</span>
+      </div>
+      <div class="logo-icon" *ngIf="sidebarCollapsed">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <button class="sidebar__toggle" (click)="sidebarCollapsed = !sidebarCollapsed">
+        {{ sidebarCollapsed ? '→' : '←' }}
+      </button>
+    </div>
+
+    <!-- Badge rôle -->
+    <div class="sidebar__profile" *ngIf="!sidebarCollapsed">
+      <div class="role-card">
+        <div class="role-card__icon">🔍</div>
+        <div class="role-card__info">
+          <div class="role-card__label">Votre rôle</div>
+          <div class="role-card__value">Analyste risque</div>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar__profile-mini" *ngIf="sidebarCollapsed">
+      <div class="role-mini__icon">🔍</div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar__nav">
+      <a *ngFor="let item of sidebarItems" class="sidebar__item"
+         [class.active]="currentView === item.id"
+         (click)="setView(item.id)">
+        <span class="sidebar__icon">{{ item.icon }}</span>
+        <span class="sidebar__label" *ngIf="!sidebarCollapsed">{{ item.label }}</span>
+      </a>
+    </nav>
+
+    <!-- Footer -->
+    <div class="sidebar__footer">
+      <div class="sidebar__action" (click)="openProfile()">
+        <span class="sidebar__icon">👤</span>
+        <span class="sidebar__label" *ngIf="!sidebarCollapsed">Mon profil</span>
+      </div>
+      <div class="sidebar__action sidebar__action--danger" (click)="confirmLogout()">
+        <span class="sidebar__icon">🚪</span>
+        <span class="sidebar__label" *ngIf="!sidebarCollapsed">Déconnexion</span>
+      </div>
+      <div class="shortcuts" *ngIf="!sidebarCollapsed">
+        <div class="shortcuts__item">
+          <kbd>Ctrl</kbd> + <kbd>A</kbd>
+          <span>Dossiers en attente</span>
+        </div>
+        <div class="shortcuts__item">
+          <kbd>Esc</kbd>
+          <span>Fermer</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══════════════════════════ MAIN ═══════════════════════════ -->
+  <main class="main-content">
+
+    <!-- Toast -->
+    <div class="toast" *ngIf="message"
+         [class.toast--success]="messageType==='success'"
+         [class.toast--error]="messageType==='error'">
+      <span class="toast__icon">{{ messageType==='success' ? '✓' : '⚠' }}</span>
+      <span class="toast__message">{{ message }}</span>
+    </div>
+
+    <!-- ── Hero ── -->
+    <div class="hero">
+      <div class="hero__bg">
+        <img src="https://images.unsplash.com/photo-1557683316-973673baf926?w=1600&h=400&fit=crop"
+             alt="" class="hero__img"/>
+        <div class="hero__overlay"></div>
+      </div>
+      <div class="hero__content">
+        <div class="hero__badge">
+          <span class="pulse-dot"></span>
+          <span>Interface Analyste Risque — Scoring et décision</span>
+        </div>
+        <h1 class="hero__title">
+          Analyse <span class="hero__title--accent">risque crédit</span>
+        </h1>
+        <p class="hero__subtitle">
+          Analysez les dossiers en attente, calculez les scores de risque et prenez des décisions motivées.
+        </p>
+        <div class="hero__actions">
+          <button class="btn btn--primary" (click)="filterByStatus('EN_ATTENTE')">
+            <span class="btn__icon">⏳</span>
+            <span>Dossiers en attente</span>
+          </button>
+          <button class="btn btn--ghost" (click)="filterByStatus('EN_ANALYSE')">
+            <span class="btn__icon">🔍</span>
+            <span>En cours d'analyse</span>
+          </button>
+          <button class="btn btn--ghost" (click)="creditService.refreshData()">
+            <span class="btn__icon">⟳</span>
+            <span>Actualiser</span>
+          </button>
+        </div>
+        <div class="hero__stats">
+          <div class="kpi-card" (click)="filterByStatus('EN_ATTENTE')">
+            <div class="kpi-card__icon">⏳</div>
+            <div class="kpi-card__value">{{ kpis.pending }}</div>
+            <div class="kpi-card__label">En attente</div>
+            <div class="kpi-card__trend">À prendre en charge</div>
+          </div>
+          <div class="kpi-card" (click)="filterByStatus('EN_ANALYSE')">
+            <div class="kpi-card__icon">🔍</div>
+            <div class="kpi-card__value">{{ kpis.analyzing }}</div>
+            <div class="kpi-card__label">En analyse</div>
+            <div class="kpi-card__trend">Vos dossiers</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-card__icon">✅</div>
+            <div class="kpi-card__value">{{ kpis.approvalRate }}%</div>
+            <div class="kpi-card__label">Taux d'acceptation</div>
+            <div class="kpi-card__trend">{{ kpis.accepted }} / {{ kpis.total }}</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-card__icon">📊</div>
+            <div class="kpi-card__value">{{ riskKpis.averageScore }}<small>/100</small></div>
+            <div class="kpi-card__label">Score moyen risque</div>
+            <div class="kpi-card__trend">
+              <span [class.trend-up]="riskKpis.trendScore >= 0" [class.trend-down]="riskKpis.trendScore < 0">
+                {{ riskKpis.trendScore >= 0 ? '▲' : '▼' }} {{ abs(riskKpis.trendScore) }} pts
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ VIEW: DASHBOARD ════ -->
+    <div class="section" *ngIf="currentView === 'dashboard'">
+      <div class="section__head">
+        <div>
+          <h2>Vue d'ensemble — Analyste</h2>
+          <p>Activité risque en temps réel</p>
+        </div>
+        <button class="btn btn--ghost btn--sm" (click)="creditService.refreshData()">
+          <span class="btn__icon">⟳</span>
+          <span>Rafraîchir</span>
+        </button>
+      </div>
+
+      <!-- Stat cards KPI risque -->
+      <div class="stats-grid">
+        <div class="stat-card" (click)="filterByStatus('EN_ATTENTE')">
+          <div class="stat-card__icon">⏳</div>
+          <div class="stat-card__value">{{ kpis.pending }}</div>
+          <div class="stat-card__label">En attente</div>
+          <div class="stat-card__trend trend--positive">À prendre en charge</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon">⚠️</div>
+          <div class="stat-card__value">{{ riskKpis.highRiskCount }}</div>
+          <div class="stat-card__label">Haut risque (&gt;75)</div>
+          <div class="stat-card__trend trend--negative">À analyser en priorité</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon">✅</div>
+          <div class="stat-card__value">{{ riskKpis.lowRiskCount }}</div>
+          <div class="stat-card__label">Faible risque (&lt;35)</div>
+          <div class="stat-card__trend trend--positive">Accélération possible</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon">📊</div>
+          <div class="stat-card__value">{{ riskKpis.averageScore }}</div>
+          <div class="stat-card__label">Score moyen</div>
+          <div class="stat-card__trend">Sur {{ kpis.total }} dossiers</div>
+        </div>
+      </div>
+
+      <!-- Graphiques analytiques -->
+      <div class="analytics-grid">
+        <!-- Score gauge dossier sélectionné -->
+        <div class="card risk-score-card">
+          <div class="card__header">
+            <div class="card__icon">🎯</div>
+            <h3 class="card__title">Score de risque — Dossier prioritaire</h3>
+          </div>
+          <div class="risk-score-detail" *ngIf="topPriorityApp; else noSelection">
+            <div class="applicant-info">
+              <strong>{{ topPriorityApp.clientName }}</strong>
+              — {{ topPriorityApp.amount | number:'1.0-0' }} €
+            </div>
+            <div class="score-gauge">
+              <div class="score-value">{{ getRiskScore(topPriorityApp) }}/100</div>
+              <div class="score-meter">
+                <div class="score-fill" [style.width.%]="getRiskScore(topPriorityApp)"></div>
+              </div>
+              <div class="score-labels">
+                <span>Faible</span><span>Modéré</span><span>Élevé</span>
+              </div>
+            </div>
+            <div class="risk-factors">
+              <h4>Facteurs clés</h4>
+              <ul>
+                <li *ngFor="let factor of getRiskFactors(topPriorityApp)">
+                  <span class="factor-name">{{ factor.name }}</span>
+                  <span class="factor-impact" [class.negative]="factor.impact < 0">
+                    {{ factor.impact > 0 ? '+' : '' }}{{ factor.impact }} pts
+                  </span>
+                </li>
+              </ul>
+            </div>
+            <button class="btn btn--primary btn--sm" (click)="openStatusModal(topPriorityApp)">
+              ⚖️ Prendre une décision
+            </button>
+          </div>
+          <ng-template #noSelection>
+            <div class="empty-state-small">Aucun dossier en attente d'analyse</div>
+          </ng-template>
+        </div>
+
+        <!-- Répartition niveaux de risque -->
+        <div class="card">
+          <div class="card__icon">📉</div>
+          <h3 class="card__title">Répartition des niveaux de risque</h3>
+          <div class="pie-chart-placeholder">
+            <div class="pie"
+                 [style.--high]="riskDistribution.high + '%'"
+                 [style.--medium]="(riskDistribution.high + riskDistribution.medium) + '%'">
+            </div>
+            <div class="pie-legend">
+              <span><span class="legend-color high"></span> Haut risque ({{ riskDistribution.high }}%)</span>
+              <span><span class="legend-color medium"></span> Modéré ({{ riskDistribution.medium }}%)</span>
+              <span><span class="legend-color low"></span> Faible ({{ riskDistribution.low }}%)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Evolution score moyen + Matrice décisionnelle -->
+      <div class="analytics-grid">
+        <div class="card">
+          <div class="card__icon">⏱️</div>
+          <h3 class="card__title">Évolution du score moyen (6 mois)</h3>
+          <div class="line-chart">
+            <div class="chart-bars">
+              <div class="bar" *ngFor="let point of riskTrend"
+                   [style.height.%]="(point.value / 100) * 100">
+                <span class="bar-label">{{ point.month }}</span>
+                <span class="bar-value">{{ point.value }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card__icon">📈</div>
+          <h3 class="card__title">Dossiers par période</h3>
+          <div class="chart" *ngIf="monthlyStats.length > 0; else noStats">
+            <div class="chart-bar" *ngFor="let m of monthlyStats">
+              <div class="chart-bar__label">{{ m.month }}</div>
+              <div class="chart-bar__track">
+                <div class="chart-bar__fill" [style.width.%]="(m.count / maxMonthlyCount) * 100"></div>
+              </div>
+              <div class="chart-bar__value">{{ m.count }}</div>
+            </div>
+          </div>
+          <ng-template #noStats><p class="empty-state-small">Aucune donnée disponible</p></ng-template>
+        </div>
+      </div>
+
+      <!-- Matrice décisionnelle IA -->
+      <div class="card decision-matrix">
+        <div class="card__header">
+          <h3 class="card__title">🔄 Matrice Décisionnelle — Recommandations</h3>
+          <span class="badge-ia">Guide analytique</span>
+        </div>
+        <div class="matrix-grid">
+          <div class="matrix-item matrix-item--low">
+            <div class="matrix-score">0 — 34</div>
+            <div class="matrix-action">✅ Acceptation rapide</div>
+            <div class="matrix-desc">Profil solide, risque minimal, traitement accéléré recommandé.</div>
+          </div>
+          <div class="matrix-item matrix-item--medium">
+            <div class="matrix-score">35 — 74</div>
+            <div class="matrix-action">🔍 Analyse approfondie</div>
+            <div class="matrix-desc">Vérifier les justificatifs, évaluer les garanties disponibles.</div>
+          </div>
+          <div class="matrix-item matrix-item--high">
+            <div class="matrix-score">75 — 100</div>
+            <div class="matrix-action">⚠️ Refus ou conditions strictes</div>
+            <div class="matrix-desc">Taux d'endettement élevé ou historique défavorable.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Workflow mission analyste -->
+      <div class="card workflow-card">
+        <h3 class="card__title">📋 Votre mission</h3>
+        <div class="role-workflow">
+          <div class="workflow-step workflow-step--credit">
+            <div class="workflow-step__icon">💼</div>
+            <div class="workflow-step__content">
+              <div class="workflow-step__role">Chargé crédit</div>
+              <div class="workflow-step__perms">Crée le dossier</div>
+              <div class="workflow-step__action">→ EN_ATTENTE</div>
+            </div>
+          </div>
+          <div class="workflow-arrow">→</div>
+          <div class="workflow-step workflow-step--risk active">
+            <div class="workflow-step__icon">🔍</div>
+            <div class="workflow-step__content">
+              <div class="workflow-step__role">Vous analysez</div>
+              <div class="workflow-step__perms">Analyse · Validation · Décision</div>
+              <div class="workflow-step__action">→ EN_ANALYSE</div>
+            </div>
+          </div>
+          <div class="workflow-arrow">→</div>
+          <div class="workflow-step workflow-step--decision active">
+            <div class="workflow-step__icon">⚖️</div>
+            <div class="workflow-step__content">
+              <div class="workflow-step__role">Votre décision</div>
+              <div class="workflow-step__perms">Acceptation ou refus motivé</div>
+              <div class="workflow-step__action">→ ACCEPTÉ / REFUSÉ</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Derniers dossiers -->
+      <div class="card users-card">
+        <div class="card__header">
+          <h3 class="card__title">🕐 Dossiers récents</h3>
+          <button class="link-btn" (click)="setView('applications')">Voir tous →</button>
+        </div>
+        <div class="users-list">
+          <div class="user-item" *ngFor="let app of applications.slice(0,5); trackBy: trackByApp"
+               (click)="viewApplication(app)">
+            <div class="user-item__avatar">
+              <span>{{ app.clientName.charAt(0).toUpperCase() }}</span>
+            </div>
+            <div class="user-item__info">
+              <div class="user-item__name">{{ app.clientName }}</div>
+              <div class="user-item__email">
+                {{ app.purpose }} — {{ app.amount | number:'1.0-0' }} €
+                <span class="risk-badge" [class]="getRiskLevelClass(getRiskScore(app))">
+                  Score: {{ getRiskScore(app) }}
+                </span>
+              </div>
+            </div>
+            <div class="user-item__badges">
+              <span class="status-badge" [class]="getStatusClass(app.status)">
+                {{ getStatusLabel(app.status) }}
+              </span>
+              <span class="date-badge">{{ app.createdAt | date:'dd/MM' }}</span>
+            </div>
+          </div>
+          <div class="empty-state" *ngIf="applications.length === 0">
+            <div class="empty-state__icon">📋</div>
+            <p>Aucun dossier</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ VIEW: APPLICATIONS (avec scoring) ════ -->
+    <div class="section" *ngIf="currentView === 'applications'">
+      <div class="section__head">
+        <div>
+          <h2>Dossiers de crédit — Scores générés</h2>
+          <p class="section__count">{{ filteredApplications.length }} dossier(s) — Mode : Analyse &amp; décision</p>
+        </div>
+      </div>
+
+      <!-- Filtres -->
+      <div class="filters-card">
+        <div class="filters-card__search">
+          <span class="search-icon">🔍</span>
+          <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()"
+                 placeholder="Rechercher par client ou objet..." class="search-input" />
+        </div>
+        <div class="filters-card__controls">
+          <select [(ngModel)]="filterStatus" (ngModelChange)="onFilterChange()" class="filter-select">
+            <option value="ALL">📊 Tous les statuts</option>
+            <option value="EN_ATTENTE">⏳ En attente</option>
+            <option value="EN_ANALYSE">🔍 En analyse</option>
+            <option value="ACCEPTE">✅ Acceptés</option>
+            <option value="REFUSE">❌ Refusés</option>
+          </select>
+          <select [(ngModel)]="riskFilter" (ngModelChange)="onFilterChange()" class="filter-select">
+            <option value="ALL">📊 Tous niveaux risque</option>
+            <option value="HIGH">⚠️ Haut risque (&gt;75)</option>
+            <option value="MEDIUM">🟡 Risque modéré (35-75)</option>
+            <option value="LOW">✅ Faible risque (&lt;35)</option>
+          </select>
+          <select [(ngModel)]="filterAmount" (ngModelChange)="onFilterChange()" class="filter-select">
+            <option value="ALL">💰 Tous montants</option>
+            <option value="0-10000">Moins de 10k€</option>
+            <option value="10000-50000">10k€ - 50k€</option>
+            <option value="50000+">Plus de 50k€</option>
+          </select>
+          <button class="btn btn--ghost btn--sm" (click)="resetFilters()">
+            <span class="btn__icon">⟳</span>
+            <span>Réinitialiser</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Table avec scores -->
+      <div class="table-container" *ngIf="!loading; else loadingTpl">
+        <table class="data-table" *ngIf="filteredApplications.length > 0; else noAppsTpl">
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Montant</th>
+              <th>Durée</th>
+              <th>Mensualité</th>
+              <th>Objet</th>
+              <th>Score risque</th>
+              <th>Niveau</th>
+              <th>Statut</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let app of filteredApplications; trackBy: trackByApp">
+              <td class="cell-user">
+                <div class="user-avatar">{{ app.clientName.charAt(0).toUpperCase() }}</div>
+                <div class="user-info">
+                  <div class="user-name">{{ app.clientName }}</div>
+                </div>
+              </td>
+              <td class="amount-cell">{{ app.amount | number:'1.0-0' }} €</td>
+              <td>{{ app.duration }} mois</td>
+              <td>{{ app.monthlyPayment | number:'1.0-0' }} €</td>
+              <td>{{ app.purpose }}</td>
+              <td class="score-cell">
+                <span class="score-number"
+                      [class.high-risk]="getRiskScore(app) > 75"
+                      [class.medium-risk]="getRiskScore(app) >= 35 && getRiskScore(app) <= 75"
+                      [class.low-risk]="getRiskScore(app) < 35">
+                  {{ getRiskScore(app) }}
+                </span>
+                <div class="mini-score-bar">
+                  <div class="mini-fill"
+                       [class.fill-high]="getRiskScore(app) > 75"
+                       [class.fill-medium]="getRiskScore(app) >= 35 && getRiskScore(app) <= 75"
+                       [class.fill-low]="getRiskScore(app) < 35"
+                       [style.width.%]="getRiskScore(app)">
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="risk-level" [class]="getRiskLevelClass(getRiskScore(app))">
+                  {{ getRiskLevelLabel(getRiskScore(app)) }}
+                </span>
+              </td>
+              <td>
+                <span class="status-badge" [class]="getStatusClass(app.status)">
+                  {{ getStatusLabel(app.status) }}
+                </span>
+              </td>
+              <td>{{ app.createdAt | date:'dd/MM/yyyy' }}</td>
+              <td class="cell-actions">
+                <button class="action-btn" (click)="viewApplication(app)" title="Consulter">👁️</button>
+                <button class="action-btn action-btn--analyze"
+                        *ngIf="canChangeStatus(app)"
+                        (click)="openStatusModal(app)"
+                        [title]="app.status === 'EN_ATTENTE' ? 'Prendre en charge' : 'Décider'">
+                  {{ app.status === 'EN_ATTENTE' ? '▶️' : '⚖️' }}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <ng-template #noAppsTpl>
+          <div class="empty-state">
+            <div class="empty-state__icon">📋</div>
+            <h3>Aucun dossier trouvé</h3>
+            <p>Modifiez les filtres.</p>
+            <button class="btn btn--ghost" (click)="resetFilters()">Réinitialiser</button>
+          </div>
+        </ng-template>
+      </div>
+
+      <ng-template #loadingTpl>
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Chargement des dossiers...</p>
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- ════ VIEW: SCORING ════ -->
+    <div class="section" *ngIf="currentView === 'scoring'">
+      <div class="section__head">
+        <div>
+          <h2>Scoring risque — Analyse détaillée</h2>
+          <p>Calcul automatique basé sur revenus, charges, historique et taux d'endettement</p>
+        </div>
+      </div>
+
+      <div class="analytics-grid">
+        <!-- Score du dossier sélectionné -->
+        <div class="card risk-score-card">
+          <div class="card__header">
+            <div class="card__icon">🎯</div>
+            <h3 class="card__title">Analyse d'un dossier</h3>
+          </div>
+          <div *ngIf="scoringTarget; else noScoringTarget">
+            <div class="applicant-info">
+              <strong>{{ scoringTarget.clientName }}</strong> — {{ scoringTarget.amount | number:'1.0-0' }} €
+            </div>
+            <div class="score-gauge">
+              <div class="score-value">{{ getRiskScore(scoringTarget) }}/100</div>
+              <div class="score-meter">
+                <div class="score-fill" [style.width.%]="getRiskScore(scoringTarget)"></div>
+              </div>
+              <div class="score-labels">
+                <span>Faible</span><span>Modéré</span><span>Élevé</span>
+              </div>
+            </div>
+            <div class="risk-factors">
+              <h4>Facteurs de risque détaillés</h4>
+              <ul>
+                <li *ngFor="let factor of getRiskFactors(scoringTarget)">
+                  <span class="factor-name">{{ factor.name }}</span>
+                  <span class="factor-impact" [class.negative]="factor.impact < 0">
+                    {{ factor.impact > 0 ? '+' : '' }}{{ factor.impact }} pts
+                  </span>
+                </li>
+              </ul>
+            </div>
+            <div class="scoring-financials">
+              <h4>Situation financière</h4>
+              <div class="financial-indicators">
+                <div class="indicator">
+                  <div class="indicator__label">Revenus</div>
+                  <div class="indicator__value">{{ getClientFinancials(scoringTarget.clientId).revenue | number:'1.0-0' }} €</div>
+                </div>
+                <div class="indicator">
+                  <div class="indicator__label">Charges</div>
+                  <div class="indicator__value">{{ getClientFinancials(scoringTarget.clientId).monthlyCharges | number:'1.0-0' }} €</div>
+                </div>
+                <div class="indicator">
+                  <div class="indicator__label">Taux endettement</div>
+                  <div class="indicator__value"
+                       [class.high-risk]="getDebtRatio(scoringTarget.clientId, scoringTarget.monthlyPayment) > 33">
+                    {{ getDebtRatio(scoringTarget.clientId, scoringTarget.monthlyPayment) }}%
+                  </div>
+                </div>
+                <div class="indicator">
+                  <div class="indicator__label">Mensualité</div>
+                  <div class="indicator__value">{{ scoringTarget.monthlyPayment | number:'1.0-0' }} €</div>
+                </div>
+              </div>
+            </div>
+            <div class="scoring-actions">
+              <button class="btn btn--primary" (click)="openStatusModal(scoringTarget)"
+                      *ngIf="canChangeStatus(scoringTarget)">
+                ⚖️ Prendre une décision
+              </button>
+              <button class="btn btn--ghost" (click)="viewApplication(scoringTarget)">
+                👁️ Voir le dossier complet
+              </button>
+            </div>
+          </div>
+          <ng-template #noScoringTarget>
+            <div class="empty-state-small">
+              Sélectionnez un dossier dans la liste ci-dessous pour voir son analyse détaillée.
+            </div>
+          </ng-template>
+        </div>
+
+        <!-- Répartition + Trend -->
+        <div class="card">
+          <div class="card__icon">📊</div>
+          <h3 class="card__title">Distribution des scores</h3>
+          <div class="chart">
+            <div class="chart-bar">
+              <div class="chart-bar__label">Faible &lt;35</div>
+              <div class="chart-bar__track">
+                <div class="chart-bar__fill chart-bar__fill--success"
+                     [style.width.%]="kpis.total > 0 ? (riskKpis.lowRiskCount / kpis.total * 100) : 0">
+                </div>
+              </div>
+              <div class="chart-bar__value">{{ riskKpis.lowRiskCount }}</div>
+            </div>
+            <div class="chart-bar">
+              <div class="chart-bar__label">Modéré 35-75</div>
+              <div class="chart-bar__track">
+                <div class="chart-bar__fill chart-bar__fill--warning"
+                     [style.width.%]="kpis.total > 0 ? ((kpis.total - riskKpis.lowRiskCount - riskKpis.highRiskCount) / kpis.total * 100) : 0">
+                </div>
+              </div>
+              <div class="chart-bar__value">{{ kpis.total - riskKpis.lowRiskCount - riskKpis.highRiskCount }}</div>
+            </div>
+            <div class="chart-bar">
+              <div class="chart-bar__label">Élevé &gt;75</div>
+              <div class="chart-bar__track">
+                <div class="chart-bar__fill chart-bar__fill--danger"
+                     [style.width.%]="kpis.total > 0 ? (riskKpis.highRiskCount / kpis.total * 100) : 0">
+                </div>
+              </div>
+              <div class="chart-bar__value">{{ riskKpis.highRiskCount }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Liste des dossiers avec scoring -->
+      <div class="card users-card">
+        <div class="card__header">
+          <h3 class="card__title">📋 Sélectionner un dossier à analyser</h3>
+          <div class="filter-group">
+            <select class="filter-select" [(ngModel)]="riskFilter" (change)="onFilterChange()">
+              <option value="ALL">Tous les niveaux</option>
+              <option value="HIGH">Haut risque (&gt;75)</option>
+              <option value="MEDIUM">Risque modéré (35-75)</option>
+              <option value="LOW">Faible risque (&lt;35)</option>
+            </select>
+          </div>
+        </div>
+        <div class="users-list">
+          <div class="user-item"
+               *ngFor="let app of getScoringList(); trackBy: trackByApp"
+               [class.user-item--selected]="scoringTarget?._id === app._id"
+               (click)="selectForScoring(app)">
+            <div class="user-item__avatar">
+              <span>{{ app.clientName.charAt(0).toUpperCase() }}</span>
+            </div>
+            <div class="user-item__info">
+              <div class="user-item__name">{{ app.clientName }}</div>
+              <div class="user-item__email">{{ app.purpose }} — {{ app.amount | number:'1.0-0' }} €</div>
+            </div>
+            <div class="user-item__badges">
+              <span class="risk-level" [class]="getRiskLevelClass(getRiskScore(app))">
+                Score: {{ getRiskScore(app) }}
+              </span>
+              <span class="status-badge" [class]="getStatusClass(app.status)">
+                {{ getStatusLabel(app.status) }}
+              </span>
+            </div>
+          </div>
+          <div class="empty-state" *ngIf="getScoringList().length === 0">
+            <div class="empty-state__icon">🎯</div>
+            <p>Aucun dossier actif à scorer</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ════════════════════════════════════════════
+     MODAL — Détail dossier (Analyste)
+═════════════════════════════════════════════ -->
+<div class="modal" *ngIf="selectedApplication" (click)="closeApplication()">
+  <div class="modal__content modal__content--large" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <div class="modal__header-info">
+        <h2>Dossier — {{ selectedApplication.clientName }}</h2>
+        <span class="status-badge" [class]="getStatusClass(selectedApplication.status)">
+          {{ getStatusLabel(selectedApplication.status) }}
+        </span>
+        <span class="risk-level" [class]="getRiskLevelClass(getRiskScore(selectedApplication))">
+          Score: {{ getRiskScore(selectedApplication) }}
+        </span>
+      </div>
+      <button class="modal__close" (click)="closeApplication()">✕</button>
+    </div>
+    <div class="modal__body">
+
+      <!-- Score de risque (uniquement pour l'analyste) -->
+      <div class="detail-section">
+        <h3>🎯 Score de risque</h3>
+        <div class="score-gauge">
+          <div class="score-value">{{ getRiskScore(selectedApplication) }}/100</div>
+          <div class="score-meter">
+            <div class="score-fill" [style.width.%]="getRiskScore(selectedApplication)"></div>
+          </div>
+          <div class="score-labels">
+            <span>Faible</span><span>Modéré</span><span>Élevé</span>
+          </div>
+        </div>
+        <div class="risk-factors">
+          <h4>Facteurs de risque</h4>
+          <ul>
+            <li *ngFor="let factor of getRiskFactors(selectedApplication)">
+              <span class="factor-name">{{ factor.name }}</span>
+              <span class="factor-impact" [class.negative]="factor.impact < 0">
+                {{ factor.impact > 0 ? '+' : '' }}{{ factor.impact }} pts
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Infos générales -->
+      <div class="detail-section">
+        <h3>📋 Informations générales</h3>
+        <div class="detail-grid">
+          <div class="detail-item"><label>Montant</label><div class="detail-value">{{ selectedApplication.amount | number:'1.0-0' }} €</div></div>
+          <div class="detail-item"><label>Durée</label><div class="detail-value">{{ selectedApplication.duration }} mois</div></div>
+          <div class="detail-item"><label>Mensualité</label><div class="detail-value">{{ selectedApplication.monthlyPayment | number:'1.0-0' }} €</div></div>
+          <div class="detail-item"><label>Taux</label><div class="detail-value">{{ selectedApplication.interestRate }}%</div></div>
+          <div class="detail-item"><label>Objet</label><div class="detail-value">{{ selectedApplication.purpose }}</div></div>
+          <div class="detail-item"><label>Date création</label><div class="detail-value">{{ selectedApplication.createdAt | date:'dd/MM/yyyy HH:mm' }}</div></div>
+          <div class="detail-item" *ngIf="selectedApplication.processedBy">
+            <label>Traité par</label><div class="detail-value">{{ selectedApplication.processedBy }}</div>
+          </div>
+          <div class="detail-item" *ngIf="selectedApplication.rejectionReason">
+            <label>Motif refus</label>
+            <div class="detail-value" style="color:#ef4444">{{ selectedApplication.rejectionReason }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Situation financière -->
+      <div class="detail-section">
+        <h3>💰 Situation financière du client</h3>
+        <div class="financial-indicators">
+          <div class="indicator">
+            <div class="indicator__label">Revenus mensuels</div>
+            <div class="indicator__value">{{ getClientFinancials(selectedApplication.clientId).revenue | number:'1.0-0' }} €</div>
+          </div>
+          <div class="indicator">
+            <div class="indicator__label">Charges mensuelles</div>
+            <div class="indicator__value">{{ getClientFinancials(selectedApplication.clientId).monthlyCharges | number:'1.0-0' }} €</div>
+          </div>
+          <div class="indicator">
+            <div class="indicator__label">Capacité résiduelle</div>
+            <div class="indicator__value">{{ getRemainingCapacity(selectedApplication.clientId) | number:'1.0-0' }} €</div>
+          </div>
+          <div class="indicator">
+            <div class="indicator__label">Taux d'endettement</div>
+            <div class="indicator__value"
+                 [class.high-risk]="getDebtRatio(selectedApplication.clientId, selectedApplication.monthlyPayment) > 33">
+              {{ getDebtRatio(selectedApplication.clientId, selectedApplication.monthlyPayment) }}%
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Documents avec validation analyste -->
+      <div class="detail-section">
+        <div class="section-header-row">
+          <h3>📎 Documents <span class="count-badge">{{ selectedApplication.documents.length }}</span></h3>
+        </div>
+        <div class="documents-list" *ngIf="selectedApplication.documents.length > 0">
+          <div class="document-item" *ngFor="let doc of selectedApplication.documents">
+            <div class="document-item__icon">📄</div>
+            <div class="document-item__info">
+              <div class="document-item__name">{{ doc.name }}</div>
+              <div class="document-item__meta">{{ formatSize(doc.size) }} — {{ doc.uploadedAt | date:'dd/MM/yyyy' }}</div>
+            </div>
+            <span class="doc-status" [class]="getDocStatusClass(doc.status)">
+              {{ getDocStatusLabel(doc.status) }}
+            </span>
+            <button class="action-btn" *ngIf="doc.status === 'EN_ATTENTE'"
+                    (click)="validateDocument(doc._id)" title="Valider le document">✅</button>
+            <a class="action-btn" [href]="creditService.getDocumentUrl(doc.url)" target="_blank"
+               title="Télécharger">📥</a>
+          </div>
+        </div>
+        <p class="empty-state-small" *ngIf="selectedApplication.documents.length === 0">Aucun document déposé</p>
+      </div>
+
+      <!-- Timeline statuts -->
+      <div class="detail-section">
+        <h3>📊 Suivi du dossier</h3>
+        <div class="timeline">
+          <div class="timeline-item" *ngFor="let h of selectedApplication.statusHistory">
+            <div class="timeline-dot" [class]="getStatusClass(h.status)"></div>
+            <div class="timeline-content">
+              <span class="status-badge" [class]="getStatusClass(h.status)">{{ getStatusLabel(h.status) }}</span>
+              <div class="timeline-meta">{{ h.changedBy }} — {{ h.changedAt | date:'dd/MM/yyyy HH:mm' }}</div>
+              <div class="timeline-comment" *ngIf="h.comment">{{ h.comment }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Commentaires -->
+      <div class="detail-section">
+        <h3>💬 Historique de traitement</h3>
+        <div class="comments-timeline">
+          <div class="comment" *ngFor="let c of selectedApplication.comments">
+            <div class="comment__avatar">{{ c.userName.charAt(0).toUpperCase() }}</div>
+            <div class="comment__content">
+              <div class="comment__header">
+                <strong>{{ c.userName }}</strong>
+                <span class="comment__date">{{ c.createdAt | date:'dd/MM HH:mm' }}</span>
+              </div>
+              <div class="comment__text">{{ c.content }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="comment-input" *ngIf="!isFinalStatus(selectedApplication.status)">
+          <input type="text" [(ngModel)]="newCommentText"
+                 placeholder="Ajouter un commentaire..." class="search-input"
+                 (keyup.enter)="submitComment()"/>
+          <button class="btn btn--primary" (click)="submitComment()"
+                  [disabled]="!newCommentText.trim()">Envoyer</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal__footer">
+      <button class="btn btn--ghost" (click)="closeApplication()">Fermer</button>
+      <button class="btn btn--primary"
+              *ngIf="canChangeStatus(selectedApplication)"
+              (click)="openStatusModal(selectedApplication)">
+        {{ selectedApplication.status === 'EN_ATTENTE' ? '▶️ Prendre en charge' : '⚖️ Décider' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     MODAL — Mise à jour statut
+═════════════════════════════════════════════ -->
+<div class="modal" *ngIf="showStatusModal && statusUpdateTarget" (click)="closeStatusModal()">
+  <div class="modal__content" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <div>
+        <h2>{{ statusUpdateTarget.status === 'EN_ATTENTE' ? '▶️ Prendre en charge' : '⚖️ Décision finale' }}</h2>
+        <span class="info-badge">🔍 Interface Analyste</span>
+      </div>
+      <button class="modal__close" (click)="closeStatusModal()">✕</button>
+    </div>
+    <div class="modal__body">
+      <div class="dossier-recap">
+        <strong>{{ statusUpdateTarget.clientName }}</strong>
+        — {{ statusUpdateTarget.amount | number:'1.0-0' }} € / {{ statusUpdateTarget.duration }} mois
+        <br/>
+        <span class="status-badge" [class]="getStatusClass(statusUpdateTarget.status)">
+          {{ getStatusLabel(statusUpdateTarget.status) }}
+        </span>
+        <span class="risk-level" [class]="getRiskLevelClass(getRiskScore(statusUpdateTarget))">
+          Score risque : {{ getRiskScore(statusUpdateTarget) }}/100
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>Nouveau statut <span class="required">*</span></label>
+        <div class="status-choices">
+          <button *ngFor="let s of getAllowedStatuses(statusUpdateTarget.status)"
+                  class="status-choice"
+                  [class.selected]="pendingStatus === s"
+                  [class]="'status-choice ' + getStatusClass(s)"
+                  (click)="pendingStatus = s">
+            {{ s === 'EN_ANALYSE' ? '▶️ Prendre en charge' :
+               s === 'ACCEPTE'   ? '✅ Accepter' :
+               s === 'REFUSE'    ? '❌ Refuser' : getStatusLabel(s) }}
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>
+          Commentaire
+          <span *ngIf="pendingStatus === 'REFUSE'" class="required">(obligatoire pour un refus)</span>
+        </label>
+        <textarea [(ngModel)]="statusComment" class="form-control" rows="3"
+          [placeholder]="pendingStatus === 'REFUSE'
+            ? 'Motif du refus obligatoire...'
+            : 'Commentaire sur la décision...'"></textarea>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--ghost" (click)="closeStatusModal()">Annuler</button>
+      <button class="btn btn--primary" (click)="confirmStatusUpdate()"
+              [disabled]="loading || (pendingStatus === 'REFUSE' && !statusComment.trim())">
+        <span *ngIf="!loading">✓ Confirmer</span>
+        <span *ngIf="loading">Mise à jour...</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     MODAL — Profil
+═════════════════════════════════════════════ -->
+<div class="modal" *ngIf="showProfileModal" (click)="closeProfileModal()">
+  <div class="modal__content" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <h2>👤 Mon profil</h2>
+      <button class="modal__close" (click)="closeProfileModal()">✕</button>
+    </div>
+    <div class="modal__body">
+      <div class="profile-avatar">
+        <div class="profile-avatar__circle">
+          <img *ngIf="currentUser.photoUrl" [src]="currentUser.photoUrl" class="profile-avatar__img" />
+          <span *ngIf="!currentUser.photoUrl">{{ currentUser.avatar || currentUser.fullName?.charAt(0) }}</span>
+        </div>
+        <div class="profile-avatar__actions">
+          <label class="btn btn--ghost btn--sm">
+            📷 Changer photo
+            <input type="file" hidden accept="image/*" (change)="onProfileImageSelected($event)" />
+          </label>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nom complet</label>
+          <input type="text" class="form-control" [(ngModel)]="currentUser.fullName" />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" class="form-control" [(ngModel)]="currentUser.email" />
+        </div>
+        <div class="form-group form-group--full">
+          <label>Rôle</label>
+          <input type="text" class="form-control" value="Analyste risque" disabled />
+        </div>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--ghost" (click)="closeProfileModal()">Annuler</button>
+      <button class="btn btn--primary" (click)="updateProfile()">✓ Mettre à jour</button>
+    </div>
+  </div>
+</div>

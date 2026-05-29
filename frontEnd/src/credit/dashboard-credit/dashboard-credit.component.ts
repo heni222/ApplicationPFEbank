@@ -18,6 +18,7 @@ import {
   CreateClientDTO, CreateApplicationDTO, KPIs, MonthlyStat
 } from '../../services/credit.service';
 import { AuthService } from '../../services/auth.service';
+import { AdminService } from '../../services/admin.service';
 
 type View = 'dashboard' | 'applications' | 'clients';
 
@@ -37,6 +38,12 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
   // 'CHARGE_CREDIT' : crée les dossiers, upload docs, ajoute commentaires
   // 'ANALYSTE'      : traite les statuts (EN_ANALYSE → ACCEPTE/REFUSE)
   currentRole: UserRole = 'CHARGE_CREDIT'; // ← changer selon JWT
+  showProfileModal = false;
+
+  // ── Profil actuel ──
+  currentUser: any = {
+    _id: '', fullName: '', email: '', role: '', avatar: '', permissions: [], photoUrl: ''
+  };
 
   // ── UI ──
   sidebarCollapsed = false;
@@ -59,17 +66,17 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
   maxMonthlyCount = 1;
 
   // ── Filters ──
-  searchTerm   = '';
+  searchTerm = '';
   filterStatus = 'ALL';
   filterAmount = 'ALL';
 
   // ── Modals ──
   selectedApplication: CreditApplication | null = null;
   selectedClient: Client | null = null;
-  showClientModal      = false;
+  showClientModal = false;
   showApplicationModal = false;
-  showStatusModal      = false;
-  newCommentText       = '';
+  showStatusModal = false;
+  newCommentText = '';
 
   // ── Status update ──
   statusUpdateTarget: CreditApplication | null = null;
@@ -79,23 +86,23 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
   // ── Upload ──
   selectedFile: File | null = null;
   uploadStatus = '';
-  uploadError  = '';
+  uploadError = '';
 
   // ── Forms ──
   clientForm!: FormGroup;
   applicationForm!: FormGroup;
 
   // ── Simulation montant/taux ──
-  estimatedMonthly   = 0;
-  debtRatio          = 0;
-  debtWarning        = false;
+  estimatedMonthly = 0;
+  debtRatio = 0;
+  debtWarning = false;
   selectedClientForApp: Client | null = null;
 
   // ── Sidebar items selon rôle ──
   get sidebarItems() {
     const base = [
-      { id: 'dashboard'     as View, label: 'Tableau de bord', icon: '📊' },
-      { id: 'applications'  as View, label: 'Dossiers',         icon: '📋' },
+      { id: 'dashboard' as View, label: 'Tableau de bord', icon: '📊' },
+      { id: 'applications' as View, label: 'Dossiers', icon: '📋' },
     ];
     // Chargé crédit a accès aux clients
     if (this.currentRole === 'CHARGE_CREDIT' || this.currentRole === 'ADMIN') {
@@ -109,8 +116,9 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private authService: AuthService
-  ) {}
+    private authService: AuthService,
+    private adminService: AdminService,
+  ) { }
 
   ngOnInit(): void {
     this.detectRole();
@@ -141,11 +149,11 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
         // Mapper les rôles backend → UserRole
         const roleMap: Record<string, UserRole> = {
           'charge_credit': 'CHARGE_CREDIT',
-          'analyste':      'ANALYSTE',
-          'admin':         'ADMIN',
+          'analyste': 'ANALYSTE',
+          'admin': 'ADMIN',
           'CHARGE_CREDIT': 'CHARGE_CREDIT',
-          'ANALYSTE':      'ANALYSTE',
-          'ADMIN':         'ADMIN'
+          'ANALYSTE': 'ANALYSTE',
+          'ADMIN': 'ADMIN'
         };
         this.currentRole = roleMap[user?.role] || 'CHARGE_CREDIT';
       } catch {
@@ -155,8 +163,8 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
   }
 
   get isChargeCredit(): boolean { return this.currentRole === 'CHARGE_CREDIT'; }
-  get isAnalyste(): boolean     { return this.currentRole === 'ANALYSTE'; }
-  get isAdmin(): boolean        { return this.currentRole === 'ADMIN'; }
+  get isAnalyste(): boolean { return this.currentRole === 'ANALYSTE'; }
+  get isAdmin(): boolean { return this.currentRole === 'ADMIN'; }
 
   // ──────────────────────────────────────────
   //  Formulaires
@@ -164,25 +172,25 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
 
   buildForms(): void {
     this.clientForm = this.fb.group({
-      fullName:      ['', [Validators.required, Validators.minLength(3)]],
-      email:         ['', [Validators.required, Validators.email]],
-      phone:         ['', Validators.required],
-      address:       ['', Validators.required],
-      city:          ['', Validators.required],
-      cin:           ['', [Validators.required, Validators.minLength(6)]],
-      birthDate:     ['', Validators.required],
-      profession:    ['', Validators.required],
-      employer:      ['', Validators.required],
-      revenue:       [0, [Validators.required, Validators.min(1)]],
-      monthlyCharges:[0, [Validators.required, Validators.min(0)]],
+      fullName: ['', [Validators.required, Validators.minLength(3)]],
+      email: ['', [Validators.required, Validators.email]],
+      phone: ['', Validators.required],
+      address: ['', Validators.required],
+      city: ['', Validators.required],
+      cin: ['', [Validators.required, Validators.minLength(6)]],
+      birthDate: ['', Validators.required],
+      profession: ['', Validators.required],
+      employer: ['', Validators.required],
+      revenue: [0, [Validators.required, Validators.min(1)]],
+      monthlyCharges: [0, [Validators.required, Validators.min(0)]],
       existingLoans: [0, [Validators.required, Validators.min(0)]]
     });
 
     this.applicationForm = this.fb.group({
       clientId: ['', Validators.required],
-      amount:   [0, [Validators.required, Validators.min(1000), Validators.max(500000)]],
+      amount: [0, [Validators.required, Validators.min(1000), Validators.max(500000)]],
       duration: [12, [Validators.required, Validators.min(6), Validators.max(360)]],
-      purpose:  ['CONSOMMATION', Validators.required]
+      purpose: ['CONSOMMATION', Validators.required]
     });
 
     this.applicationForm.valueChanges.pipe(
@@ -482,7 +490,7 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
   canChangeStatus(app: CreditApplication): boolean {
     if (this.isChargeCredit) return false;
     return !this.isFinalStatus(app.status) &&
-           this.getAllowedStatuses(app.status).length > 0;
+      this.getAllowedStatuses(app.status).length > 0;
   }
 
   // ──────────────────────────────────────────
@@ -536,8 +544,8 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
     return ({
       EN_ATTENTE: 'status--pending',
       EN_ANALYSE: 'status--analyzing',
-      ACCEPTE:    'status--accepted',
-      REFUSE:     'status--refused'
+      ACCEPTE: 'status--accepted',
+      REFUSE: 'status--refused'
     } as Record<string, string>)[s] ?? '';
   }
 
@@ -578,9 +586,9 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
 
   amountDistribution() {
     return {
-      small:  this.applications.filter(a => a.amount < 10000).length,
+      small: this.applications.filter(a => a.amount < 10000).length,
       medium: this.applications.filter(a => a.amount >= 10000 && a.amount <= 50000).length,
-      large:  this.applications.filter(a => a.amount > 50000).length
+      large: this.applications.filter(a => a.amount > 50000).length
     };
   }
 
@@ -606,7 +614,36 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
       }
     });
   }
+  // ──────────────────────────────────────────
+  //  Profil
+  // ──────────────────────────────────────────
 
+  openProfile(): void { this.showProfileModal = true; }
+  closeProfileModal(): void { this.showProfileModal = false; }
+
+  updateProfile(): void {
+    this.adminService.updateProfile(this.currentUser).subscribe({
+      next: () => {
+        localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+        this.showMsg('Profil mis à jour ✓', 'success');
+        this.closeProfileModal();
+        this.cdr.markForCheck();
+      },
+      error: err => { console.error(err); this.showMsg('Erreur mise à jour profil', 'error'); }
+    });
+  }
+
+  onProfileImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.currentUser.photoUrl = reader.result as string;
+      localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+      this.cdr.markForCheck();
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
   confirmLogout(): void {
     if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) this.logout();
   }
@@ -622,4 +659,9 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
       error: () => this.router.navigate(['/login'])
     });
   }
+  showMsg(msg: string, type: 'success' | 'error' = 'success'): void {
+    this.message = msg;
+    setTimeout(() => { this.message = ''; this.cdr.markForCheck(); }, 3500);
+  }
+
 }
