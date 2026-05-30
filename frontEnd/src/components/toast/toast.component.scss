@@ -1,0 +1,111 @@
+@use '../../styles.scss' as *;
+
+.toast {
+  position: fixed;
+  top: $spacing-lg;
+  right: $spacing-lg;
+  z-index: $z-tooltip;
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-md;
+  min-width: 320px;
+  max-width: 480px;
+  padding: $spacing-md $spacing-lg;
+  background: $color-surface;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-xl;
+  border-left: 4px solid transparent;
+
+  &--success {
+    border-left-color: $color-success;
+    .toast__icon {
+      color: $color-success;
+      background: rgba($color-success, 0.1);
+    }
+  }
+
+  &--error {
+    border-left-color: $color-error;
+    .toast__icon {
+      color: $color-error;
+      background: rgba($color-error, 0.1);
+    }
+  }
+
+  &--warning {
+    border-left-color: $color-warning;
+    .toast__icon {
+      color: $color-warning;
+      background: rgba($color-warning, 0.1);
+    }
+  }
+
+  &--info {
+    border-left-color: $color-info;
+    .toast__icon {
+      color: $color-info;
+      background: rgba($color-info, 0.1);
+    }
+  }
+
+  &__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    border-radius: $radius-full;
+    font-size: $font-size-lg;
+    font-weight: $font-weight-bold;
+  }
+
+  &__content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__message {
+    margin: 0;
+    font-size: $font-size-sm;
+    line-height: $line-height-normal;
+    color: $color-text;
+  }
+
+  &__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: $radius-sm;
+    color: $color-text-muted;
+    cursor: pointer;
+    transition: $transition-fast;
+
+    &:hover {
+      background: $color-border-light;
+      color: $color-text;
+    }
+
+    &:focus {
+      outline: 2px solid $color-accent;
+      outline-offset: 2px;
+    }
+  }
+}
+
+// Responsive
+@media (max-width: $breakpoint-md) {
+  .toast {
+    top: $spacing-md;
+    right: $spacing-md;
+    left: $spacing-md;
+    min-width: auto;
+    max-width: none;
+  }
+}

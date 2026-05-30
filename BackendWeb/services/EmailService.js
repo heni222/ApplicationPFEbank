@@ -51,7 +51,7 @@ class EmailService {
             <h1>Vérification d'email</h1>
           </div>
           <div class="content">
-            <h2>Bonjour ${user.firstName} ${user.lastName},</h2>
+            <h2>Bonjour ${user.fullName} ${user.lastName},</h2>
             <p>Merci de vous être inscrit sur notre plateforme. Pour activer votre compte, veuillez vérifier votre adresse email en cliquant sur le bouton ci-dessous :</p>
             
             <div style="text-align: center;">
@@ -137,7 +137,7 @@ class EmailService {
             <h1>Réinitialisation de mot de passe</h1>
           </div>
           <div class="content">
-            <h2>Bonjour ${user.firstName},</h2>
+            <h2>Bonjour ${user.fullName},</h2>
             <p>Vous avez demandé la réinitialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour procéder :</p>
             
             <div style="text-align: center;">
@@ -223,7 +223,7 @@ class EmailService {
             <h1>Bienvenue sur notre plateforme !</h1>
           </div>
           <div class="content">
-            <h2>Bonjour ${user.firstName} ${user.lastName},</h2>
+            <h2>Bonjour ${user.fullName} ${user.lastName},</h2>
             <p>Nous sommes ravis de vous accueillir sur notre plateforme ! Votre compte a été vérifié avec succès.</p>
             
             <p>Vous pouvez maintenant vous connecter et commencer à utiliser tous nos services.</p>
