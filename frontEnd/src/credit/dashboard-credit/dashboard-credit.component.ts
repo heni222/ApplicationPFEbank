@@ -95,7 +95,7 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
   // ── Simulation montant/taux ──
   estimatedMonthly = 0;
   debtRatio = 0;
-  debtWarning = false;
+  debtWarning = false; // ✅ seuil 40% (BCT Tunisie)
   selectedClientForApp: Client | null = null;
 
   // ── Sidebar items selon rôle ──
@@ -183,7 +183,7 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
       employer: ['', Validators.required],
       revenue: [0, [Validators.required, Validators.min(1)]],
       monthlyCharges: [0, [Validators.required, Validators.min(0)]],
-      existingLoans: [0, [Validators.required, Validators.min(0)]]
+      existingLoanPayments: [0, [Validators.required, Validators.min(0)]] // ✅ mensualité réelle
     });
 
     this.applicationForm = this.fb.group({
@@ -280,7 +280,7 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
   // ──────────────────────────────────────────
 
   openClientModal(): void {
-    this.clientForm.reset({ revenue: 0, monthlyCharges: 0, existingLoans: 0 });
+    this.clientForm.reset({ revenue: 0, monthlyCharges: 0, existingLoanPayments: 0 }); // ✅
     this.showClientModal = true;
   }
 
@@ -323,17 +323,22 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
   closeApplicationModal(): void { this.showApplicationModal = false; }
 
   recalculate(): void {
-    const { amount, duration, clientId } = this.applicationForm.value;
+    const { amount, duration, clientId, purpose } = this.applicationForm.value;
+
     if (amount > 0 && duration > 0) {
-      this.estimatedMonthly = this.creditService.calculateMonthly(+amount, +duration);
+      // ✅ Taux selon le type de crédit (CONSOMMATION / AUTO / IMMOBILIER)
+      const annualRate = this.creditService.RATES[purpose] ?? this.creditService.RATES['CONSOMMATION'];
+      this.estimatedMonthly = this.creditService.calculateMonthly(+amount, +duration, annualRate);
     }
+
     if (clientId) {
       this.selectedClientForApp = this.clients.find(c => c._id === clientId) || null;
       if (this.selectedClientForApp) {
         this.debtRatio = this.creditService.calculateDebtRatio(
           this.selectedClientForApp, this.estimatedMonthly
         );
-        this.debtWarning = this.debtRatio > 33;
+        // ✅ Seuil BCT Tunisie : 40%
+        this.debtWarning = !this.creditService.isEligible(this.debtRatio);
       }
     }
     this.cdr.markForCheck();
@@ -342,7 +347,8 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
   submitApplication(): void {
     if (this.applicationForm.invalid) { this.applicationForm.markAllAsTouched(); return; }
     if (this.debtWarning) {
-      this.showMessage('Taux d\'endettement > 33% — dossier refusé automatiquement', 'error');
+      // ✅ Message mis à jour : seuil 40%
+      this.showMessage('Taux d\'endettement > 40% — dossier refusé automatiquement', 'error');
       return;
     }
     this.loading = true;
@@ -563,13 +569,14 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
 
   getClientFinancials(clientId: string) {
     return this.clients.find(c => c._id === clientId)
-      ?? { revenue: 0, monthlyCharges: 0, existingLoans: 0 };
+      ?? { revenue: 0, monthlyCharges: 0, existingLoanPayments: 0 }; // ✅
   }
 
+  // ✅ Capacité restante basée sur mensualité réelle + plafond 40%
   getRemainingCapacity(clientId: string): number {
     const c = this.clients.find(cl => cl._id === clientId);
     if (!c) return 0;
-    return Math.round(c.revenue - c.monthlyCharges - (c.existingLoans / 240));
+    return this.creditService.maxAllowedMonthly(c);
   }
 
   getDebtRatio(clientId: string, monthly = 0): number {
@@ -614,6 +621,7 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
       }
     });
   }
+
   // ──────────────────────────────────────────
   //  Profil
   // ──────────────────────────────────────────
@@ -644,6 +652,7 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
     };
     reader.readAsDataURL(input.files[0]);
   }
+
   confirmLogout(): void {
     if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) this.logout();
   }
@@ -659,9 +668,9 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
       error: () => this.router.navigate(['/login'])
     });
   }
+
   showMsg(msg: string, type: 'success' | 'error' = 'success'): void {
     this.message = msg;
     setTimeout(() => { this.message = ''; this.cdr.markForCheck(); }, 3500);
   }
-
 }

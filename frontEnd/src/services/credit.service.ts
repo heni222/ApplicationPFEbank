@@ -20,7 +20,7 @@ export interface Client {
   employer: string;
   revenue: number;
   monthlyCharges: number;
-  existingLoans: number;
+  existingLoanPayments: number; // ✅ mensualité réelle (remplace existingLoans)
   createdAt: Date;
   updatedAt: Date;
 }
@@ -82,7 +82,7 @@ export interface CreateClientDTO {
   employer: string;
   revenue: number;
   monthlyCharges: number;
-  existingLoans: number;
+  existingLoanPayments: number; // ✅ mensualité réelle
 }
 
 export interface CreateApplicationDTO {
@@ -123,6 +123,16 @@ export class CreditService {
   // ── URL backend (aligné avec server.js → app.use('/api', creditRoutes)) ──
   private readonly API = 'http://localhost:3000/api';
   private readonly UPLOADS = 'http://localhost:3000/uploads';
+
+  // ── Taux tunisiens (BCT, TMM fév. 2026 + marge selon type) ──────────────
+  private readonly TMM = 0.0699; // TMM BCT février 2026
+  readonly RATES: Record<string, number> = {
+    CONSOMMATION: this.TMM + 0.03,  // ~9.99%
+    AUTO:         this.TMM + 0.025, // ~9.49%
+    IMMOBILIER:   this.TMM + 0.02,  // ~8.99%
+  };
+  readonly MAX_DEBT_RATIO = 0.40; // Plafond BCT Tunisie : 40%
+
   // ── Cache réactif ──────────────────────────────────────
   private _clients = new BehaviorSubject<Client[]>([]);
   private _applications = new BehaviorSubject<CreditApplication[]>([]);
@@ -498,13 +508,6 @@ export class CreditService {
     );
   }
 
-  // getMonthlyStats(): Observable<MonthlyStat[]> {
-  //   return this.http.get<MonthlyStat[]>(`${this.API}/stats/monthly`).pipe(
-  //     tap(s => this._monthlyStats.next(s)),
-  //     catchError(e => this.handleError(e))
-  //   );
-  // }
-
   // ──────────────────────────────────────────
   //  Helpers locaux (sans appel HTTP)
   // ──────────────────────────────────────────
@@ -524,21 +527,32 @@ export class CreditService {
     return map[current] ?? [];
   }
 
+  /**
+   * Calcule la mensualité selon la formule d'amortissement.
+   * @param amount     Montant emprunté (TND)
+   * @param duration   Durée en mois
+   * @param annualRate Taux annuel (défaut : CONSOMMATION = TMM + 3%)
+   */
   calculateMonthly(
     amount: number,
     duration: number,
-    annualRate = 0.09, // 9%
+    annualRate: number = this.RATES['CONSOMMATION'],
   ): number {
     const monthlyRate = annualRate / 12;
+
+    if (monthlyRate === 0) return Math.round(amount / duration);
 
     return Math.round(
       (amount * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -duration)),
     );
   }
 
+  /**
+   * Calcule le taux d'endettement (plafond BCT Tunisie : 40%).
+   * Utilise la mensualité réelle existante (existingLoanPayments).
+   */
   calculateDebtRatio(client: Client, newMonthly: number): number {
-    const existingMonthly =
-      client.existingLoans > 0 ? client.existingLoans / 240 : 0;
+    const existingMonthly = client.existingLoanPayments ?? 0; // ✅ mensualité réelle
 
     return Math.round(
       ((client.monthlyCharges + existingMonthly + newMonthly) /
@@ -546,6 +560,24 @@ export class CreditService {
         100,
     );
   }
+
+  /** Vérifie l'éligibilité selon le plafond BCT (40%) */
+  isEligible(debtRatio: number): boolean {
+    return debtRatio <= this.MAX_DEBT_RATIO * 100;
+  }
+
+  /** Mensualité maximale autorisée pour un client donné */
+  maxAllowedMonthly(client: Client): number {
+    return Math.max(
+      0,
+      Math.floor(
+        client.revenue * this.MAX_DEBT_RATIO -
+          client.monthlyCharges -
+          (client.existingLoanPayments ?? 0),
+      ),
+    );
+  }
+
   getStatusLabel(s: string): string {
     return (
       (

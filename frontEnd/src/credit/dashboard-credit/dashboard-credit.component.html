@@ -162,7 +162,7 @@
           </div>
           <div class="kpi-card">
             <div class="kpi-card__icon">💰</div>
-            <div class="kpi-card__value">{{ kpis.totalAmount | number:'1.0-0' }}DT</div>
+            <div class="kpi-card__value">{{ kpis.totalAmount | number:'1.0-0' }} DT</div>
             <div class="kpi-card__label">Encours accepté</div>
             <div class="kpi-card__trend">Dossiers acceptés</div>
           </div>
@@ -346,7 +346,7 @@
             </div>
             <div class="user-item__info">
               <div class="user-item__name">{{ app.clientName }}</div>
-              <div class="user-item__email">{{ app.purpose }} — {{ app.amount | number:'1.0-0' }}DT</div>
+              <div class="user-item__email">{{ app.purpose }} — {{ app.amount | number:'1.0-0' }} DT</div>
             </div>
             <div class="user-item__badges">
               <span class="status-badge" [class]="getStatusClass(app.status)">
@@ -430,9 +430,9 @@
                   <div class="user-name">{{ app.clientName }}</div>
                 </div>
               </td>
-              <td class="amount-cell">{{ app.amount | number:'1.0-0' }}DT</td>
+              <td class="amount-cell">{{ app.amount | number:'1.0-0' }} DT</td>
               <td>{{ app.duration }} mois</td>
-              <td>{{ app.monthlyPayment | number:'1.0-0' }}DT</td>
+              <td>{{ app.monthlyPayment | number:'1.0-0' }} DT</td>
               <td>{{ app.purpose }}</td>
               <td>
                 <span class="status-badge" [class]="getStatusClass(app.status)">
@@ -500,11 +500,11 @@
           <div class="client-card__stats">
             <div class="client-stat">
               <span class="client-stat__label">Revenus</span>
-              <span class="client-stat__value">{{ client.revenue | number:'1.0-0' }}DT</span>
+              <span class="client-stat__value">{{ client.revenue | number:'1.0-0' }} DT</span>
             </div>
             <div class="client-stat">
               <span class="client-stat__label">Charges</span>
-              <span class="client-stat__value">{{ client.monthlyCharges | number:'1.0-0' }}DT</span>
+              <span class="client-stat__value">{{ client.monthlyCharges | number:'1.0-0' }} DT</span>
             </div>
             <div class="client-stat">
               <span class="client-stat__label">Dossiers</span>
@@ -543,9 +543,9 @@
       <div class="detail-section">
         <h3>📋 Informations générales</h3>
         <div class="detail-grid">
-          <div class="detail-item"><label>Montant</label><div class="detail-value">{{ selectedApplication.amount | number:'1.0-0' }}DT</div></div>
+          <div class="detail-item"><label>Montant</label><div class="detail-value">{{ selectedApplication.amount | number:'1.0-0' }} DT</div></div>
           <div class="detail-item"><label>Durée</label><div class="detail-value">{{ selectedApplication.duration }} mois</div></div>
-          <div class="detail-item"><label>Mensualité</label><div class="detail-value">{{ selectedApplication.monthlyPayment | number:'1.0-0' }}DT</div></div>
+          <div class="detail-item"><label>Mensualité</label><div class="detail-value">{{ selectedApplication.monthlyPayment | number:'1.0-0' }} DT</div></div>
           <div class="detail-item"><label>Taux</label><div class="detail-value">{{ selectedApplication.interestRate }}%</div></div>
           <div class="detail-item"><label>Objet</label><div class="detail-value">{{ selectedApplication.purpose }}</div></div>
           <div class="detail-item"><label>Date création</label><div class="detail-value">{{ selectedApplication.createdAt | date:'dd/MM/yyyy HH:mm' }}</div></div>
@@ -565,15 +565,15 @@
         <div class="financial-indicators">
           <div class="indicator">
             <div class="indicator__label">Revenus mensuels</div>
-            <div class="indicator__value">{{ getClientFinancials(selectedApplication.clientId).revenue | number:'1.0-0' }}DT</div>
+            <div class="indicator__value">{{ getClientFinancials(selectedApplication.clientId).revenue | number:'1.0-0' }} DT</div>
           </div>
           <div class="indicator">
             <div class="indicator__label">Charges mensuelles</div>
-            <div class="indicator__value">{{ getClientFinancials(selectedApplication.clientId).monthlyCharges | number:'1.0-0' }}DT</div>
+            <div class="indicator__value">{{ getClientFinancials(selectedApplication.clientId).monthlyCharges | number:'1.0-0' }} DT</div>
           </div>
           <div class="indicator">
             <div class="indicator__label">Capacité résiduelle</div>
-            <div class="indicator__value">{{ getRemainingCapacity(selectedApplication.clientId) | number:'1.0-0' }}DT</div>
+            <div class="indicator__value">{{ getRemainingCapacity(selectedApplication.clientId) | number:'1.0-0' }} DT</div>
           </div>
           <div class="indicator">
             <div class="indicator__label">Taux d'endettement</div>
@@ -704,9 +704,9 @@
       <div class="detail-section">
         <h3>Situation financière</h3>
         <div class="financial-indicators">
-          <div class="indicator"><div class="indicator__label">Revenus mensuels</div><div class="indicator__value">{{ selectedClient.revenue | number:'1.0-0' }}DT</div></div>
-          <div class="indicator"><div class="indicator__label">Charges mensuelles</div><div class="indicator__value">{{ selectedClient.monthlyCharges | number:'1.0-0' }}DT</div></div>
-          <div class="indicator"><div class="indicator__label">Crédits en cours</div><div class="indicator__value">{{ selectedClient.existingLoans | number:'1.0-0' }}DT</div></div>
+          <div class="indicator"><div class="indicator__label">Revenus mensuels</div><div class="indicator__value">{{ selectedClient.revenue | number:'1.0-0' }} DT</div></div>
+          <div class="indicator"><div class="indicator__label">Charges mensuelles</div><div class="indicator__value">{{ selectedClient.monthlyCharges | number:'1.0-0' }} DT</div></div>
+          <div class="indicator"><div class="indicator__label">Crédits en cours</div><div class="indicator__value">{{ selectedClient.existingLoanPayments | number:'1.0-0' }} DT</div></div>
           <div class="indicator">
             <div class="indicator__label">Taux endettement</div>
             <div class="indicator__value"
@@ -725,7 +725,7 @@
               <span>{{ app.clientName.charAt(0).toUpperCase() }}</span>
             </div>
             <div class="user-item__info">
-              <div class="user-item__name">{{ app.amount | number:'1.0-0' }}DT — {{ app.duration }} mois</div>
+              <div class="user-item__name">{{ app.amount | number:'1.0-0' }} DT — {{ app.duration }} mois</div>
               <div class="user-item__email">{{ app.purpose }} — {{ app.createdAt | date:'dd/MM/yyyy' }}</div>
             </div>
             <div class="user-item__badges">
@@ -868,7 +868,7 @@
       <div class="app-summary" *ngIf="estimatedMonthly > 0">
         <div class="app-summary__item">
           <span>Mensualité estimée (5.5%)</span>
-          <strong>{{ estimatedMonthly | number:'1.0-0' }}DT/mois</strong>
+          <strong>{{ estimatedMonthly | number:'1.0-0' }} DT/mois</strong>
         </div>
         <div class="app-summary__item" *ngIf="selectedClientForApp">
           <span>Taux d'endettement après crédit</span>
@@ -876,7 +876,7 @@
         </div>
         <div class="app-summary__item" *ngIf="applicationForm.value.amount > 0 && applicationForm.value.duration > 0">
           <span>Coût total</span>
-          <strong>{{ (estimatedMonthly * applicationForm.value.duration) | number:'1.0-0' }}DT</strong>
+          <strong>{{ (estimatedMonthly * applicationForm.value.duration) | number:'1.0-0' }} DT</strong>
         </div>
       </div>
 
@@ -910,7 +910,7 @@
     <div class="modal__body">
       <div class="dossier-recap">
         <strong>{{ statusUpdateTarget.clientName }}</strong>
-        — {{ statusUpdateTarget.amount | number:'1.0-0' }}DT / {{ statusUpdateTarget.duration }} mois
+        — {{ statusUpdateTarget.amount | number:'1.0-0' }} DT / {{ statusUpdateTarget.duration }} mois
         <br/>
         <span class="status-badge" [class]="getStatusClass(statusUpdateTarget.status)">
           {{ getStatusLabel(statusUpdateTarget.status) }}

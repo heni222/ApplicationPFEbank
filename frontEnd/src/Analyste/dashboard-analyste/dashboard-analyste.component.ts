@@ -49,7 +49,7 @@ export interface RiskFactor {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './dashboard-analyste.component.html',
-  styleUrls: ['./dashboard-analyste.component.scss'],  // partage le même SCSS
+  styleUrls: ['./dashboard-analyste.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DashboardAnalysteComponent implements OnInit, OnDestroy {
@@ -123,6 +123,9 @@ export class DashboardAnalysteComponent implements OnInit, OnDestroy {
 
   // ── Référence Math pour le template ──
   readonly abs = Math.abs;
+
+  // ✅ Plafond BCT Tunisie exposé pour le template
+  readonly MAX_DEBT_RATIO = 40;
 
   constructor(
     public creditService: CreditService,
@@ -243,7 +246,6 @@ export class DashboardAnalysteComponent implements OnInit, OnDestroy {
   }
 
   private computeTrend(): number {
-    // Simuler une tendance sur les 2 derniers mois
     if (this.monthlyStats.length < 2) return 0;
     const last = this.monthlyStats[this.monthlyStats.length - 1];
     const prev = this.monthlyStats[this.monthlyStats.length - 2];
@@ -267,14 +269,16 @@ export class DashboardAnalysteComponent implements OnInit, OnDestroy {
    * Calcule un score de risque 0-100 basé sur les données financières du client.
    * Score élevé = risque élevé.
    *
-   * Formule :
-   *   - Taux d'endettement > 33% → +30 pts
-   *   - Taux d'endettement 25-33% → +20 pts
-   *   - Montant > 100k€ → +15 pts
-   *   - Montant 50-100k€ → +10 pts
+   * Formule adaptée au contexte tunisien (plafond BCT 40%) :
+   *   - Taux d'endettement > 40% → +35 pts  ✅ seuil BCT
+   *   - Taux d'endettement 30-40% → +20 pts
+   *   - Taux d'endettement 20-30% → +10 pts
+   *   - Montant > 100k TND → +15 pts
+   *   - Montant 50-100k TND → +10 pts
    *   - Durée > 240 mois → +10 pts
-   *   - Revenus < 1500€ → +15 pts
+   *   - Revenus < 1500 TND → +15 pts
    *   - Charges > 50% revenus → +10 pts
+   *   - Mensualités existantes > 0 → +5 pts  ✅ existingLoanPayments
    */
   getRiskScore(app: CreditApplication): number {
     const client = this.clients.find(c => c._id === app.clientId);
@@ -283,9 +287,10 @@ export class DashboardAnalysteComponent implements OnInit, OnDestroy {
     if (client) {
       const debtRatio = this.creditService.calculateDebtRatio(client, app.monthlyPayment);
 
-      if (debtRatio > 33) score += 30;
-      else if (debtRatio > 25) score += 20;
-      else if (debtRatio > 15) score += 10;
+      // ✅ Seuils alignés sur le plafond BCT Tunisie (40%)
+      if (debtRatio > 40) score += 35;
+      else if (debtRatio > 30) score += 20;
+      else if (debtRatio > 20) score += 10;
       else score -= 10;
 
       if (client.revenue < 1500) score += 15;
@@ -293,7 +298,8 @@ export class DashboardAnalysteComponent implements OnInit, OnDestroy {
 
       if (client.monthlyCharges > client.revenue * 0.5) score += 10;
 
-      if (client.existingLoans > 0) score += 5;
+      // ✅ existingLoanPayments (mensualité réelle)
+      if ((client.existingLoanPayments ?? 0) > 0) score += 5;
     }
 
     if (app.amount > 100000) score += 15;
@@ -308,6 +314,7 @@ export class DashboardAnalysteComponent implements OnInit, OnDestroy {
 
   /**
    * Retourne les facteurs de risque détaillés pour un dossier.
+   * ✅ Seuils et libellés adaptés au contexte tunisien (TND, BCT 40%)
    */
   getRiskFactors(app: CreditApplication): RiskFactor[] {
     const client = this.clients.find(c => c._id === app.clientId);
@@ -316,28 +323,38 @@ export class DashboardAnalysteComponent implements OnInit, OnDestroy {
     if (client) {
       const debtRatio = this.creditService.calculateDebtRatio(client, app.monthlyPayment);
 
-      if (debtRatio > 33) factors.push({ name: `Taux endettement ${debtRatio}%`, impact: +30 });
-      else if (debtRatio > 25) factors.push({ name: `Taux endettement ${debtRatio}%`, impact: +20 });
-      else factors.push({ name: `Taux endettement ${debtRatio}%`, impact: -10 });
+      // ✅ Seuil BCT 40%
+      if (debtRatio > 40)
+        factors.push({ name: `Taux endettement ${debtRatio}% (> plafond BCT 40%)`, impact: +35 });
+      else if (debtRatio > 30)
+        factors.push({ name: `Taux endettement ${debtRatio}% (zone d'alerte)`, impact: +20 });
+      else
+        factors.push({ name: `Taux endettement ${debtRatio}% (acceptable)`, impact: -10 });
 
-      if (client.revenue < 1500) factors.push({ name: `Revenus faibles (${client.revenue}€)`, impact: +15 });
-      else if (client.revenue > 5000) factors.push({ name: `Revenus solides (${client.revenue}€)`, impact: -10 });
+      if (client.revenue < 1500)
+        factors.push({ name: `Revenus faibles (${client.revenue} TND)`, impact: +15 }); // ✅ TND
+      else if (client.revenue > 5000)
+        factors.push({ name: `Revenus solides (${client.revenue} TND)`, impact: -10 }); // ✅ TND
 
-      if (client.monthlyCharges > client.revenue * 0.5) {
-        factors.push({ name: 'Charges > 50% revenus', impact: +10 });
-      }
+      if (client.monthlyCharges > client.revenue * 0.5)
+        factors.push({ name: 'Charges > 50% des revenus', impact: +10 });
 
-      if (client.existingLoans > 0) {
-        factors.push({ name: 'Crédits en cours existants', impact: +5 });
-      }
+      // ✅ existingLoanPayments (mensualité réelle)
+      if ((client.existingLoanPayments ?? 0) > 0)
+        factors.push({ name: `Mensualités existantes (${client.existingLoanPayments} TND/mois)`, impact: +5 });
     }
 
-    if (app.amount > 100000) factors.push({ name: 'Montant élevé (>100k€)', impact: +15 });
-    else if (app.amount > 50000) factors.push({ name: 'Montant modéré (>50k€)', impact: +10 });
-    else if (app.amount < 10000) factors.push({ name: 'Faible montant (<10k€)', impact: -5 });
+    if (app.amount > 100000)
+      factors.push({ name: 'Montant élevé (> 100k TND)', impact: +15 }); // ✅ TND
+    else if (app.amount > 50000)
+      factors.push({ name: 'Montant modéré (> 50k TND)', impact: +10 }); // ✅ TND
+    else if (app.amount < 10000)
+      factors.push({ name: 'Faible montant (< 10k TND)', impact: -5 });  // ✅ TND
 
-    if (app.duration > 240) factors.push({ name: 'Longue durée (>20 ans)', impact: +10 });
-    else if (app.duration < 24) factors.push({ name: 'Courte durée', impact: -5 });
+    if (app.duration > 240)
+      factors.push({ name: 'Longue durée (> 20 ans)', impact: +10 });
+    else if (app.duration < 24)
+      factors.push({ name: 'Courte durée (< 2 ans)', impact: -5 });
 
     return factors;
   }
@@ -357,25 +374,22 @@ export class DashboardAnalysteComponent implements OnInit, OnDestroy {
       );
     }
 
-    if (this.filterStatus !== 'ALL') {
+    if (this.filterStatus !== 'ALL')
       result = result.filter(a => a.status === this.filterStatus);
-    }
 
-    if (this.filterAmount === '0-10000') {
+    if (this.filterAmount === '0-10000')
       result = result.filter(a => a.amount < 10000);
-    } else if (this.filterAmount === '10000-50000') {
+    else if (this.filterAmount === '10000-50000')
       result = result.filter(a => a.amount >= 10000 && a.amount <= 50000);
-    } else if (this.filterAmount === '50000+') {
+    else if (this.filterAmount === '50000+')
       result = result.filter(a => a.amount > 50000);
-    }
 
-    if (this.riskFilter === 'HIGH') {
+    if (this.riskFilter === 'HIGH')
       result = result.filter(a => this.getRiskScore(a) > 75);
-    } else if (this.riskFilter === 'MEDIUM') {
+    else if (this.riskFilter === 'MEDIUM')
       result = result.filter(a => this.getRiskScore(a) >= 35 && this.getRiskScore(a) <= 75);
-    } else if (this.riskFilter === 'LOW') {
+    else if (this.riskFilter === 'LOW')
       result = result.filter(a => this.getRiskScore(a) < 35);
-    }
 
     this.filteredApplications = result;
   }
@@ -407,7 +421,6 @@ export class DashboardAnalysteComponent implements OnInit, OnDestroy {
   }
 
   getScoringList(): CreditApplication[] {
-    // Liste des dossiers actifs (non finaux) triés par score décroissant
     return this.applications
       .filter(a => !this.isFinalStatus(a.status))
       .sort((a, b) => this.getRiskScore(b) - this.getRiskScore(a));
@@ -621,15 +634,17 @@ export class DashboardAnalysteComponent implements OnInit, OnDestroy {
     return s === 'ACCEPTE' || s === 'REFUSE';
   }
 
+  // ✅ existingLoanPayments (mensualité réelle)
   getClientFinancials(clientId: string) {
     return this.clients.find(c => c._id === clientId)
-      ?? { revenue: 0, monthlyCharges: 0, existingLoans: 0 };
+      ?? { revenue: 0, monthlyCharges: 0, existingLoanPayments: 0 };
   }
 
+  // ✅ Utilise maxAllowedMonthly() du service (plafond 40% BCT)
   getRemainingCapacity(clientId: string): number {
     const c = this.clients.find(cl => cl._id === clientId);
     if (!c) return 0;
-    return Math.round(c.revenue - c.monthlyCharges - (c.existingLoans / 240));
+    return this.creditService.maxAllowedMonthly(c);
   }
 
   getDebtRatio(clientId: string, monthly = 0): number {
