@@ -1,53 +1,116 @@
 <!-- dashboard-credit.component.html -->
 <div class="dashboard">
-
   <!-- ═══════════════════════════ SIDEBAR ═══════════════════════════ -->
   <aside class="sidebar" [class.collapsed]="sidebarCollapsed">
     <div class="sidebar__header">
       <div class="logo" *ngIf="!sidebarCollapsed">
         <div class="logo__icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 2L2 7L12 12L22 7L12 2Z"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M2 17L12 22L22 17"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M2 12L12 17L22 12"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
           </svg>
         </div>
         <span class="logo__text">CreditHub</span>
       </div>
       <div class="logo-icon" *ngIf="sidebarCollapsed">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 2L2 7L12 12L22 7L12 2Z"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M2 17L12 22L22 17"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M2 12L12 17L22 12"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
         </svg>
       </div>
-      <button class="sidebar__toggle" (click)="sidebarCollapsed = !sidebarCollapsed">
-        {{ sidebarCollapsed ? '→' : '←' }}
+      <button
+        class="sidebar__toggle"
+        (click)="sidebarCollapsed = !sidebarCollapsed"
+      >
+        {{ sidebarCollapsed ? "→" : "←" }}
       </button>
     </div>
 
     <!-- Badge rôle -->
     <div class="sidebar__profile" *ngIf="!sidebarCollapsed">
       <div class="role-card">
-        <div class="role-card__icon">{{ isAnalyste ? '🔍' : isAdmin ? '⚙️' : '💼' }}</div>
+        <div class="role-card__icon">
+          {{ isAnalyste ? "🔍" : isAdmin ? "⚙️" : "💼" }}
+        </div>
         <div class="role-card__info">
           <div class="role-card__label">Votre rôle</div>
-          <div class="role-card__value">{{ isAnalyste ? 'Analyste' : isAdmin ? 'Admin' : 'Chargé de crédit' }}</div>
+          <div class="role-card__value">
+            {{
+              isAnalyste ? "Analyste" : isAdmin ? "Admin" : "Chargé de crédit"
+            }}
+          </div>
         </div>
       </div>
     </div>
 
     <div class="sidebar__profile-mini" *ngIf="sidebarCollapsed">
-      <div class="role-mini__icon">{{ isAnalyste ? '🔍' : isAdmin ? '⚙️' : '💼' }}</div>
+      <div class="role-mini__icon">
+        {{ isAnalyste ? "🔍" : isAdmin ? "⚙️" : "💼" }}
+      </div>
     </div>
 
     <!-- Navigation -->
     <nav class="sidebar__nav">
-      <a *ngFor="let item of sidebarItems" class="sidebar__item"
-         [class.active]="currentView === item.id"
-         (click)="setView(item.id)">
+      <a
+        *ngFor="let item of sidebarItems"
+        class="sidebar__item"
+        [class.active]="currentView === item.id"
+        (click)="setView(item.id)"
+      >
         <span class="sidebar__icon">{{ item.icon }}</span>
-        <span class="sidebar__label" *ngIf="!sidebarCollapsed">{{ item.label }}</span>
+        <span class="sidebar__label" *ngIf="!sidebarCollapsed">{{
+          item.label
+        }}</span>
       </a>
     </nav>
 
@@ -57,9 +120,14 @@
         <span class="sidebar__icon">👤</span>
         <span class="sidebar__label" *ngIf="!sidebarCollapsed">Mon profil</span>
       </div>
-      <div class="sidebar__action sidebar__action--danger" (click)="confirmLogout()">
+      <div
+        class="sidebar__action sidebar__action--danger"
+        (click)="confirmLogout()"
+      >
         <span class="sidebar__icon">🚪</span>
-        <span class="sidebar__label" *ngIf="!sidebarCollapsed">Déconnexion</span>
+        <span class="sidebar__label" *ngIf="!sidebarCollapsed"
+          >Déconnexion</span
+        >
       </div>
       <div class="shortcuts" *ngIf="!sidebarCollapsed">
         <div class="shortcuts__item" *ngIf="isChargeCredit">
@@ -80,40 +148,53 @@
 
   <!-- ═══════════════════════════ MAIN ═══════════════════════════ -->
   <main class="main-content">
-
     <!-- Toast -->
-    <div class="toast" *ngIf="message"
-         [class.toast--success]="messageType==='success'"
-         [class.toast--error]="messageType==='error'">
-      <span class="toast__icon">{{ messageType==='success' ? '✓' : '⚠' }}</span>
+    <div
+      class="toast"
+      *ngIf="message"
+      [class.toast--success]="messageType === 'success'"
+      [class.toast--error]="messageType === 'error'"
+    >
+      <span class="toast__icon">{{
+        messageType === "success" ? "✓" : "⚠"
+      }}</span>
       <span class="toast__message">{{ message }}</span>
     </div>
 
     <!-- ── Hero ── -->
     <div class="hero">
       <div class="hero__bg">
-        <img src="https://images.unsplash.com/photo-1557683316-973673baf926?w=1600&h=400&fit=crop"
-             alt="" class="hero__img"/>
+        <img
+          src="https://images.unsplash.com/photo-1557683316-973673baf926?w=1600&h=400&fit=crop"
+          alt=""
+          class="hero__img"
+        />
         <div class="hero__overlay"></div>
       </div>
       <div class="hero__content">
         <div class="hero__badge">
           <span class="pulse-dot"></span>
           <span>
-            {{ isAnalyste ? 'Interface Analyste — Traitement des dossiers'
-               : isAdmin ? 'Interface Administrateur'
-               : 'Interface Chargé de crédit — Création des dossiers' }}
+            {{
+              isAnalyste
+                ? "Interface Analyste — Traitement des dossiers"
+                : isAdmin
+                  ? "Interface Administrateur"
+                  : "Interface Chargé de crédit — Création des dossiers"
+            }}
           </span>
         </div>
         <h1 class="hero__title">
           Tableau de bord <span class="hero__title--accent">Crédit</span>
         </h1>
         <p class="hero__subtitle">
-          {{ isAnalyste
-            ? 'Analysez les dossiers en attente, acceptez ou refusez les demandes.'
-            : isAdmin
-            ? 'Supervision globale des dossiers de crédit.'
-            : 'Créez des dossiers clients, déposez les documents nécessaires.' }}
+          {{
+            isAnalyste
+              ? "Analysez les dossiers en attente, acceptez ou refusez les demandes."
+              : isAdmin
+                ? "Supervision globale des dossiers de crédit."
+                : "Créez des dossiers clients, déposez les documents nécessaires."
+          }}
         </p>
         <div class="hero__actions">
           <ng-container *ngIf="isChargeCredit">
@@ -127,11 +208,17 @@
             </button>
           </ng-container>
           <ng-container *ngIf="isAnalyste">
-            <button class="btn btn--primary" (click)="filterByStatus('EN_ATTENTE')">
+            <button
+              class="btn btn--primary"
+              (click)="filterByStatus('EN_ATTENTE')"
+            >
               <span class="btn__icon">⏳</span>
               <span>Dossiers en attente</span>
             </button>
-            <button class="btn btn--ghost" (click)="filterByStatus('EN_ANALYSE')">
+            <button
+              class="btn btn--ghost"
+              (click)="filterByStatus('EN_ANALYSE')"
+            >
               <span class="btn__icon">🔍</span>
               <span>En cours d'analyse</span>
             </button>
@@ -146,23 +233,31 @@
             <div class="kpi-card__icon">⏳</div>
             <div class="kpi-card__value">{{ kpis.pending }}</div>
             <div class="kpi-card__label">En attente</div>
-            <div class="kpi-card__trend">{{ isChargeCredit ? 'Créés' : 'À traiter' }}</div>
+            <div class="kpi-card__trend">
+              {{ isChargeCredit ? "Créés" : "À traiter" }}
+            </div>
           </div>
           <div class="kpi-card" (click)="filterByStatus('EN_ANALYSE')">
             <div class="kpi-card__icon">🔍</div>
             <div class="kpi-card__value">{{ kpis.analyzing }}</div>
             <div class="kpi-card__label">En analyse</div>
-            <div class="kpi-card__trend">{{ isAnalyste ? 'Vos dossiers' : 'En cours' }}</div>
+            <div class="kpi-card__trend">
+              {{ isAnalyste ? "Vos dossiers" : "En cours" }}
+            </div>
           </div>
           <div class="kpi-card">
             <div class="kpi-card__icon">✅</div>
             <div class="kpi-card__value">{{ kpis.approvalRate }}%</div>
             <div class="kpi-card__label">Taux d'acceptation</div>
-            <div class="kpi-card__trend">{{ kpis.accepted }} / {{ kpis.total }}</div>
+            <div class="kpi-card__trend">
+              {{ kpis.accepted }} / {{ kpis.total }}
+            </div>
           </div>
           <div class="kpi-card">
             <div class="kpi-card__icon">💰</div>
-            <div class="kpi-card__value">{{ kpis.totalAmount | number:'1.0-0' }} DT</div>
+            <div class="kpi-card__value">
+              {{ kpis.totalAmount | number: "1.0-0" }} DT
+            </div>
             <div class="kpi-card__label">Encours accepté</div>
             <div class="kpi-card__trend">Dossiers acceptés</div>
           </div>
@@ -177,7 +272,10 @@
           <h2>Vue d'ensemble</h2>
           <p>Activité crédit en temps réel</p>
         </div>
-        <button class="btn btn--ghost btn--sm" (click)="creditService.refreshData()">
+        <button
+          class="btn btn--ghost btn--sm"
+          (click)="creditService.refreshData()"
+        >
           <span class="btn__icon">⟳</span>
           <span>Rafraîchir</span>
         </button>
@@ -190,27 +288,35 @@
           <div class="stat-card__value">{{ kpis.pending }}</div>
           <div class="stat-card__label">En attente</div>
           <div class="stat-card__trend trend--positive">
-            {{ isChargeCredit ? 'Dossiers créés' : 'À prendre en charge' }}
+            {{ isChargeCredit ? "Dossiers créés" : "À prendre en charge" }}
           </div>
         </div>
         <div class="stat-card" (click)="filterByStatus('EN_ANALYSE')">
           <div class="stat-card__icon">🔍</div>
           <div class="stat-card__value">{{ kpis.analyzing }}</div>
           <div class="stat-card__label">En analyse</div>
-          <div class="stat-card__trend trend--positive">En cours de traitement</div>
+          <div class="stat-card__trend trend--positive">
+            En cours de traitement
+          </div>
         </div>
         <div class="stat-card">
           <div class="stat-card__icon">✅</div>
           <div class="stat-card__value">{{ kpis.accepted }}</div>
           <div class="stat-card__label">Acceptés</div>
-          <div class="stat-card__trend trend--positive">{{ kpis.approvalRate }}% du total</div>
+          <div class="stat-card__trend trend--positive">
+            {{ kpis.approvalRate }}% du total
+          </div>
         </div>
         <div class="stat-card">
           <div class="stat-card__icon">❌</div>
           <div class="stat-card__value">{{ kpis.refused }}</div>
           <div class="stat-card__label">Refusés</div>
           <div class="stat-card__trend trend--negative">
-            {{ kpis.total > 0 ? (kpis.refused / kpis.total * 100 | number:'1.0-0') : 0 }}%
+            {{
+              kpis.total > 0
+                ? ((kpis.refused / kpis.total) * 100 | number: "1.0-0")
+                : 0
+            }}%
           </div>
         </div>
       </div>
@@ -224,12 +330,19 @@
             <div class="chart-bar" *ngFor="let m of monthlyStats">
               <div class="chart-bar__label">{{ m.month }}</div>
               <div class="chart-bar__track">
-                <div class="chart-bar__fill" [style.width.%]="(m.count / maxMonthlyCount) * 100"></div>
+                <div
+                  class="chart-bar__fill"
+                  [style.width.%]="(m.count / maxMonthlyCount) * 100"
+                ></div>
               </div>
               <div class="chart-bar__value">{{ m.count }}</div>
             </div>
           </div>
-          <ng-template #noStats><p class="empty-state-small">Aucune donnée disponible</p></ng-template>
+          <ng-template #noStats
+            ><p class="empty-state-small">
+              Aucune donnée disponible
+            </p></ng-template
+          >
         </div>
 
         <div class="card">
@@ -239,29 +352,50 @@
             <div class="chart-bar">
               <div class="chart-bar__label">&lt; 10kDT</div>
               <div class="chart-bar__track">
-                <div class="chart-bar__fill chart-bar__fill--small"
-                     [style.width.%]="kpis.total > 0 ? (amountDistribution().small / kpis.total * 100) : 0">
-                </div>
+                <div
+                  class="chart-bar__fill chart-bar__fill--small"
+                  [style.width.%]="
+                    kpis.total > 0
+                      ? (amountDistribution().small / kpis.total) * 100
+                      : 0
+                  "
+                ></div>
               </div>
-              <div class="chart-bar__value">{{ amountDistribution().small }}</div>
+              <div class="chart-bar__value">
+                {{ amountDistribution().small }}
+              </div>
             </div>
             <div class="chart-bar">
               <div class="chart-bar__label">10-50kDT</div>
               <div class="chart-bar__track">
-                <div class="chart-bar__fill chart-bar__fill--medium"
-                     [style.width.%]="kpis.total > 0 ? (amountDistribution().medium / kpis.total * 100) : 0">
-                </div>
+                <div
+                  class="chart-bar__fill chart-bar__fill--medium"
+                  [style.width.%]="
+                    kpis.total > 0
+                      ? (amountDistribution().medium / kpis.total) * 100
+                      : 0
+                  "
+                ></div>
               </div>
-              <div class="chart-bar__value">{{ amountDistribution().medium }}</div>
+              <div class="chart-bar__value">
+                {{ amountDistribution().medium }}
+              </div>
             </div>
             <div class="chart-bar">
               <div class="chart-bar__label">&gt; 50kDT</div>
               <div class="chart-bar__track">
-                <div class="chart-bar__fill chart-bar__fill--large"
-                     [style.width.%]="kpis.total > 0 ? (amountDistribution().large / kpis.total * 100) : 0">
-                </div>
+                <div
+                  class="chart-bar__fill chart-bar__fill--large"
+                  [style.width.%]="
+                    kpis.total > 0
+                      ? (amountDistribution().large / kpis.total) * 100
+                      : 0
+                  "
+                ></div>
               </div>
-              <div class="chart-bar__value">{{ amountDistribution().large }}</div>
+              <div class="chart-bar__value">
+                {{ amountDistribution().large }}
+              </div>
             </div>
           </div>
         </div>
@@ -275,7 +409,9 @@
             <div class="workflow-step__icon">💼</div>
             <div class="workflow-step__content">
               <div class="workflow-step__role">Chargé crédit</div>
-              <div class="workflow-step__perms">Crée le dossier · Dépose les documents</div>
+              <div class="workflow-step__perms">
+                Crée le dossier · Dépose les documents
+              </div>
               <div class="workflow-step__action">→ EN_ATTENTE</div>
             </div>
           </div>
@@ -284,7 +420,9 @@
             <div class="workflow-step__icon">🔍</div>
             <div class="workflow-step__content">
               <div class="workflow-step__role">Analyste risque</div>
-              <div class="workflow-step__perms">Analyse · Valide documents · Décide</div>
+              <div class="workflow-step__perms">
+                Analyse · Valide documents · Décide
+              </div>
               <div class="workflow-step__action">→ EN_ANALYSE</div>
             </div>
           </div>
@@ -316,7 +454,9 @@
             <div class="workflow-step__icon">🔍</div>
             <div class="workflow-step__content">
               <div class="workflow-step__role">Vous analysez</div>
-              <div class="workflow-step__perms">Analyse · Validation · Décision</div>
+              <div class="workflow-step__perms">
+                Analyse · Validation · Décision
+              </div>
               <div class="workflow-step__action">→ EN_ANALYSE</div>
             </div>
           </div>
@@ -325,7 +465,9 @@
             <div class="workflow-step__icon">⚖️</div>
             <div class="workflow-step__content">
               <div class="workflow-step__role">Votre décision</div>
-              <div class="workflow-step__perms">Acceptation ou refus motivé</div>
+              <div class="workflow-step__perms">
+                Acceptation ou refus motivé
+              </div>
               <div class="workflow-step__action">→ ACCEPTÉ / REFUSÉ</div>
             </div>
           </div>
@@ -336,23 +478,32 @@
       <div class="card users-card">
         <div class="card__header">
           <h3 class="card__title">🕐 Derniers dossiers</h3>
-          <button class="link-btn" (click)="setView('applications')">Voir tous →</button>
+          <button class="link-btn" (click)="setView('applications')">
+            Voir tous →
+          </button>
         </div>
         <div class="users-list">
-          <div class="user-item" *ngFor="let app of applications.slice(0,5); trackBy: trackByApp"
-               (click)="viewApplication(app)">
+          <div
+            class="user-item"
+            *ngFor="let app of applications.slice(0, 5); trackBy: trackByApp"
+            (click)="viewApplication(app)"
+          >
             <div class="user-item__avatar">
               <span>{{ app.clientName.charAt(0).toUpperCase() }}</span>
             </div>
             <div class="user-item__info">
               <div class="user-item__name">{{ app.clientName }}</div>
-              <div class="user-item__email">{{ app.purpose }} — {{ app.amount | number:'1.0-0' }} DT</div>
+              <div class="user-item__email">
+                {{ app.purpose }} — {{ app.amount | number: "1.0-0" }} DT
+              </div>
             </div>
             <div class="user-item__badges">
               <span class="status-badge" [class]="getStatusClass(app.status)">
                 {{ getStatusLabel(app.status) }}
               </span>
-              <span class="date-badge">{{ app.createdAt | date:'dd/MM' }}</span>
+              <span class="date-badge">{{
+                app.createdAt | date: "dd/MM"
+              }}</span>
             </div>
           </div>
           <div class="empty-state" *ngIf="applications.length === 0">
@@ -368,12 +519,19 @@
       <div class="section__head">
         <div>
           <h2>Dossiers de crédit</h2>
-          <p class="section__count">{{ filteredApplications.length }} dossier(s) — 
-            <span *ngIf="isChargeCredit">Mode : Consultation &amp; dépôt documents</span>
+          <p class="section__count">
+            {{ filteredApplications.length }} dossier(s) —
+            <span *ngIf="isChargeCredit"
+              >Mode : Consultation &amp; dépôt documents</span
+            >
             <span *ngIf="isAnalyste">Mode : Analyse &amp; décision</span>
           </p>
         </div>
-        <button class="btn btn--primary" *ngIf="isChargeCredit" (click)="openApplicationModal()">
+        <button
+          class="btn btn--primary"
+          *ngIf="isChargeCredit"
+          (click)="openApplicationModal()"
+        >
           <span class="btn__icon">📝</span>
           <span>Nouveau dossier</span>
         </button>
@@ -383,18 +541,31 @@
       <div class="filters-card">
         <div class="filters-card__search">
           <span class="search-icon">🔍</span>
-          <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()"
-                 placeholder="Rechercher par client ou objet..." class="search-input" />
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="onSearchChange()"
+            placeholder="Rechercher par client ou objet..."
+            class="search-input"
+          />
         </div>
         <div class="filters-card__controls">
-          <select [(ngModel)]="filterStatus" (ngModelChange)="onFilterChange()" class="filter-select">
+          <select
+            [(ngModel)]="filterStatus"
+            (ngModelChange)="onFilterChange()"
+            class="filter-select"
+          >
             <option value="ALL">📊 Tous les statuts</option>
             <option value="EN_ATTENTE">⏳ En attente</option>
             <option value="EN_ANALYSE">🔍 En analyse</option>
             <option value="ACCEPTE">✅ Acceptés</option>
             <option value="REFUSE">❌ Refusés</option>
           </select>
-          <select [(ngModel)]="filterAmount" (ngModelChange)="onFilterChange()" class="filter-select">
+          <select
+            [(ngModel)]="filterAmount"
+            (ngModelChange)="onFilterChange()"
+            class="filter-select"
+          >
             <option value="ALL">💰 Tous montants</option>
             <option value="0-10000">Moins de 10kDT</option>
             <option value="10000-50000">10kDT - 50kDT</option>
@@ -409,7 +580,10 @@
 
       <!-- Table -->
       <div class="table-container" *ngIf="!loading; else loadingTpl">
-        <table class="data-table" *ngIf="filteredApplications.length > 0; else noAppsTpl">
+        <table
+          class="data-table"
+          *ngIf="filteredApplications.length > 0; else noAppsTpl"
+        >
           <thead>
             <tr>
               <th>Client</th>
@@ -425,31 +599,49 @@
           <tbody>
             <tr *ngFor="let app of filteredApplications; trackBy: trackByApp">
               <td class="cell-user">
-                <div class="user-avatar">{{ app.clientName.charAt(0).toUpperCase() }}</div>
+                <div class="user-avatar">
+                  {{ app.clientName.charAt(0).toUpperCase() }}
+                </div>
                 <div class="user-info">
                   <div class="user-name">{{ app.clientName }}</div>
                 </div>
               </td>
-              <td class="amount-cell">{{ app.amount | number:'1.0-0' }} DT</td>
+              <td class="amount-cell">{{ app.amount | number: "1.0-0" }} DT</td>
               <td>{{ app.duration }} mois</td>
-              <td>{{ app.monthlyPayment | number:'1.0-0' }} DT</td>
+              <td>{{ app.monthlyPayment | number: "1.0-0" }} DT</td>
               <td>{{ app.purpose }}</td>
               <td>
                 <span class="status-badge" [class]="getStatusClass(app.status)">
                   {{ getStatusLabel(app.status) }}
                 </span>
               </td>
-              <td>{{ app.createdAt | date:'dd/MM/yyyy' }}</td>
+              <td>{{ app.createdAt | date: "dd/MM/yyyy" }}</td>
               <td class="cell-actions">
-                <button class="action-btn" (click)="viewApplication(app)" title="Consulter">👁️</button>
-                <button class="action-btn action-btn--analyze"
-                        *ngIf="canChangeStatus(app)"
-                        (click)="openStatusModal(app)"
-                        [title]="app.status === 'EN_ATTENTE' ? 'Prendre en charge' : 'Décider'">
-                  {{ app.status === 'EN_ATTENTE' ? '▶️' : '⚖️' }}
+                <button
+                  class="action-btn"
+                  (click)="viewApplication(app)"
+                  title="Consulter"
+                >
+                  👁️
                 </button>
-                <span class="action-lock" *ngIf="isChargeCredit && !isFinalStatus(app.status)"
-                      title="Modification réservée à l'analyste">🔒</span>
+                <button
+                  class="action-btn action-btn--analyze"
+                  *ngIf="canChangeStatus(app)"
+                  (click)="openStatusModal(app)"
+                  [title]="
+                    app.status === 'EN_ATTENTE'
+                      ? 'Prendre en charge'
+                      : 'Décider'
+                  "
+                >
+                  {{ app.status === "EN_ATTENTE" ? "▶️" : "⚖️" }}
+                </button>
+                <span
+                  class="action-lock"
+                  *ngIf="isChargeCredit && !isFinalStatus(app.status)"
+                  title="Modification réservée à l'analyste"
+                  >🔒</span
+                >
               </td>
             </tr>
           </tbody>
@@ -459,8 +651,14 @@
           <div class="empty-state">
             <div class="empty-state__icon">📋</div>
             <h3>Aucun dossier trouvé</h3>
-            <p>Modifiez les filtres{{ isChargeCredit ? ' ou créez un nouveau dossier' : '' }}.</p>
-            <button class="btn btn--ghost" (click)="resetFilters()">Réinitialiser</button>
+            <p>
+              Modifiez les filtres{{
+                isChargeCredit ? " ou créez un nouveau dossier" : ""
+              }}.
+            </p>
+            <button class="btn btn--ghost" (click)="resetFilters()">
+              Réinitialiser
+            </button>
           </div>
         </ng-template>
       </div>
@@ -478,19 +676,30 @@
       <div class="section__head">
         <div>
           <h2>Base clients</h2>
-          <p class="section__count">{{ clients.length }} client(s) enregistré(s)</p>
+          <p class="section__count">
+            {{ clients.length }} client(s) enregistré(s)
+          </p>
         </div>
-        <button class="btn btn--primary" *ngIf="isChargeCredit" (click)="openClientModal()">
+        <button
+          class="btn btn--primary"
+          *ngIf="isChargeCredit"
+          (click)="openClientModal()"
+        >
           <span class="btn__icon">👤</span>
           <span>Nouveau client</span>
         </button>
       </div>
 
       <div class="clients-grid">
-        <div class="client-card" *ngFor="let client of clients; trackBy: trackByClient"
-             (click)="viewClientDetails(client)">
+        <div
+          class="client-card"
+          *ngFor="let client of clients; trackBy: trackByClient"
+          (click)="viewClientDetails(client)"
+        >
           <div class="client-card__header">
-            <div class="client-card__avatar">{{ client.fullName.charAt(0).toUpperCase() }}</div>
+            <div class="client-card__avatar">
+              {{ client.fullName.charAt(0).toUpperCase() }}
+            </div>
             <div class="client-card__info">
               <h3>{{ client.fullName }}</h3>
               <p>{{ client.email }}</p>
@@ -500,27 +709,35 @@
           <div class="client-card__stats">
             <div class="client-stat">
               <span class="client-stat__label">Revenus</span>
-              <span class="client-stat__value">{{ client.revenue | number:'1.0-0' }} DT</span>
+              <span class="client-stat__value"
+                >{{ client.revenue | number: "1.0-0" }} DT</span
+              >
             </div>
             <div class="client-stat">
               <span class="client-stat__label">Charges</span>
-              <span class="client-stat__value">{{ client.monthlyCharges | number:'1.0-0' }} DT</span>
+              <span class="client-stat__value"
+                >{{ client.monthlyCharges | number: "1.0-0" }} DT</span
+              >
             </div>
             <div class="client-stat">
               <span class="client-stat__label">Dossiers</span>
-              <span class="client-stat__value">{{ getClientApplications(client._id).length }}</span>
+              <span class="client-stat__value">{{
+                getClientApplications(client._id).length
+              }}</span>
             </div>
           </div>
           <div class="client-card__footer">
             <span class="client-badge">CIN : {{ client.cin }}</span>
-            <button class="btn btn--ghost btn--sm" (click)="$event.stopPropagation(); viewClientDetails(client)">
+            <button
+              class="btn btn--ghost btn--sm"
+              (click)="$event.stopPropagation(); viewClientDetails(client)"
+            >
               Voir détails →
             </button>
           </div>
         </div>
       </div>
     </div>
-
   </main>
 </div>
 
@@ -528,11 +745,17 @@
      MODAL — Détail dossier
 ═════════════════════════════════════════════ -->
 <div class="modal" *ngIf="selectedApplication" (click)="closeApplication()">
-  <div class="modal__content modal__content--large" (click)="$event.stopPropagation()">
+  <div
+    class="modal__content modal__content--large"
+    (click)="$event.stopPropagation()"
+  >
     <div class="modal__header">
       <div class="modal__header-info">
         <h2>Dossier — {{ selectedApplication.clientName }}</h2>
-        <span class="status-badge" [class]="getStatusClass(selectedApplication.status)">
+        <span
+          class="status-badge"
+          [class]="getStatusClass(selectedApplication.status)"
+        >
           {{ getStatusLabel(selectedApplication.status) }}
         </span>
       </div>
@@ -543,18 +766,51 @@
       <div class="detail-section">
         <h3>📋 Informations générales</h3>
         <div class="detail-grid">
-          <div class="detail-item"><label>Montant</label><div class="detail-value">{{ selectedApplication.amount | number:'1.0-0' }} DT</div></div>
-          <div class="detail-item"><label>Durée</label><div class="detail-value">{{ selectedApplication.duration }} mois</div></div>
-          <div class="detail-item"><label>Mensualité</label><div class="detail-value">{{ selectedApplication.monthlyPayment | number:'1.0-0' }} DT</div></div>
-          <div class="detail-item"><label>Taux</label><div class="detail-value">{{ selectedApplication.interestRate }}%</div></div>
-          <div class="detail-item"><label>Objet</label><div class="detail-value">{{ selectedApplication.purpose }}</div></div>
-          <div class="detail-item"><label>Date création</label><div class="detail-value">{{ selectedApplication.createdAt | date:'dd/MM/yyyy HH:mm' }}</div></div>
+          <div class="detail-item">
+            <label>Montant</label>
+            <div class="detail-value">
+              {{ selectedApplication.amount | number: "1.0-0" }} DT
+            </div>
+          </div>
+          <div class="detail-item">
+            <label>Durée</label>
+            <div class="detail-value">
+              {{ selectedApplication.duration }} mois
+            </div>
+          </div>
+          <div class="detail-item">
+            <label>Mensualité</label>
+            <div class="detail-value">
+              {{ selectedApplication.monthlyPayment | number: "1.0-0" }} DT
+            </div>
+          </div>
+          <div class="detail-item">
+            <label>Taux</label>
+            <div class="detail-value">
+              {{ selectedApplication.interestRate }}%
+            </div>
+          </div>
+          <div class="detail-item">
+            <label>Objet</label>
+            <div class="detail-value">{{ selectedApplication.purpose }}</div>
+          </div>
+          <div class="detail-item">
+            <label>Date création</label>
+            <div class="detail-value">
+              {{ selectedApplication.createdAt | date: "dd/MM/yyyy HH:mm" }}
+            </div>
+          </div>
           <div class="detail-item" *ngIf="selectedApplication.processedBy">
-            <label>Traité par</label><div class="detail-value">{{ selectedApplication.processedBy }}</div>
+            <label>Traité par</label>
+            <div class="detail-value">
+              {{ selectedApplication.processedBy }}
+            </div>
           </div>
           <div class="detail-item" *ngIf="selectedApplication.rejectionReason">
             <label>Motif refus</label>
-            <div class="detail-value" style="color:#ef4444">{{ selectedApplication.rejectionReason }}</div>
+            <div class="detail-value" style="color: #ef4444">
+              {{ selectedApplication.rejectionReason }}
+            </div>
           </div>
         </div>
       </div>
@@ -565,61 +821,199 @@
         <div class="financial-indicators">
           <div class="indicator">
             <div class="indicator__label">Revenus mensuels</div>
-            <div class="indicator__value">{{ getClientFinancials(selectedApplication.clientId).revenue | number:'1.0-0' }} DT</div>
+            <div class="indicator__value">
+              {{
+                getClientFinancials(selectedApplication.clientId).revenue
+                  | number: "1.0-0"
+              }}
+              DT
+            </div>
           </div>
           <div class="indicator">
             <div class="indicator__label">Charges mensuelles</div>
-            <div class="indicator__value">{{ getClientFinancials(selectedApplication.clientId).monthlyCharges | number:'1.0-0' }} DT</div>
+            <div class="indicator__value">
+              {{
+                getClientFinancials(selectedApplication.clientId).monthlyCharges
+                  | number: "1.0-0"
+              }}
+              DT
+            </div>
           </div>
           <div class="indicator">
             <div class="indicator__label">Capacité résiduelle</div>
-            <div class="indicator__value">{{ getRemainingCapacity(selectedApplication.clientId) | number:'1.0-0' }} DT</div>
+            <div class="indicator__value">
+              {{
+                getRemainingCapacity(selectedApplication.clientId)
+                  | number: "1.0-0"
+              }}
+              DT
+            </div>
           </div>
           <div class="indicator">
             <div class="indicator__label">Taux d'endettement</div>
-            <div class="indicator__value"
-                 [class.high-risk]="getDebtRatio(selectedApplication.clientId, selectedApplication.monthlyPayment) > 33">
-              {{ getDebtRatio(selectedApplication.clientId, selectedApplication.monthlyPayment) }}%
+            <div
+              class="indicator__value"
+              [class.high-risk]="
+                getDebtRatio(
+                  selectedApplication.clientId,
+                  selectedApplication.monthlyPayment
+                ) > 33
+              "
+            >
+              {{
+                getDebtRatio(
+                  selectedApplication.clientId,
+                  selectedApplication.monthlyPayment
+                )
+              }}%
             </div>
           </div>
         </div>
       </div>
 
+      <!-- Données IA enregistrées -->
+      <div class="detail-section">
+        <div class="section-header-row">
+          <h3>🤖 Données IA pour prédiction</h3>
+          <button
+            type="button"
+            class="btn btn--ghost btn--sm"
+            *ngIf="isChargeCredit && !isFinalStatus(selectedApplication.status)"
+            (click)="openFinancialDataModal(selectedApplication)"
+          >
+            {{ hasAiFinancialData(selectedApplication) ? "Modifier" : "Remplir" }}
+          </button>
+        </div>
+
+        <div class="financial-indicators" *ngIf="hasAiFinancialData(selectedApplication); else noAiDataTpl">
+          <div class="indicator">
+            <div class="indicator__label">Ancienneté compte</div>
+            <div class="indicator__value">
+              {{ getAiFinancialData(selectedApplication).account_age_months }} mois
+            </div>
+          </div>
+          <div class="indicator">
+            <div class="indicator__label">Solde moyen mensuel</div>
+            <div class="indicator__value">
+              {{ getAiFinancialData(selectedApplication).avg_monthly_balance | number: "1.0-0" }} DT
+            </div>
+          </div>
+          <div class="indicator">
+            <div class="indicator__label">Dépôts / mois</div>
+            <div class="indicator__value">
+              {{ getAiFinancialData(selectedApplication).num_deposits_per_month }}
+            </div>
+          </div>
+          <div class="indicator">
+            <div class="indicator__label">Retraits / mois</div>
+            <div class="indicator__value">
+              {{ getAiFinancialData(selectedApplication).num_withdrawals_per_month }}
+            </div>
+          </div>
+          <div class="indicator">
+            <div class="indicator__label">Dépenses carte</div>
+            <div class="indicator__value">
+              {{ getAiFinancialData(selectedApplication).debit_card_spending | number: "1.0-0" }} DT
+            </div>
+          </div>
+          <div class="indicator">
+            <div class="indicator__label">Utilisation carte crédit</div>
+            <div class="indicator__value">
+              {{ getAiFinancialData(selectedApplication).credit_card_utilization | percent: "1.0-2" }}
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noAiDataTpl>
+          <p class="empty-state-small">
+            Aucune donnée IA enregistrée pour ce dossier.
+          </p>
+        </ng-template>
+      </div>
+
       <!-- Documents (US 2.2) -->
       <div class="detail-section">
         <div class="section-header-row">
-          <h3>📎 Documents <span class="count-badge">{{ selectedApplication.documents.length }}</span></h3>
+          <h3>
+            📎 Documents
+            <span class="count-badge">{{
+              selectedApplication.documents.length
+            }}</span>
+          </h3>
         </div>
 
-        <div class="documents-list" *ngIf="selectedApplication.documents.length > 0">
-          <div class="document-item" *ngFor="let doc of selectedApplication.documents">
+        <div
+          class="documents-list"
+          *ngIf="selectedApplication.documents.length > 0"
+        >
+          <div
+            class="document-item"
+            *ngFor="let doc of selectedApplication.documents"
+          >
             <div class="document-item__icon">📄</div>
             <div class="document-item__info">
               <div class="document-item__name">{{ doc.name }}</div>
-              <div class="document-item__meta">{{ formatSize(doc.size) }} — {{ doc.uploadedAt | date:'dd/MM/yyyy' }}</div>
+              <div class="document-item__meta">
+                {{ formatSize(doc.size) }} —
+                {{ doc.uploadedAt | date: "dd/MM/yyyy" }}
+              </div>
             </div>
             <span class="doc-status" [class]="getDocStatusClass(doc.status)">
               {{ getDocStatusLabel(doc.status) }}
             </span>
-            <button class="action-btn" *ngIf="doc.status === 'EN_ATTENTE' && (isAnalyste || isAdmin)"
-                    (click)="validateDocument(doc._id)" title="Valider le document">✅</button>
-            <a class="action-btn" [href]="creditService.getDocumentUrl(doc.url)" target="_blank"
-               title="Télécharger">📥</a>
+            <button
+              class="action-btn"
+              *ngIf="doc.status === 'EN_ATTENTE' && (isAnalyste || isAdmin)"
+              (click)="validateDocument(doc._id)"
+              title="Valider le document"
+            >
+              ✅
+            </button>
+            <a
+              class="action-btn"
+              [href]="creditService.getDocumentUrl(doc.url)"
+              target="_blank"
+              title="Télécharger"
+              >📥</a
+            >
           </div>
         </div>
-        <p class="empty-state-small" *ngIf="selectedApplication.documents.length === 0">Aucun document déposé</p>
+        <p
+          class="empty-state-small"
+          *ngIf="selectedApplication.documents.length === 0"
+        >
+          Aucun document déposé
+        </p>
 
         <!-- Upload : chargé crédit seulement -->
-        <div *ngIf="isChargeCredit && !isFinalStatus(selectedApplication.status)" class="upload-area">
+        <div
+          *ngIf="isChargeCredit && !isFinalStatus(selectedApplication.status)"
+          class="upload-area"
+        >
           <label class="btn btn--ghost upload-label">
             📎 Ajouter un document
-            <input type="file" accept=".pdf,.jpg,.jpeg,.png"
-                   (change)="onFileSelected($event)" style="display:none"/>
+            <input
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png,.txt,.json"
+              (change)="onFileSelected($event)"
+              style="display: none"
+            />
           </label>
-          <span class="upload-hint">PDF, JPEG, PNG — max 5 Mo</span>
+          <span class="upload-hint"
+            >PDF, JPEG, PNG, TXT ou JSON — max 5 Mo</span
+          >
+
+          <button
+            type="button"
+            class="btn btn--primary"
+            (click)="openFinancialDataModal(selectedApplication)"
+          >
+            🤖 Remplir données IA
+          </button>
+
           <div class="upload-progress" *ngIf="loading">
-            <div class="spinner-sm"></div> 
-            <span>{{ uploadStatus || 'Upload en cours...' }}</span>
+            <div class="spinner-sm"></div>
+            <span>{{ uploadStatus || "Upload en cours..." }}</span>
           </div>
         </div>
       </div>
@@ -628,12 +1022,21 @@
       <div class="detail-section">
         <h3>📊 Suivi du dossier</h3>
         <div class="timeline">
-          <div class="timeline-item" *ngFor="let h of selectedApplication.statusHistory">
+          <div
+            class="timeline-item"
+            *ngFor="let h of selectedApplication.statusHistory"
+          >
             <div class="timeline-dot" [class]="getStatusClass(h.status)"></div>
             <div class="timeline-content">
-              <span class="status-badge" [class]="getStatusClass(h.status)">{{ getStatusLabel(h.status) }}</span>
-              <div class="timeline-meta">{{ h.changedBy }} — {{ h.changedAt | date:'dd/MM/yyyy HH:mm' }}</div>
-              <div class="timeline-comment" *ngIf="h.comment">{{ h.comment }}</div>
+              <span class="status-badge" [class]="getStatusClass(h.status)">{{
+                getStatusLabel(h.status)
+              }}</span>
+              <div class="timeline-meta">
+                {{ h.changedBy }} — {{ h.changedAt | date: "dd/MM/yyyy HH:mm" }}
+              </div>
+              <div class="timeline-comment" *ngIf="h.comment">
+                {{ h.comment }}
+              </div>
             </div>
           </div>
         </div>
@@ -644,35 +1047,223 @@
         <h3>💬 Historique de traitement</h3>
         <div class="comments-timeline">
           <div class="comment" *ngFor="let c of selectedApplication.comments">
-            <div class="comment__avatar">{{ c.userName.charAt(0).toUpperCase() }}</div>
+            <div class="comment__avatar">
+              {{ c.userName.charAt(0).toUpperCase() }}
+            </div>
             <div class="comment__content">
               <div class="comment__header">
                 <strong>{{ c.userName }}</strong>
-                <span class="comment__date">{{ c.createdAt | date:'dd/MM HH:mm' }}</span>
+                <span class="comment__date">{{
+                  c.createdAt | date: "dd/MM HH:mm"
+                }}</span>
               </div>
               <div class="comment__text">{{ c.content }}</div>
             </div>
           </div>
         </div>
-        <div class="comment-input" *ngIf="!isFinalStatus(selectedApplication.status)">
-          <input type="text" [(ngModel)]="newCommentText"
-                 placeholder="Ajouter un commentaire..." class="search-input"
-                 (keyup.enter)="submitComment()"/>
-          <button class="btn btn--primary" (click)="submitComment()"
-                  [disabled]="!newCommentText.trim()">Envoyer</button>
+        <div
+          class="comment-input"
+          *ngIf="!isFinalStatus(selectedApplication.status)"
+        >
+          <input
+            type="text"
+            [(ngModel)]="newCommentText"
+            placeholder="Ajouter un commentaire..."
+            class="search-input"
+            (keyup.enter)="submitComment()"
+          />
+          <button
+            class="btn btn--primary"
+            (click)="submitComment()"
+            [disabled]="!newCommentText.trim()"
+          >
+            Envoyer
+          </button>
         </div>
       </div>
     </div>
 
     <div class="modal__footer">
-      <button class="btn btn--ghost" (click)="closeApplication()">Fermer</button>
-      <span class="role-info" *ngIf="isChargeCredit && !isFinalStatus(selectedApplication.status)">
+      <button class="btn btn--ghost" (click)="closeApplication()">
+        Fermer
+      </button>
+      <span
+        class="role-info"
+        *ngIf="isChargeCredit && !isFinalStatus(selectedApplication.status)"
+      >
         🔒 Traitement réservé à l'analyste
       </span>
-      <button class="btn btn--primary"
-              *ngIf="canChangeStatus(selectedApplication)"
-              (click)="openStatusModal(selectedApplication)">
-        {{ selectedApplication.status === 'EN_ATTENTE' ? '▶️ Prendre en charge' : '⚖️ Décider' }}
+      <button
+        class="btn btn--primary"
+        *ngIf="canChangeStatus(selectedApplication)"
+        (click)="openStatusModal(selectedApplication)"
+      >
+        {{
+          selectedApplication.status === "EN_ATTENTE"
+            ? "▶️ Prendre en charge"
+            : "⚖️ Décider"
+        }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     MODAL — Données IA financières
+═════════════════════════════════════════════ -->
+<div
+  class="modal"
+  *ngIf="showFinancialDataModal"
+  (click)="closeFinancialDataModal()"
+>
+  <div class="modal__content modal__content--large" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <div>
+        <h2>🤖 Données IA du dossier</h2>
+        <span class="info-badge">
+          Ces données seront enregistrées dans le backend web puis utilisées par Flask IA.
+        </span>
+      </div>
+      <button class="modal__close" (click)="closeFinancialDataModal()">✕</button>
+    </div>
+
+    <div class="modal__body" [formGroup]="financialDataForm">
+      <div class="alert alert--warning">
+        ⚠️ Remplir ces champs avec les informations du relevé bancaire / dossier client.
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Ancienneté du compte (mois) <span class="required">*</span></label>
+          <input
+            type="number"
+            formControlName="account_age_months"
+            class="form-control"
+            min="0"
+            placeholder="Ex: 36"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Solde moyen mensuel (DT) <span class="required">*</span></label>
+          <input
+            type="number"
+            formControlName="avg_monthly_balance"
+            class="form-control"
+            min="0"
+            placeholder="Ex: 4200"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Nombre de dépôts / mois <span class="required">*</span></label>
+          <input
+            type="number"
+            formControlName="num_deposits_per_month"
+            class="form-control"
+            min="0"
+            placeholder="Ex: 5"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Montant moyen des dépôts (DT) <span class="required">*</span></label>
+          <input
+            type="number"
+            formControlName="avg_deposit_amount"
+            class="form-control"
+            min="0"
+            placeholder="Ex: 1800"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Nombre de retraits / mois <span class="required">*</span></label>
+          <input
+            type="number"
+            formControlName="num_withdrawals_per_month"
+            class="form-control"
+            min="0"
+            placeholder="Ex: 4"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Montant moyen des retraits (DT) <span class="required">*</span></label>
+          <input
+            type="number"
+            formControlName="avg_withdrawal_amount"
+            class="form-control"
+            min="0"
+            placeholder="Ex: 500"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Dépenses carte bancaire (DT) <span class="required">*</span></label>
+          <input
+            type="number"
+            formControlName="debit_card_spending"
+            class="form-control"
+            min="0"
+            placeholder="Ex: 1200"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Utilisation carte crédit <span class="required">*</span></label>
+          <input
+            type="number"
+            formControlName="credit_card_utilization"
+            class="form-control"
+            min="0"
+            max="1"
+            step="0.01"
+            placeholder="Ex: 0.35"
+          />
+          <small>Entrer une valeur entre 0 et 1. Exemple : 0.35 = 35%</small>
+        </div>
+
+        <div class="form-group">
+          <label>Dette totale restante (DT)</label>
+          <input
+            type="number"
+            formControlName="total_outstanding_debt"
+            class="form-control"
+            min="0"
+            placeholder="Ex: 10000"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Montant demandé (DT)</label>
+          <input
+            type="number"
+            formControlName="loan_application_amount"
+            class="form-control"
+            min="0"
+            placeholder="Ex: 25000"
+          />
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <h3>JSON généré</h3>
+        <pre class="json-preview">{{ financialDataForm.value | json }}</pre>
+      </div>
+    </div>
+
+    <div class="modal__footer">
+      <button class="btn btn--ghost" (click)="closeFinancialDataModal()">
+        Annuler
+      </button>
+      <button
+        class="btn btn--primary"
+        (click)="saveFinancialData()"
+        [disabled]="financialDataForm.invalid || loading"
+      >
+        <span *ngIf="!loading">✓ Enregistrer dans le backend web</span>
+        <span *ngIf="loading">Enregistrement...</span>
       </button>
     </div>
   </div>
@@ -682,7 +1273,10 @@
      MODAL — Détail client
 ═════════════════════════════════════════════ -->
 <div class="modal" *ngIf="selectedClient" (click)="closeClientDetails()">
-  <div class="modal__content modal__content--large" (click)="$event.stopPropagation()">
+  <div
+    class="modal__content modal__content--large"
+    (click)="$event.stopPropagation()"
+  >
     <div class="modal__header">
       <div class="modal__header-info">
         <h2>👤 Fiche client — {{ selectedClient.fullName }}</h2>
@@ -693,53 +1287,115 @@
       <div class="detail-section">
         <h3>Informations personnelles</h3>
         <div class="detail-grid">
-          <div class="detail-item"><label>CIN</label><div class="detail-value">{{ selectedClient.cin }}</div></div>
-          <div class="detail-item"><label>Naissance</label><div class="detail-value">{{ selectedClient.birthDate | date:'dd/MM/yyyy' }}</div></div>
-          <div class="detail-item"><label>Téléphone</label><div class="detail-value">{{ selectedClient.phone }}</div></div>
-          <div class="detail-item"><label>Email</label><div class="detail-value">{{ selectedClient.email }}</div></div>
-          <div class="detail-item"><label>Adresse</label><div class="detail-value">{{ selectedClient.address }}, {{ selectedClient.city }}</div></div>
-          <div class="detail-item"><label>Employeur</label><div class="detail-value">{{ selectedClient.employer }}</div></div>
+          <div class="detail-item">
+            <label>CIN</label>
+            <div class="detail-value">{{ selectedClient.cin }}</div>
+          </div>
+          <div class="detail-item">
+            <label>Naissance</label>
+            <div class="detail-value">
+              {{ selectedClient.birthDate | date: "dd/MM/yyyy" }}
+            </div>
+          </div>
+          <div class="detail-item">
+            <label>Téléphone</label>
+            <div class="detail-value">{{ selectedClient.phone }}</div>
+          </div>
+          <div class="detail-item">
+            <label>Email</label>
+            <div class="detail-value">{{ selectedClient.email }}</div>
+          </div>
+          <div class="detail-item">
+            <label>Adresse</label>
+            <div class="detail-value">
+              {{ selectedClient.address }}, {{ selectedClient.city }}
+            </div>
+          </div>
+          <div class="detail-item">
+            <label>Employeur</label>
+            <div class="detail-value">{{ selectedClient.employer }}</div>
+          </div>
         </div>
       </div>
       <div class="detail-section">
         <h3>Situation financière</h3>
         <div class="financial-indicators">
-          <div class="indicator"><div class="indicator__label">Revenus mensuels</div><div class="indicator__value">{{ selectedClient.revenue | number:'1.0-0' }} DT</div></div>
-          <div class="indicator"><div class="indicator__label">Charges mensuelles</div><div class="indicator__value">{{ selectedClient.monthlyCharges | number:'1.0-0' }} DT</div></div>
-          <div class="indicator"><div class="indicator__label">Crédits en cours</div><div class="indicator__value">{{ selectedClient.existingLoanPayments | number:'1.0-0' }} DT</div></div>
+          <div class="indicator">
+            <div class="indicator__label">Revenus mensuels</div>
+            <div class="indicator__value">
+              {{ selectedClient.revenue | number: "1.0-0" }} DT
+            </div>
+          </div>
+          <div class="indicator">
+            <div class="indicator__label">Charges mensuelles</div>
+            <div class="indicator__value">
+              {{ selectedClient.monthlyCharges | number: "1.0-0" }} DT
+            </div>
+          </div>
+          <div class="indicator">
+            <div class="indicator__label">Crédits en cours</div>
+            <div class="indicator__value">
+              {{ selectedClient.existingLoanPayments | number: "1.0-0" }} DT
+            </div>
+          </div>
           <div class="indicator">
             <div class="indicator__label">Taux endettement</div>
-            <div class="indicator__value"
-                 [class.high-risk]="getDebtRatio(selectedClient._id) > 33">
+            <div
+              class="indicator__value"
+              [class.high-risk]="getDebtRatio(selectedClient._id) > 33"
+            >
               {{ getDebtRatio(selectedClient._id) }}%
             </div>
           </div>
         </div>
       </div>
       <div class="detail-section">
-        <h3>Dossiers associés ({{ getClientApplications(selectedClient._id).length }})</h3>
+        <h3>
+          Dossiers associés ({{
+            getClientApplications(selectedClient._id).length
+          }})
+        </h3>
         <div class="users-list">
-          <div class="user-item" *ngFor="let app of getClientApplications(selectedClient._id)"
-               (click)="closeClientDetails(); viewApplication(app)">
+          <div
+            class="user-item"
+            *ngFor="let app of getClientApplications(selectedClient._id)"
+            (click)="closeClientDetails(); viewApplication(app)"
+          >
             <div class="user-item__avatar">
               <span>{{ app.clientName.charAt(0).toUpperCase() }}</span>
             </div>
             <div class="user-item__info">
-              <div class="user-item__name">{{ app.amount | number:'1.0-0' }} DT — {{ app.duration }} mois</div>
-              <div class="user-item__email">{{ app.purpose }} — {{ app.createdAt | date:'dd/MM/yyyy' }}</div>
+              <div class="user-item__name">
+                {{ app.amount | number: "1.0-0" }} DT — {{ app.duration }} mois
+              </div>
+              <div class="user-item__email">
+                {{ app.purpose }} — {{ app.createdAt | date: "dd/MM/yyyy" }}
+              </div>
             </div>
             <div class="user-item__badges">
-              <span class="status-badge" [class]="getStatusClass(app.status)">{{ getStatusLabel(app.status) }}</span>
+              <span class="status-badge" [class]="getStatusClass(app.status)">{{
+                getStatusLabel(app.status)
+              }}</span>
             </div>
           </div>
-          <p class="empty-state-small" *ngIf="getClientApplications(selectedClient._id).length === 0">Aucun dossier</p>
+          <p
+            class="empty-state-small"
+            *ngIf="getClientApplications(selectedClient._id).length === 0"
+          >
+            Aucun dossier
+          </p>
         </div>
       </div>
     </div>
     <div class="modal__footer">
-      <button class="btn btn--ghost" (click)="closeClientDetails()">Fermer</button>
-      <button class="btn btn--primary" *ngIf="isChargeCredit"
-              (click)="closeClientDetails(); openApplicationModal()">
+      <button class="btn btn--ghost" (click)="closeClientDetails()">
+        Fermer
+      </button>
+      <button
+        class="btn btn--primary"
+        *ngIf="isChargeCredit"
+        (click)="closeClientDetails(); openApplicationModal()"
+      >
         📝 Nouveau dossier
       </button>
     </div>
@@ -759,61 +1415,143 @@
       <div class="form-grid">
         <div class="form-group">
           <label>Nom complet <span class="required">*</span></label>
-          <input type="text" formControlName="fullName" class="form-control" placeholder="Ex: Jean Dupont"/>
-          <span class="form-error" *ngIf="clientForm.get('fullName')?.touched && clientForm.get('fullName')?.invalid">Minimum 3 caractères</span>
+          <input
+            type="text"
+            formControlName="fullName"
+            class="form-control"
+            placeholder="Ex: Jean Dupont"
+          />
+          <span
+            class="form-error"
+            *ngIf="
+              clientForm.get('fullName')?.touched &&
+              clientForm.get('fullName')?.invalid
+            "
+            >Minimum 3 caractères</span
+          >
         </div>
         <div class="form-group">
           <label>CIN <span class="required">*</span></label>
-          <input type="text" formControlName="cin" class="form-control" placeholder="Ex: 12345678"/>
-          <span class="form-error" *ngIf="clientForm.get('cin')?.touched && clientForm.get('cin')?.invalid">CIN invalide</span>
+          <input
+            type="text"
+            formControlName="cin"
+            class="form-control"
+            placeholder="Ex: 12345678"
+          />
+          <span
+            class="form-error"
+            *ngIf="
+              clientForm.get('cin')?.touched && clientForm.get('cin')?.invalid
+            "
+            >CIN invalide</span
+          >
         </div>
         <div class="form-group">
           <label>Email <span class="required">*</span></label>
-          <input type="email" formControlName="email" class="form-control" placeholder="email@exemple.com"/>
-          <span class="form-error" *ngIf="clientForm.get('email')?.touched && clientForm.get('email')?.invalid">Email invalide</span>
+          <input
+            type="email"
+            formControlName="email"
+            class="form-control"
+            placeholder="email@exemple.com"
+          />
+          <span
+            class="form-error"
+            *ngIf="
+              clientForm.get('email')?.touched &&
+              clientForm.get('email')?.invalid
+            "
+            >Email invalide</span
+          >
         </div>
         <div class="form-group">
           <label>Téléphone <span class="required">*</span></label>
-          <input type="text" formControlName="phone" class="form-control" placeholder="+216 XX XXX XXX"/>
+          <input
+            type="text"
+            formControlName="phone"
+            class="form-control"
+            placeholder="+216 XX XXX XXX"
+          />
         </div>
         <div class="form-group">
           <label>Date de naissance <span class="required">*</span></label>
-          <input type="date" formControlName="birthDate" class="form-control"/>
+          <input type="date" formControlName="birthDate" class="form-control" />
         </div>
         <div class="form-group">
           <label>Ville <span class="required">*</span></label>
-          <input type="text" formControlName="city" class="form-control" placeholder="Tunis, Sfax..."/>
+          <input
+            type="text"
+            formControlName="city"
+            class="form-control"
+            placeholder="Tunis, Sfax..."
+          />
         </div>
         <div class="form-group form-group--full">
           <label>Adresse <span class="required">*</span></label>
-          <input type="text" formControlName="address" class="form-control" placeholder="Rue, numéro..."/>
+          <input
+            type="text"
+            formControlName="address"
+            class="form-control"
+            placeholder="Rue, numéro..."
+          />
         </div>
         <div class="form-group">
           <label>Profession <span class="required">*</span></label>
-          <input type="text" formControlName="profession" class="form-control"/>
+          <input
+            type="text"
+            formControlName="profession"
+            class="form-control"
+          />
         </div>
         <div class="form-group">
           <label>Employeur <span class="required">*</span></label>
-          <input type="text" formControlName="employer" class="form-control"/>
+          <input type="text" formControlName="employer" class="form-control" />
         </div>
         <div class="form-group">
           <label>Revenus mensuels (DT) <span class="required">*</span></label>
-          <input type="number" formControlName="revenue" class="form-control" min="0"/>
-          <span class="form-error" *ngIf="clientForm.get('revenue')?.touched && clientForm.get('revenue')?.invalid">Montant requis</span>
+          <input
+            type="number"
+            formControlName="revenue"
+            class="form-control"
+            min="0"
+          />
+          <span
+            class="form-error"
+            *ngIf="
+              clientForm.get('revenue')?.touched &&
+              clientForm.get('revenue')?.invalid
+            "
+            >Montant requis</span
+          >
         </div>
         <div class="form-group">
           <label>Charges mensuelles (DT) <span class="required">*</span></label>
-          <input type="number" formControlName="monthlyCharges" class="form-control" min="0"/>
+          <input
+            type="number"
+            formControlName="monthlyCharges"
+            class="form-control"
+            min="0"
+          />
         </div>
         <div class="form-group">
           <label>Crédits en cours (DT)</label>
-          <input type="number" formControlName="existingLoans" class="form-control" min="0"/>
+          <input
+            type="number"
+            formControlName="existingLoans"
+            class="form-control"
+            min="0"
+          />
         </div>
       </div>
     </div>
     <div class="modal__footer">
-      <button class="btn btn--ghost" (click)="closeClientModal()">Annuler</button>
-      <button class="btn btn--primary" (click)="submitClient()" [disabled]="clientForm.invalid || loading">
+      <button class="btn btn--ghost" (click)="closeClientModal()">
+        Annuler
+      </button>
+      <button
+        class="btn btn--primary"
+        (click)="submitClient()"
+        [disabled]="clientForm.invalid || loading"
+      >
         <span *ngIf="!loading">✓ Créer le client</span>
         <span *ngIf="loading">Création...</span>
       </button>
@@ -824,7 +1562,11 @@
 <!-- ════════════════════════════════════════════
      MODAL — Nouveau dossier
 ═════════════════════════════════════════════ -->
-<div class="modal" *ngIf="showApplicationModal" (click)="closeApplicationModal()">
+<div
+  class="modal"
+  *ngIf="showApplicationModal"
+  (click)="closeApplicationModal()"
+>
   <div class="modal__content" (click)="$event.stopPropagation()">
     <div class="modal__header">
       <div>
@@ -845,12 +1587,32 @@
       </div>
       <div class="form-grid">
         <div class="form-group">
-          <label>Montant (DT) <span class="required">*</span> <small>1 000 – 500 000</small></label>
-          <input type="number" formControlName="amount" class="form-control" min="1000" max="500000" placeholder="Ex: 25000"/>
+          <label
+            >Montant (DT) <span class="required">*</span>
+            <small>1 000 – 500 000</small></label
+          >
+          <input
+            type="number"
+            formControlName="amount"
+            class="form-control"
+            min="1000"
+            max="500000"
+            placeholder="Ex: 25000"
+          />
         </div>
         <div class="form-group">
-          <label>Durée (mois) <span class="required">*</span> <small>6 – 360</small></label>
-          <input type="number" formControlName="duration" class="form-control" min="6" max="360" placeholder="Ex: 60"/>
+          <label
+            >Durée (mois) <span class="required">*</span>
+            <small>6 – 360</small></label
+          >
+          <input
+            type="number"
+            formControlName="duration"
+            class="form-control"
+            min="6"
+            max="360"
+            placeholder="Ex: 60"
+          />
         </div>
       </div>
       <div class="form-group">
@@ -868,26 +1630,44 @@
       <div class="app-summary" *ngIf="estimatedMonthly > 0">
         <div class="app-summary__item">
           <span>Mensualité estimée (5.5%)</span>
-          <strong>{{ estimatedMonthly | number:'1.0-0' }} DT/mois</strong>
+          <strong>{{ estimatedMonthly | number: "1.0-0" }} DT/mois</strong>
         </div>
         <div class="app-summary__item" *ngIf="selectedClientForApp">
           <span>Taux d'endettement après crédit</span>
           <strong [class.high-risk]="debtWarning">{{ debtRatio }}%</strong>
         </div>
-        <div class="app-summary__item" *ngIf="applicationForm.value.amount > 0 && applicationForm.value.duration > 0">
+        <div
+          class="app-summary__item"
+          *ngIf="
+            applicationForm.value.amount > 0 &&
+            applicationForm.value.duration > 0
+          "
+        >
           <span>Coût total</span>
-          <strong>{{ (estimatedMonthly * applicationForm.value.duration) | number:'1.0-0' }} DT</strong>
+          <strong
+            >{{
+              estimatedMonthly * applicationForm.value.duration
+                | number: "1.0-0"
+            }}
+            DT</strong
+          >
         </div>
       </div>
 
       <div class="alert alert--warning" *ngIf="debtWarning">
-        ⚠️ Taux d'endettement > 33% — le dossier sera refusé automatiquement par le backend.
+        ⚠️ Taux d'endettement > 33% — le dossier sera refusé automatiquement par
+        le backend.
       </div>
     </div>
     <div class="modal__footer">
-      <button class="btn btn--ghost" (click)="closeApplicationModal()">Annuler</button>
-      <button class="btn btn--primary" (click)="submitApplication()"
-              [disabled]="applicationForm.invalid || debtWarning || loading">
+      <button class="btn btn--ghost" (click)="closeApplicationModal()">
+        Annuler
+      </button>
+      <button
+        class="btn btn--primary"
+        (click)="submitApplication()"
+        [disabled]="applicationForm.invalid || debtWarning || loading"
+      >
         <span *ngIf="!loading">📝 Soumettre — statut : EN ATTENTE</span>
         <span *ngIf="loading">Envoi en cours...</span>
       </button>
@@ -898,11 +1678,21 @@
 <!-- ════════════════════════════════════════════
      MODAL — Mise à jour statut
 ═════════════════════════════════════════════ -->
-<div class="modal" *ngIf="showStatusModal && statusUpdateTarget" (click)="closeStatusModal()">
+<div
+  class="modal"
+  *ngIf="showStatusModal && statusUpdateTarget"
+  (click)="closeStatusModal()"
+>
   <div class="modal__content" (click)="$event.stopPropagation()">
     <div class="modal__header">
       <div>
-        <h2>{{ statusUpdateTarget.status === 'EN_ATTENTE' ? '▶️ Prendre en charge' : '⚖️ Décision finale' }}</h2>
+        <h2>
+          {{
+            statusUpdateTarget.status === "EN_ATTENTE"
+              ? "▶️ Prendre en charge"
+              : "⚖️ Décision finale"
+          }}
+        </h2>
         <span class="info-badge">🔍 Interface Analyste</span>
       </div>
       <button class="modal__close" (click)="closeStatusModal()">✕</button>
@@ -910,9 +1700,13 @@
     <div class="modal__body">
       <div class="dossier-recap">
         <strong>{{ statusUpdateTarget.clientName }}</strong>
-        — {{ statusUpdateTarget.amount | number:'1.0-0' }} DT / {{ statusUpdateTarget.duration }} mois
-        <br/>
-        <span class="status-badge" [class]="getStatusClass(statusUpdateTarget.status)">
+        — {{ statusUpdateTarget.amount | number: "1.0-0" }} DT /
+        {{ statusUpdateTarget.duration }} mois
+        <br />
+        <span
+          class="status-badge"
+          [class]="getStatusClass(statusUpdateTarget.status)"
+        >
           {{ getStatusLabel(statusUpdateTarget.status) }}
         </span>
       </div>
@@ -920,14 +1714,22 @@
       <div class="form-group">
         <label>Nouveau statut <span class="required">*</span></label>
         <div class="status-choices">
-          <button *ngFor="let s of getAllowedStatuses(statusUpdateTarget.status)"
-                  class="status-choice"
-                  [class.selected]="pendingStatus === s"
-                  [class]="'status-choice ' + getStatusClass(s)"
-                  (click)="pendingStatus = s">
-            {{ s === 'EN_ANALYSE' ? '▶️ Prendre en charge' :
-               s === 'ACCEPTE'   ? '✅ Accepter' :
-               s === 'REFUSE'    ? '❌ Refuser' : getStatusLabel(s) }}
+          <button
+            *ngFor="let s of getAllowedStatuses(statusUpdateTarget.status)"
+            class="status-choice"
+            [class.selected]="pendingStatus === s"
+            [class]="'status-choice ' + getStatusClass(s)"
+            (click)="pendingStatus = s"
+          >
+            {{
+              s === "EN_ANALYSE"
+                ? "▶️ Prendre en charge"
+                : s === "ACCEPTE"
+                  ? "✅ Accepter"
+                  : s === "REFUSE"
+                    ? "❌ Refuser"
+                    : getStatusLabel(s)
+            }}
           </button>
         </div>
       </div>
@@ -935,18 +1737,33 @@
       <div class="form-group">
         <label>
           Commentaire
-          <span *ngIf="pendingStatus === 'REFUSE'" class="required">(obligatoire pour un refus)</span>
+          <span *ngIf="pendingStatus === 'REFUSE'" class="required"
+            >(obligatoire pour un refus)</span
+          >
         </label>
-        <textarea [(ngModel)]="statusComment" class="form-control" rows="3"
-          [placeholder]="pendingStatus === 'REFUSE'
-            ? 'Motif du refus obligatoire...'
-            : 'Commentaire sur la décision...'"></textarea>
+        <textarea
+          [(ngModel)]="statusComment"
+          class="form-control"
+          rows="3"
+          [placeholder]="
+            pendingStatus === 'REFUSE'
+              ? 'Motif du refus obligatoire...'
+              : 'Commentaire sur la décision...'
+          "
+        ></textarea>
       </div>
     </div>
     <div class="modal__footer">
-      <button class="btn btn--ghost" (click)="closeStatusModal()">Annuler</button>
-      <button class="btn btn--primary" (click)="confirmStatusUpdate()"
-              [disabled]="loading || (pendingStatus === 'REFUSE' && !statusComment.trim())">
+      <button class="btn btn--ghost" (click)="closeStatusModal()">
+        Annuler
+      </button>
+      <button
+        class="btn btn--primary"
+        (click)="confirmStatusUpdate()"
+        [disabled]="
+          loading || (pendingStatus === 'REFUSE' && !statusComment.trim())
+        "
+      >
         <span *ngIf="!loading">✓ Confirmer</span>
         <span *ngIf="loading">Mise à jour...</span>
       </button>
@@ -966,34 +1783,68 @@
     <div class="modal__body">
       <div class="profile-avatar">
         <div class="profile-avatar__circle">
-          <img *ngIf="currentUser.photoUrl" [src]="currentUser.photoUrl" class="profile-avatar__img" />
-          <span *ngIf="!currentUser.photoUrl">{{ currentUser.avatar || currentUser.fullName?.charAt(0) }}</span>
+          <img
+            *ngIf="currentUser.photoUrl"
+            [src]="currentUser.photoUrl"
+            class="profile-avatar__img"
+          />
+          <span *ngIf="!currentUser.photoUrl">{{
+            currentUser.avatar || currentUser.fullName?.charAt(0)
+          }}</span>
         </div>
         <div class="profile-avatar__actions">
           <label class="btn btn--ghost btn--sm">
             📷 Changer photo
-            <input type="file" hidden accept="image/*" (change)="onProfileImageSelected($event)" />
+            <input
+              type="file"
+              hidden
+              accept="image/*"
+              (change)="onProfileImageSelected($event)"
+            />
           </label>
         </div>
       </div>
       <div class="form-grid">
         <div class="form-group">
           <label>Nom complet</label>
-          <input type="text" class="form-control" [(ngModel)]="currentUser.fullName" />
+          <input
+            type="text"
+            class="form-control"
+            [(ngModel)]="currentUser.fullName"
+          />
         </div>
         <div class="form-group">
           <label>Email</label>
-          <input type="email" class="form-control" [(ngModel)]="currentUser.email" />
+          <input
+            type="email"
+            class="form-control"
+            [(ngModel)]="currentUser.email"
+          />
         </div>
         <div class="form-group form-group--full">
           <label>Rôle</label>
-          <input type="text" class="form-control" [value]="isAnalyste ? 'Analyste' : isAdmin ? 'Administrateur' : 'Chargé de crédit'" disabled />
+          <input
+            type="text"
+            class="form-control"
+            [value]="
+              isAnalyste
+                ? 'Analyste'
+                : isAdmin
+                  ? 'Administrateur'
+                  : 'Chargé de crédit'
+            "
+            disabled
+          />
         </div>
       </div>
     </div>
     <div class="modal__footer">
-      <button class="btn btn--ghost" (click)="closeProfileModal()">Annuler</button>
-      <button class="btn btn--primary" (click)="updateProfile()">✓ Mettre à jour</button>
+      <button class="btn btn--ghost" (click)="closeProfileModal()">
+        Annuler
+      </button>
+      <button class="btn btn--primary" (click)="updateProfile()">
+        ✓ Mettre à jour
+      </button>
     </div>
   </div>
 </div>

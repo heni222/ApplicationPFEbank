@@ -1,21 +1,33 @@
 // dashboard-credit.component.ts
 import {
-  Component, OnInit, OnDestroy,
-  ChangeDetectionStrategy, ChangeDetectorRef
+  Component,
+  OnInit,
+  OnDestroy,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
-  FormsModule, ReactiveFormsModule,
-  FormBuilder, FormGroup, Validators
+  FormsModule,
+  ReactiveFormsModule,
+  FormBuilder,
+  FormGroup,
+  Validators,
 } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 import {
-  CreditService, Client, CreditApplication,
-  CreditStatus, UserRole,
-  CreateClientDTO, CreateApplicationDTO, KPIs, MonthlyStat
+  CreditService,
+  Client,
+  CreditApplication,
+  CreditStatus,
+  UserRole,
+  CreateClientDTO,
+  CreateApplicationDTO,
+  KPIs,
+  MonthlyStat,
 } from '../../services/credit.service';
 import { AuthService } from '../../services/auth.service';
 import { AdminService } from '../../services/admin.service';
@@ -28,10 +40,9 @@ type View = 'dashboard' | 'applications' | 'clients';
   imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './dashboard-credit.component.html',
   styleUrls: ['./dashboard-credit.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardCreditComponent implements OnInit, OnDestroy {
-
   private destroy$ = new Subject<void>();
 
   // ── Rôle actuel (à récupérer depuis AuthService / JWT en prod) ──
@@ -42,7 +53,13 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
 
   // ── Profil actuel ──
   currentUser: any = {
-    _id: '', fullName: '', email: '', role: '', avatar: '', permissions: [], photoUrl: ''
+    _id: '',
+    fullName: '',
+    email: '',
+    role: '',
+    avatar: '',
+    permissions: [],
+    photoUrl: '',
   };
 
   // ── UI ──
@@ -59,8 +76,13 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
 
   // ── KPIs ──
   kpis: KPIs = {
-    total: 0, pending: 0, analyzing: 0,
-    accepted: 0, refused: 0, totalAmount: 0, approvalRate: 0
+    total: 0,
+    pending: 0,
+    analyzing: 0,
+    accepted: 0,
+    refused: 0,
+    totalAmount: 0,
+    approvalRate: 0,
   };
   monthlyStats: MonthlyStat[] = [];
   maxMonthlyCount = 1;
@@ -76,6 +98,8 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
   showClientModal = false;
   showApplicationModal = false;
   showStatusModal = false;
+  showFinancialDataModal = false;
+  financialDataTarget: CreditApplication | null = null;
   newCommentText = '';
 
   // ── Status update ──
@@ -91,6 +115,7 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
   // ── Forms ──
   clientForm!: FormGroup;
   applicationForm!: FormGroup;
+  financialDataForm!: FormGroup;
 
   // ── Simulation montant/taux ──
   estimatedMonthly = 0;
@@ -118,7 +143,7 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private authService: AuthService,
     private adminService: AdminService,
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     this.detectRole();
@@ -148,12 +173,12 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
         const user = JSON.parse(stored);
         // Mapper les rôles backend → UserRole
         const roleMap: Record<string, UserRole> = {
-          'charge_credit': 'CHARGE_CREDIT',
-          'analyste': 'ANALYSTE',
-          'admin': 'ADMIN',
-          'CHARGE_CREDIT': 'CHARGE_CREDIT',
-          'ANALYSTE': 'ANALYSTE',
-          'ADMIN': 'ADMIN'
+          charge_credit: 'CHARGE_CREDIT',
+          analyste: 'ANALYSTE',
+          admin: 'ADMIN',
+          CHARGE_CREDIT: 'CHARGE_CREDIT',
+          ANALYSTE: 'ANALYSTE',
+          ADMIN: 'ADMIN',
         };
         this.currentRole = roleMap[user?.role] || 'CHARGE_CREDIT';
       } catch {
@@ -162,9 +187,15 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
     }
   }
 
-  get isChargeCredit(): boolean { return this.currentRole === 'CHARGE_CREDIT'; }
-  get isAnalyste(): boolean { return this.currentRole === 'ANALYSTE'; }
-  get isAdmin(): boolean { return this.currentRole === 'ADMIN'; }
+  get isChargeCredit(): boolean {
+    return this.currentRole === 'CHARGE_CREDIT';
+  }
+  get isAnalyste(): boolean {
+    return this.currentRole === 'ANALYSTE';
+  }
+  get isAdmin(): boolean {
+    return this.currentRole === 'ADMIN';
+  }
 
   // ──────────────────────────────────────────
   //  Formulaires
@@ -183,21 +214,41 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
       employer: ['', Validators.required],
       revenue: [0, [Validators.required, Validators.min(1)]],
       monthlyCharges: [0, [Validators.required, Validators.min(0)]],
-      existingLoanPayments: [0, [Validators.required, Validators.min(0)]] // ✅ mensualité réelle
+      existingLoanPayments: [0, [Validators.required, Validators.min(0)]], // ✅ mensualité réelle
     });
 
     this.applicationForm = this.fb.group({
       clientId: ['', Validators.required],
-      amount: [0, [Validators.required, Validators.min(1000), Validators.max(500000)]],
-      duration: [12, [Validators.required, Validators.min(6), Validators.max(360)]],
-      purpose: ['CONSOMMATION', Validators.required]
+      amount: [
+        0,
+        [Validators.required, Validators.min(1000), Validators.max(500000)],
+      ],
+      duration: [
+        12,
+        [Validators.required, Validators.min(6), Validators.max(360)],
+      ],
+      purpose: ['CONSOMMATION', Validators.required],
     });
 
-    this.applicationForm.valueChanges.pipe(
-      debounceTime(250),
-      distinctUntilChanged(),
-      takeUntil(this.destroy$)
-    ).subscribe(() => this.recalculate());
+    this.financialDataForm = this.fb.group({
+      account_age_months: [0, [Validators.required, Validators.min(0)]],
+      avg_monthly_balance: [0, [Validators.required, Validators.min(0)]],
+      num_deposits_per_month: [0, [Validators.required, Validators.min(0)]],
+      avg_deposit_amount: [0, [Validators.required, Validators.min(0)]],
+      num_withdrawals_per_month: [0, [Validators.required, Validators.min(0)]],
+      avg_withdrawal_amount: [0, [Validators.required, Validators.min(0)]],
+      debit_card_spending: [0, [Validators.required, Validators.min(0)]],
+      credit_card_utilization: [
+        0,
+        [Validators.required, Validators.min(0), Validators.max(1)],
+      ],
+      total_outstanding_debt: [0, [Validators.required, Validators.min(0)]],
+      loan_application_amount: [0, [Validators.required, Validators.min(0)]],
+    });
+
+    this.applicationForm.valueChanges
+      .pipe(debounceTime(250), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe(() => this.recalculate());
   }
 
   // ──────────────────────────────────────────
@@ -205,32 +256,40 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
   // ──────────────────────────────────────────
 
   subscribeToData(): void {
-    this.creditService.clients$.pipe(takeUntil(this.destroy$)).subscribe(c => {
-      this.clients = c;
-      this.cdr.markForCheck();
-    });
+    this.creditService.clients$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((c) => {
+        this.clients = c;
+        this.cdr.markForCheck();
+      });
 
-    this.creditService.applications$.pipe(takeUntil(this.destroy$)).subscribe(a => {
-      this.applications = a;
-      this.applyFilters();
-      this.cdr.markForCheck();
-    });
+    this.creditService.applications$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((a) => {
+        this.applications = a;
+        this.applyFilters();
+        this.cdr.markForCheck();
+      });
 
-    this.creditService.kpis$.pipe(takeUntil(this.destroy$)).subscribe(k => {
+    this.creditService.kpis$.pipe(takeUntil(this.destroy$)).subscribe((k) => {
       this.kpis = k;
       this.cdr.markForCheck();
     });
 
-    this.creditService.monthlyStats$.pipe(takeUntil(this.destroy$)).subscribe(s => {
-      this.monthlyStats = s;
-      this.maxMonthlyCount = Math.max(...s.map(x => x.count), 1);
-      this.cdr.markForCheck();
-    });
+    this.creditService.monthlyStats$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((s) => {
+        this.monthlyStats = s;
+        this.maxMonthlyCount = Math.max(...s.map((x) => x.count), 1);
+        this.cdr.markForCheck();
+      });
 
-    this.creditService.loading$.pipe(takeUntil(this.destroy$)).subscribe(l => {
-      this.loading = l;
-      this.cdr.markForCheck();
-    });
+    this.creditService.loading$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((l) => {
+        this.loading = l;
+        this.cdr.markForCheck();
+      });
   }
 
   // ──────────────────────────────────────────
@@ -242,30 +301,37 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
 
     if (this.searchTerm) {
       const q = this.searchTerm.toLowerCase();
-      result = result.filter(a =>
-        a.clientName.toLowerCase().includes(q) ||
-        a.purpose.toLowerCase().includes(q)
+      result = result.filter(
+        (a) =>
+          a.clientName.toLowerCase().includes(q) ||
+          a.purpose.toLowerCase().includes(q),
       );
     }
 
     if (this.filterStatus !== 'ALL')
-      result = result.filter(a => a.status === this.filterStatus);
+      result = result.filter((a) => a.status === this.filterStatus);
 
     if (this.filterAmount === '0-10000')
-      result = result.filter(a => a.amount < 10000);
+      result = result.filter((a) => a.amount < 10000);
     else if (this.filterAmount === '10000-50000')
-      result = result.filter(a => a.amount >= 10000 && a.amount <= 50000);
+      result = result.filter((a) => a.amount >= 10000 && a.amount <= 50000);
     else if (this.filterAmount === '50000+')
-      result = result.filter(a => a.amount > 50000);
+      result = result.filter((a) => a.amount > 50000);
 
     this.filteredApplications = result;
   }
 
-  onSearchChange(): void { this.applyFilters(); }
-  onFilterChange(): void { this.applyFilters(); }
+  onSearchChange(): void {
+    this.applyFilters();
+  }
+  onFilterChange(): void {
+    this.applyFilters();
+  }
 
   resetFilters(): void {
-    this.searchTerm = ''; this.filterStatus = 'ALL'; this.filterAmount = 'ALL';
+    this.searchTerm = '';
+    this.filterStatus = 'ALL';
+    this.filterAmount = 'ALL';
     this.applyFilters();
   }
 
@@ -280,16 +346,26 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
   // ──────────────────────────────────────────
 
   openClientModal(): void {
-    this.clientForm.reset({ revenue: 0, monthlyCharges: 0, existingLoanPayments: 0 }); // ✅
+    this.clientForm.reset({
+      revenue: 0,
+      monthlyCharges: 0,
+      existingLoanPayments: 0,
+    }); // ✅
     this.showClientModal = true;
   }
 
-  closeClientModal(): void { this.showClientModal = false; }
+  closeClientModal(): void {
+    this.showClientModal = false;
+  }
 
   submitClient(): void {
-    if (this.clientForm.invalid) { this.clientForm.markAllAsTouched(); return; }
+    if (this.clientForm.invalid) {
+      this.clientForm.markAllAsTouched();
+      return;
+    }
     this.loading = true;
-    this.creditService.createClient(this.clientForm.value as CreateClientDTO)
+    this.creditService
+      .createClient(this.clientForm.value as CreateClientDTO)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
@@ -298,11 +374,11 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
           this.closeClientModal();
           this.cdr.markForCheck();
         },
-        error: e => {
+        error: (e) => {
           this.loading = false;
           this.showMessage(e.message, 'error');
           this.cdr.markForCheck();
-        }
+        },
       });
   }
 
@@ -312,7 +388,12 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
   // ──────────────────────────────────────────
 
   openApplicationModal(): void {
-    this.applicationForm.reset({ duration: 12, purpose: 'CONSOMMATION', amount: 0, clientId: '' });
+    this.applicationForm.reset({
+      duration: 12,
+      purpose: 'CONSOMMATION',
+      amount: 0,
+      clientId: '',
+    });
     this.estimatedMonthly = 0;
     this.debtRatio = 0;
     this.debtWarning = false;
@@ -320,22 +401,32 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
     this.showApplicationModal = true;
   }
 
-  closeApplicationModal(): void { this.showApplicationModal = false; }
+  closeApplicationModal(): void {
+    this.showApplicationModal = false;
+  }
 
   recalculate(): void {
     const { amount, duration, clientId, purpose } = this.applicationForm.value;
 
     if (amount > 0 && duration > 0) {
       // ✅ Taux selon le type de crédit (CONSOMMATION / AUTO / IMMOBILIER)
-      const annualRate = this.creditService.RATES[purpose] ?? this.creditService.RATES['CONSOMMATION'];
-      this.estimatedMonthly = this.creditService.calculateMonthly(+amount, +duration, annualRate);
+      const annualRate =
+        this.creditService.RATES[purpose] ??
+        this.creditService.RATES['CONSOMMATION'];
+      this.estimatedMonthly = this.creditService.calculateMonthly(
+        +amount,
+        +duration,
+        annualRate,
+      );
     }
 
     if (clientId) {
-      this.selectedClientForApp = this.clients.find(c => c._id === clientId) || null;
+      this.selectedClientForApp =
+        this.clients.find((c) => c._id === clientId) || null;
       if (this.selectedClientForApp) {
         this.debtRatio = this.creditService.calculateDebtRatio(
-          this.selectedClientForApp, this.estimatedMonthly
+          this.selectedClientForApp,
+          this.estimatedMonthly,
         );
         // ✅ Seuil BCT Tunisie : 40%
         this.debtWarning = !this.creditService.isEligible(this.debtRatio);
@@ -345,14 +436,21 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
   }
 
   submitApplication(): void {
-    if (this.applicationForm.invalid) { this.applicationForm.markAllAsTouched(); return; }
+    if (this.applicationForm.invalid) {
+      this.applicationForm.markAllAsTouched();
+      return;
+    }
     if (this.debtWarning) {
       // ✅ Message mis à jour : seuil 40%
-      this.showMessage('Taux d\'endettement > 40% — dossier refusé automatiquement', 'error');
+      this.showMessage(
+        "Taux d'endettement > 40% — dossier refusé automatiquement",
+        'error',
+      );
       return;
     }
     this.loading = true;
-    this.creditService.createApplication(this.applicationForm.value as CreateApplicationDTO)
+    this.creditService
+      .createApplication(this.applicationForm.value as CreateApplicationDTO)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
@@ -361,11 +459,11 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
           this.closeApplicationModal();
           this.cdr.markForCheck();
         },
-        error: e => {
+        error: (e) => {
           this.loading = false;
           this.showMessage(e.message, 'error');
           this.cdr.markForCheck();
-        }
+        },
       });
   }
 
@@ -380,21 +478,34 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
     const file = input.files[0];
 
     // Validations côté client
-    const allowed = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+    const allowed = [
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'image/jpg',
+      'text/plain',
+      'application/json',
+    ];
     if (!allowed.includes(file.type)) {
-      this.showMessage('Type non supporté : PDF, JPEG ou PNG uniquement', 'error');
-      input.value = ''; return;
+      this.showMessage(
+        'Type non supporté : PDF, JPEG, PNG, TXT ou JSON uniquement',
+        'error',
+      );
+      input.value = '';
+      return;
     }
     if (file.size > 5 * 1024 * 1024) {
       this.showMessage('Fichier trop volumineux — maximum 5 Mo', 'error');
-      input.value = ''; return;
+      input.value = '';
+      return;
     }
 
     this.loading = true;
     this.uploadStatus = 'Upload en cours...';
     this.cdr.markForCheck();
 
-    this.creditService.uploadDocument(this.selectedApplication._id, file)
+    this.creditService
+      .uploadDocument(this.selectedApplication._id, file)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
@@ -405,29 +516,117 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
           input.value = '';
           this.cdr.markForCheck();
         },
-        error: e => {
+        error: (e) => {
           this.loading = false;
           this.uploadStatus = '';
           this.showMessage(e.message || 'Erreur upload', 'error');
           input.value = '';
           this.cdr.markForCheck();
-        }
+        },
       });
   }
 
   // Validation document (Analyste / Admin)
   validateDocument(docId: string): void {
     if (!this.selectedApplication) return;
-    this.creditService.validateDocument(
-      this.selectedApplication._id, docId, 'Agent connecté'
-    ).pipe(takeUntil(this.destroy$)).subscribe({
-      next: () => {
-        this.refreshSelected();
-        this.showMessage('Document validé ✓', 'success');
-        this.cdr.markForCheck();
-      },
-      error: e => this.showMessage(e.message, 'error')
+    this.creditService
+      .validateDocument(this.selectedApplication._id, docId, 'Agent connecté')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.refreshSelected();
+          this.showMessage('Document validé ✓', 'success');
+          this.cdr.markForCheck();
+        },
+        error: (e) => this.showMessage(e.message, 'error'),
+      });
+  }
+
+  // ──────────────────────────────────────────
+  //  Données IA financières du dossier
+  // ──────────────────────────────────────────
+
+  openFinancialDataModal(app: CreditApplication): void {
+    this.financialDataTarget = app;
+
+    const existingData = (app as any).aiFinancialData || {};
+
+    this.financialDataForm.reset({
+      account_age_months: existingData.account_age_months ?? 0,
+      avg_monthly_balance: existingData.avg_monthly_balance ?? 0,
+      num_deposits_per_month: existingData.num_deposits_per_month ?? 0,
+      avg_deposit_amount: existingData.avg_deposit_amount ?? 0,
+      num_withdrawals_per_month: existingData.num_withdrawals_per_month ?? 0,
+      avg_withdrawal_amount: existingData.avg_withdrawal_amount ?? 0,
+      debit_card_spending: existingData.debit_card_spending ?? 0,
+      credit_card_utilization: existingData.credit_card_utilization ?? 0,
+      total_outstanding_debt: existingData.total_outstanding_debt ?? 0,
+      loan_application_amount: existingData.loan_application_amount ?? app.amount ?? 0,
     });
+
+    this.showFinancialDataModal = true;
+    this.cdr.markForCheck();
+  }
+
+  closeFinancialDataModal(): void {
+    this.showFinancialDataModal = false;
+    this.financialDataTarget = null;
+  }
+
+  saveFinancialData(): void {
+    if (!this.financialDataTarget) return;
+
+    if (this.financialDataForm.invalid) {
+      this.financialDataForm.markAllAsTouched();
+      this.showMessage('Veuillez remplir correctement les données IA', 'error');
+      return;
+    }
+
+    const applicationId = this.financialDataTarget._id;
+    const payload = this.financialDataForm.value;
+
+    this.loading = true;
+    this.creditService
+      .saveFinancialData(applicationId, payload)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (updatedApplication: CreditApplication) => {
+          this.loading = false;
+
+          this.applications = this.applications.map((app) =>
+            app._id === applicationId ? { ...app, ...updatedApplication } : app,
+          );
+
+          this.applyFilters();
+
+          if (this.selectedApplication?._id === applicationId) {
+            this.selectedApplication = {
+              ...this.selectedApplication,
+              ...updatedApplication,
+            };
+          }
+
+          this.showMessage('Données IA enregistrées avec succès ✓', 'success');
+          this.closeFinancialDataModal();
+          this.cdr.markForCheck();
+        },
+        error: (e) => {
+          this.loading = false;
+          this.showMessage(
+            e?.error?.message || e?.message || 'Erreur enregistrement données IA',
+            'error',
+          );
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
+  hasAiFinancialData(app: CreditApplication | null): boolean {
+    return !!(app as any)?.aiFinancialData;
+  }
+
+  getAiFinancialData(app: CreditApplication | null): any {
+    return (app as any)?.aiFinancialData || {};
   }
 
   // ──────────────────────────────────────────
@@ -441,7 +640,10 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
   openStatusModal(app: CreditApplication): void {
     // Seul l'analyste (ou admin) peut changer le statut
     if (this.isChargeCredit) {
-      this.showMessage('Seul un analyste peut modifier le statut d\'un dossier', 'error');
+      this.showMessage(
+        "Seul un analyste peut modifier le statut d'un dossier",
+        'error',
+      );
       return;
     }
     const allowed = this.getAllowedStatuses(app.status);
@@ -455,7 +657,10 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
     this.showStatusModal = true;
   }
 
-  closeStatusModal(): void { this.showStatusModal = false; this.statusUpdateTarget = null; }
+  closeStatusModal(): void {
+    this.showStatusModal = false;
+    this.statusUpdateTarget = null;
+  }
 
   confirmStatusUpdate(): void {
     if (!this.statusUpdateTarget) return;
@@ -464,27 +669,31 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
       return;
     }
     this.loading = true;
-    this.creditService.updateStatus(
-      this.statusUpdateTarget._id,
-      this.pendingStatus,
-      'Analyste connecté',
-      this.statusComment || undefined
-    ).pipe(takeUntil(this.destroy$)).subscribe({
-      next: () => {
-        this.loading = false;
-        this.showMessage(
-          `Statut → ${this.getStatusLabel(this.pendingStatus)} ✓`, 'success'
-        );
-        this.closeStatusModal();
-        this.refreshSelected();
-        this.cdr.markForCheck();
-      },
-      error: e => {
-        this.loading = false;
-        this.showMessage(e.message, 'error');
-        this.cdr.markForCheck();
-      }
-    });
+    this.creditService
+      .updateStatus(
+        this.statusUpdateTarget._id,
+        this.pendingStatus,
+        'Analyste connecté',
+        this.statusComment || undefined,
+      )
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.loading = false;
+          this.showMessage(
+            `Statut → ${this.getStatusLabel(this.pendingStatus)} ✓`,
+            'success',
+          );
+          this.closeStatusModal();
+          this.refreshSelected();
+          this.cdr.markForCheck();
+        },
+        error: (e) => {
+          this.loading = false;
+          this.showMessage(e.message, 'error');
+          this.cdr.markForCheck();
+        },
+      });
   }
 
   /** Transitions selon rôle */
@@ -495,19 +704,29 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
   /** Indique si le bouton de statut doit être visible */
   canChangeStatus(app: CreditApplication): boolean {
     if (this.isChargeCredit) return false;
-    return !this.isFinalStatus(app.status) &&
-      this.getAllowedStatuses(app.status).length > 0;
+    return (
+      !this.isFinalStatus(app.status) &&
+      this.getAllowedStatuses(app.status).length > 0
+    );
   }
 
   // ──────────────────────────────────────────
   //  US 2.5 – Consultation clients / dossiers
   // ──────────────────────────────────────────
 
-  viewApplication(app: CreditApplication): void { this.selectedApplication = app; }
-  closeApplication(): void { this.selectedApplication = null; }
+  viewApplication(app: CreditApplication): void {
+    this.selectedApplication = app;
+  }
+  closeApplication(): void {
+    this.selectedApplication = null;
+  }
 
-  viewClientDetails(client: Client): void { this.selectedClient = client; }
-  closeClientDetails(): void { this.selectedClient = null; }
+  viewClientDetails(client: Client): void {
+    this.selectedClient = client;
+  }
+  closeClientDetails(): void {
+    this.selectedClient = null;
+  }
 
   getClientApplications(clientId: string): CreditApplication[] {
     return this.creditService.getClientApplications(clientId);
@@ -517,16 +736,17 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
   submitComment(): void {
     if (!this.newCommentText.trim() || !this.selectedApplication) return;
     const userName = this.isAnalyste ? 'Analyste connecté' : 'Chargé crédit';
-    this.creditService.addComment(
-      this.selectedApplication._id, this.newCommentText, userName
-    ).pipe(takeUntil(this.destroy$)).subscribe({
-      next: () => {
-        this.newCommentText = '';
-        this.refreshSelected();
-        this.cdr.markForCheck();
-      },
-      error: e => this.showMessage(e.message, 'error')
-    });
+    this.creditService
+      .addComment(this.selectedApplication._id, this.newCommentText, userName)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.newCommentText = '';
+          this.refreshSelected();
+          this.cdr.markForCheck();
+        },
+        error: (e) => this.showMessage(e.message, 'error'),
+      });
   }
 
   // ──────────────────────────────────────────
@@ -535,32 +755,57 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
 
   refreshSelected(): void {
     if (this.selectedApplication) {
-      const updated = this.applications.find(a => a._id === this.selectedApplication!._id);
+      const updated = this.applications.find(
+        (a) => a._id === this.selectedApplication!._id,
+      );
       if (updated) this.selectedApplication = { ...updated };
     }
   }
 
-  setView(v: View): void { this.currentView = v; this.cdr.markForCheck(); }
+  setView(v: View): void {
+    this.currentView = v;
+    this.cdr.markForCheck();
+  }
 
   getStatusLabel(s: string): string {
     return this.creditService.getStatusLabel(s);
   }
 
   getStatusClass(s: string): string {
-    return ({
-      EN_ATTENTE: 'status--pending',
-      EN_ANALYSE: 'status--analyzing',
-      ACCEPTE: 'status--accepted',
-      REFUSE: 'status--refused'
-    } as Record<string, string>)[s] ?? '';
+    return (
+      (
+        {
+          EN_ATTENTE: 'status--pending',
+          EN_ANALYSE: 'status--analyzing',
+          ACCEPTE: 'status--accepted',
+          REFUSE: 'status--refused',
+        } as Record<string, string>
+      )[s] ?? ''
+    );
   }
 
   getDocStatusLabel(s: string): string {
-    return ({ EN_ATTENTE: 'En attente', VALIDE: 'Validé', REJETE: 'Rejeté' } as Record<string, string>)[s] ?? s;
+    return (
+      (
+        {
+          EN_ATTENTE: 'En attente',
+          VALIDE: 'Validé',
+          REJETE: 'Rejeté',
+        } as Record<string, string>
+      )[s] ?? s
+    );
   }
 
   getDocStatusClass(s: string): string {
-    return ({ VALIDE: 'doc--valid', EN_ATTENTE: 'doc--pending', REJETE: 'doc--rejected' } as Record<string, string>)[s] ?? '';
+    return (
+      (
+        {
+          VALIDE: 'doc--valid',
+          EN_ATTENTE: 'doc--pending',
+          REJETE: 'doc--rejected',
+        } as Record<string, string>
+      )[s] ?? ''
+    );
   }
 
   isFinalStatus(s: CreditStatus): boolean {
@@ -568,19 +813,24 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
   }
 
   getClientFinancials(clientId: string) {
-    return this.clients.find(c => c._id === clientId)
-      ?? { revenue: 0, monthlyCharges: 0, existingLoanPayments: 0 }; // ✅
+    return (
+      this.clients.find((c) => c._id === clientId) ?? {
+        revenue: 0,
+        monthlyCharges: 0,
+        existingLoanPayments: 0,
+      }
+    ); // ✅
   }
 
   // ✅ Capacité restante basée sur mensualité réelle + plafond 40%
   getRemainingCapacity(clientId: string): number {
-    const c = this.clients.find(cl => cl._id === clientId);
+    const c = this.clients.find((cl) => cl._id === clientId);
     if (!c) return 0;
     return this.creditService.maxAllowedMonthly(c);
   }
 
   getDebtRatio(clientId: string, monthly = 0): number {
-    const c = this.clients.find(cl => cl._id === clientId);
+    const c = this.clients.find((cl) => cl._id === clientId);
     if (!c) return 0;
     return this.creditService.calculateDebtRatio(c, monthly);
   }
@@ -593,26 +843,37 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
 
   amountDistribution() {
     return {
-      small: this.applications.filter(a => a.amount < 10000).length,
-      medium: this.applications.filter(a => a.amount >= 10000 && a.amount <= 50000).length,
-      large: this.applications.filter(a => a.amount > 50000).length
+      small: this.applications.filter((a) => a.amount < 10000).length,
+      medium: this.applications.filter(
+        (a) => a.amount >= 10000 && a.amount <= 50000,
+      ).length,
+      large: this.applications.filter((a) => a.amount > 50000).length,
     };
   }
 
-  trackByApp(_: number, a: CreditApplication): string { return a._id; }
-  trackByClient(_: number, c: Client): string { return c._id; }
+  trackByApp(_: number, a: CreditApplication): string {
+    return a._id;
+  }
+  trackByClient(_: number, c: Client): string {
+    return c._id;
+  }
 
   showMessage(msg: string, type: 'success' | 'error' = 'success'): void {
-    this.message = msg; this.messageType = type;
-    setTimeout(() => { this.message = ''; this.cdr.markForCheck(); }, 3500);
+    this.message = msg;
+    this.messageType = type;
+    setTimeout(() => {
+      this.message = '';
+      this.cdr.markForCheck();
+    }, 3500);
   }
 
   setupKeyboardShortcuts(): void {
-    document.addEventListener('keydown', e => {
+    document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         this.closeApplication();
         this.closeClientDetails();
         this.closeStatusModal();
+        this.closeFinancialDataModal();
         this.cdr.markForCheck();
       }
       if (e.ctrlKey && e.key === 'n' && this.isChargeCredit) {
@@ -626,8 +887,12 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
   //  Profil
   // ──────────────────────────────────────────
 
-  openProfile(): void { this.showProfileModal = true; }
-  closeProfileModal(): void { this.showProfileModal = false; }
+  openProfile(): void {
+    this.showProfileModal = true;
+  }
+  closeProfileModal(): void {
+    this.showProfileModal = false;
+  }
 
   updateProfile(): void {
     this.adminService.updateProfile(this.currentUser).subscribe({
@@ -637,7 +902,10 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
         this.closeProfileModal();
         this.cdr.markForCheck();
       },
-      error: err => { console.error(err); this.showMsg('Erreur mise à jour profil', 'error'); }
+      error: (err) => {
+        console.error(err);
+        this.showMsg('Erreur mise à jour profil', 'error');
+      },
     });
   }
 
@@ -665,12 +933,16 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
         this.showMessage('Déconnexion réussie', 'success');
         setTimeout(() => this.router.navigate(['/login']), 1000);
       },
-      error: () => this.router.navigate(['/login'])
+      error: () => this.router.navigate(['/login']),
     });
   }
 
   showMsg(msg: string, type: 'success' | 'error' = 'success'): void {
     this.message = msg;
-    setTimeout(() => { this.message = ''; this.cdr.markForCheck(); }, 3500);
+    setTimeout(() => {
+      this.message = '';
+      this.cdr.markForCheck();
+    }, 3500);
   }
+  
 }

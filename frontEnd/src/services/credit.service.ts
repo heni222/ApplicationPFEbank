@@ -127,11 +127,11 @@ export class CreditService {
   // ── Taux tunisiens (BCT, TMM fév. 2026 + marge selon type) ──────────────
   private readonly TMM = 0.0699; // TMM BCT février 2026
   readonly RATES: Record<string, number> = {
-    CONSOMMATION: this.TMM + 0.03,  // ~9.99%
-    AUTO:         this.TMM + 0.025, // ~9.49%
-    IMMOBILIER:   this.TMM + 0.02,  // ~8.99%
+    CONSOMMATION: this.TMM + 0.03, // ~9.99%
+    AUTO: this.TMM + 0.025, // ~9.49%
+    IMMOBILIER: this.TMM + 0.02, // ~8.99%
   };
-  readonly MAX_DEBT_RATIO = 0.40; // Plafond BCT Tunisie : 40%
+  readonly MAX_DEBT_RATIO = 0.4; // Plafond BCT Tunisie : 40%
 
   // ── Cache réactif ──────────────────────────────────────
   private _clients = new BehaviorSubject<Client[]>([]);
@@ -211,6 +211,12 @@ export class CreditService {
         }),
       )
       .subscribe((s) => this._monthlyStats.next(s as MonthlyStat[]));
+  }
+  saveFinancialData(applicationId: string, data: any) {
+    return this.http.put<CreditApplication>(
+      `${this.API}/applications/${applicationId}/ai-financial-data`,
+      data,
+    );
   }
 
   refreshData(): void {
