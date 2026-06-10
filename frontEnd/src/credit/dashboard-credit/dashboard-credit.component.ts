@@ -95,6 +95,7 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
   // ── Modals ──
   selectedApplication: CreditApplication | null = null;
   selectedClient: Client | null = null;
+  selectedClientApplications: CreditApplication[] = []; // ✅ pré-calculé à l'ouverture de la modale client
   showClientModal = false;
   showApplicationModal = false;
   showStatusModal = false;
@@ -122,7 +123,7 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
   debtRatio = 0;
   debtWarning = false; // ✅ seuil 40% (BCT Tunisie)
   selectedClientForApp: Client | null = null;
-
+  selectedClientData: Client | null = null;
   // ── Sidebar items selon rôle ──
   get sidebarItems() {
     const base = [
@@ -143,7 +144,7 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private authService: AuthService,
     private adminService: AdminService,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.detectRole();
@@ -242,8 +243,9 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
         0,
         [Validators.required, Validators.min(0), Validators.max(1)],
       ],
-      total_outstanding_debt: [0, [Validators.required, Validators.min(0)]],
-      loan_application_amount: [0, [Validators.required, Validators.min(0)]],
+      // ✅ Optionnels : supprimer Validators.required
+      total_outstanding_debt: [0, [Validators.min(0)]],
+      loan_application_amount: [0, [Validators.min(0)]],
     });
 
     this.applicationForm.valueChanges
@@ -260,22 +262,25 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((c) => {
         this.clients = c;
+        // ✅ Plus besoin de refreshSelectedClientData() ici
         this.cdr.markForCheck();
       });
 
     this.creditService.applications$
       .pipe(takeUntil(this.destroy$))
       .subscribe((a) => {
-        this.applications = a;
+        // ✅ Normaliser clientId : extraire _id si objet Mongoose peuplé
+        this.applications = a.map(app => ({
+          ...app,
+          clientId: typeof app.clientId === 'object'
+            ? (app.clientId as any)?._id
+            : app.clientId,
+          // ✅ Récupérer clientName depuis l'objet peuplé si absent
+          clientName: app.clientName || (app.clientId as any)?.fullName || '',
+        }));
         this.applyFilters();
         this.cdr.markForCheck();
       });
-
-    this.creditService.kpis$.pipe(takeUntil(this.destroy$)).subscribe((k) => {
-      this.kpis = k;
-      this.cdr.markForCheck();
-    });
-
     this.creditService.monthlyStats$
       .pipe(takeUntil(this.destroy$))
       .subscribe((s) => {
@@ -574,18 +579,23 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
   }
 
   saveFinancialData(): void {
+    console.log('saveFinancialData called'); // ← à garder temporairement
+
     if (!this.financialDataTarget) return;
 
     if (this.financialDataForm.invalid) {
       this.financialDataForm.markAllAsTouched();
-      this.showMessage('Veuillez remplir correctement les données IA', 'error');
+      // ✅ Message visible à l'utilisateur au lieu de bouton grisé silencieux
+      this.showMessage('Veuillez corriger les champs invalides', 'error');
+      this.cdr.markForCheck();
       return;
     }
 
     const applicationId = this.financialDataTarget._id;
     const payload = this.financialDataForm.value;
-
     this.loading = true;
+    this.cdr.markForCheck();
+
     this.creditService
       .saveFinancialData(applicationId, payload)
       .pipe(takeUntil(this.destroy$))
@@ -593,27 +603,28 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
         next: (updatedApplication: CreditApplication) => {
           this.loading = false;
 
-          this.applications = this.applications.map((app) =>
-            app._id === applicationId ? { ...app, ...updatedApplication } : app,
-          );
+          const merged = {
+            ...updatedApplication,
+            aiFinancialData: (updatedApplication as any).aiFinancialData ?? payload,
+          };
 
+          this.applications = this.applications.map((app) =>
+            app._id === applicationId ? merged : app,
+          );
           this.applyFilters();
 
           if (this.selectedApplication?._id === applicationId) {
-            this.selectedApplication = {
-              ...this.selectedApplication,
-              ...updatedApplication,
-            };
+            this.selectedApplication = { ...merged };
           }
 
-          this.showMessage('Données IA enregistrées avec succès ✓', 'success');
+          this.showMessage('Données IA enregistrées ✓', 'success');
           this.closeFinancialDataModal();
           this.cdr.markForCheck();
         },
         error: (e) => {
           this.loading = false;
           this.showMessage(
-            e?.error?.message || e?.message || 'Erreur enregistrement données IA',
+            e?.error?.message || e?.message || 'Erreur enregistrement',
             'error',
           );
           this.cdr.markForCheck();
@@ -713,19 +724,69 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
   // ──────────────────────────────────────────
   //  US 2.5 – Consultation clients / dossiers
   // ──────────────────────────────────────────
-
+  // Modifier viewApplication() — appel HTTP direct par ID
   viewApplication(app: CreditApplication): void {
     this.selectedApplication = app;
-  }
-  closeApplication(): void {
-    this.selectedApplication = null;
+    this.selectedClientData = null;
+
+    // ✅ clientId peut être un objet Mongoose peuplé ou une string
+    const clientId = typeof app.clientId === 'object'
+      ? (app.clientId as any)?._id
+      : app.clientId;
+
+    console.log('clientId extrait:', clientId); // vérification
+
+    if (!clientId) {
+      // Fallback : chercher dans le cache par clientName
+      this.selectedClientData =
+        this.clients.find(c => c.fullName === app.clientName) ?? null;
+      this.cdr.markForCheck();
+      return;
+    }
+
+    this.creditService.getClientById(String(clientId))
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (client: Client) => {
+          this.selectedClientData = client;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          // Fallback cache
+          this.selectedClientData =
+            this.clients.find(c => String(c._id) === String(clientId)) ?? null;
+          this.cdr.markForCheck();
+        }
+      });
+
+    this.cdr.markForCheck();
   }
 
+  // refreshSelectedClientData() n'est plus nécessaire — peut être supprimée
+  // ou simplifiée comme fallback uniquement
+  private refreshSelectedClientData(): void {
+    if (!this.selectedApplication) {
+      this.selectedClientData = null;
+      return;
+    }
+    const targetId = String(this.selectedApplication.clientId);
+    this.selectedClientData =
+      this.clients.find((c) => String(c._id) === targetId) ?? null;
+    this.cdr.markForCheck();
+  }
+
+  closeApplication(): void {
+    this.selectedApplication = null;
+    this.selectedClientData = null;
+  }
   viewClientDetails(client: Client): void {
     this.selectedClient = client;
+    this.selectedClientApplications = this.creditService.getClientApplications(client._id);
+    console.log('Applications trouvées:', this.selectedClientApplications.length); // vérif
   }
   closeClientDetails(): void {
     this.selectedClient = null;
+    this.selectedClientApplications = [];
   }
 
   getClientApplications(clientId: string): CreditApplication[] {
@@ -944,5 +1005,5 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
       this.cdr.markForCheck();
     }, 3500);
   }
-  
+
 }

@@ -7,6 +7,20 @@ import { catchError, map, tap } from 'rxjs/operators';
 export type CreditStatus = 'EN_ATTENTE' | 'EN_ANALYSE' | 'ACCEPTE' | 'REFUSE';
 export type DocumentStatus = 'EN_ATTENTE' | 'VALIDE' | 'REJETE';
 
+// ✅ Données financières complémentaires (sous-document du dossier)
+export interface AiFinancialData {
+  account_age_months: number;
+  avg_monthly_balance: number;
+  num_deposits_per_month: number;
+  avg_deposit_amount: number;
+  num_withdrawals_per_month: number;
+  avg_withdrawal_amount: number;
+  debit_card_spending: number;
+  credit_card_utilization: number;
+  total_outstanding_debt: number;
+  loan_application_amount: number;
+}
+
 export interface Client {
   _id: string;
   fullName: string;
@@ -212,13 +226,23 @@ export class CreditService {
       )
       .subscribe((s) => this._monthlyStats.next(s as MonthlyStat[]));
   }
-  saveFinancialData(applicationId: string, data: any) {
+  saveFinancialData(applicationId: string, data: any): Observable<CreditApplication> {
     return this.http.put<CreditApplication>(
       `${this.API}/applications/${applicationId}/ai-financial-data`,
       data,
+    ).pipe(
+      tap((updated) => {
+        // ✅ Mettre à jour le cache BehaviorSubject
+        const apps = this._applications.value.map((a) =>
+          a._id === applicationId
+            ? { ...a, ...updated, aiFinancialData: (updated as any).aiFinancialData ?? data }
+            : a,
+        );
+        this._applications.next(apps);
+      }),
+      catchError((e) => this.handleError(e)),
     );
   }
-
   refreshData(): void {
     this.loadInitialData();
   }
@@ -249,11 +273,17 @@ export class CreditService {
 
   /** GET /api/clients/:id */
   getClientById(id: string): Observable<Client> {
+    // ✅ Extraire l'ID si c'est un objet Mongoose peuplé
+    const resolvedId = typeof id === 'object' ? (id as any)?._id : id;
+
+    if (!resolvedId) {
+      return throwError(() => new Error('ID client invalide'));
+    }
+
     return this.http
-      .get<Client>(`${this.API}/clients/${id}`)
+      .get<Client>(`${this.API}/clients/${resolvedId}`)
       .pipe(catchError((e) => this.handleError(e)));
   }
-
   /** PUT /api/clients/:id */
   updateClient(id: string, dto: Partial<CreateClientDTO>): Observable<Client> {
     return this.http.put<Client>(`${this.API}/clients/${id}`, dto).pipe(
@@ -278,9 +308,14 @@ export class CreditService {
 
   /** GET /api/clients/:id/applications */
   getClientApplications(clientId: string): CreditApplication[] {
-    return this._applications.value.filter((a) => a.clientId === clientId);
+    return this._applications.value.filter((a) => {
+      // ✅ clientId peut être un objet Mongoose peuplé ou une string
+      const id = typeof a.clientId === 'object'
+        ? (a.clientId as any)?._id
+        : a.clientId;
+      return String(id) === String(clientId);
+    });
   }
-
   // ──────────────────────────────────────────
   //  US 2.1 – Créer un dossier → POST /api/applications
   //  Rôle : CHARGE_CREDIT uniquement
@@ -563,7 +598,7 @@ export class CreditService {
     return Math.round(
       ((client.monthlyCharges + existingMonthly + newMonthly) /
         client.revenue) *
-        100,
+      100,
     );
   }
 
@@ -578,8 +613,8 @@ export class CreditService {
       0,
       Math.floor(
         client.revenue * this.MAX_DEBT_RATIO -
-          client.monthlyCharges -
-          (client.existingLoanPayments ?? 0),
+        client.monthlyCharges -
+        (client.existingLoanPayments ?? 0),
       ),
     );
   }

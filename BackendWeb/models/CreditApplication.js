@@ -24,11 +24,30 @@ const statusHistorySchema = new mongoose.Schema({
   comment: { type: String, default: null }
 });
 
+// ✅ Sous-schema pour les données financières complémentaires (IA / scoring)
+const aiFinancialDataSchema = new mongoose.Schema({
+  account_age_months: { type: Number, default: null },
+  avg_monthly_balance: { type: Number, default: null },
+  num_deposits_per_month: { type: Number, default: null },
+  avg_deposit_amount: { type: Number, default: null },
+  num_withdrawals_per_month: { type: Number, default: null },
+  avg_withdrawal_amount: { type: Number, default: null },
+  debit_card_spending: { type: Number, default: null },
+  credit_card_utilization: { type: Number, default: null },
+  total_outstanding_debt: { type: Number, default: null },
+  loan_application_amount: { type: Number, default: null }
+}, { _id: false });
+
 const creditApplicationSchema = new mongoose.Schema({
   clientId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Client',
     required: [true, 'L\'ID client est requis']
+  },
+  // ✅ Données financières complémentaires (sous-document)
+  aiFinancialData: {
+    type: aiFinancialDataSchema,
+    default: null
   },
   clientName: { type: String, required: true },
   amount: {
@@ -77,7 +96,7 @@ creditApplicationSchema.index({ createdAt: -1 });
 creditApplicationSchema.index({ amount: 1 });
 
 // Méthode pour vérifier si la transition de statut est valide
-creditApplicationSchema.methods.isValidTransition = function(newStatus) {
+creditApplicationSchema.methods.isValidTransition = function (newStatus) {
   const transitions = {
     'EN_ATTENTE': ['EN_ANALYSE', 'REFUSE'],
     'EN_ANALYSE': ['ACCEPTE', 'REFUSE', 'EN_ATTENTE'],
@@ -88,7 +107,7 @@ creditApplicationSchema.methods.isValidTransition = function(newStatus) {
 };
 
 // Méthode pour ajouter un statut à l'historique
-creditApplicationSchema.methods.addToHistory = function(status, changedBy, comment = null) {
+creditApplicationSchema.methods.addToHistory = function (status, changedBy, comment = null) {
   this.statusHistory.push({
     status,
     changedAt: new Date(),
@@ -97,7 +116,7 @@ creditApplicationSchema.methods.addToHistory = function(status, changedBy, comme
   });
   this.status = status;
   this.updatedAt = new Date();
-  
+
   if (status === 'ACCEPTE') {
     this.processedBy = changedBy;
   }
@@ -109,12 +128,16 @@ creditApplicationSchema.methods.addToHistory = function(status, changedBy, comme
 // ✅ PAS de middleware pre-save - validation faite dans le service
 
 // Méthodes virtuelles
-creditApplicationSchema.virtual('totalInterest').get(function() {
+creditApplicationSchema.virtual('totalInterest').get(function () {
   return (this.monthlyPayment * this.duration) - this.amount;
 });
 
-creditApplicationSchema.virtual('totalCost').get(function() {
+creditApplicationSchema.virtual('totalCost').get(function () {
   return this.monthlyPayment * this.duration;
 });
+
+// ✅ Configuration toJSON pour inclure les virtuels ET les sous-documents
+creditApplicationSchema.set('toJSON', { virtuals: true });
+creditApplicationSchema.set('toObject', { virtuals: true });
 
 module.exports = mongoose.model('CreditApplication', creditApplicationSchema);

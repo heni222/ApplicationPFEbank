@@ -164,6 +164,19 @@ class CreditController {
       }
     }
 
+  // ✅ Sauvegarde des données financières complémentaires (IA / scoring)
+  async saveFinancialData(req, res) {
+    try {
+      const application = await CreditService.saveFinancialData(
+        req.params.id,
+        req.body
+      );
+      res.status(200).json(application);
+    } catch (error) {
+      res.status(400).json({ message: error.message });
+    }
+  }
+
   // ========== Statistiques ==========
   async getKPIs(req, res) {
       try {

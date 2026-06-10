@@ -96,6 +96,8 @@ router.use((error, req, res, next) => {
 
 // Valider un document
 router.put('/applications/:applicationId/documents/:documentId/validate', CreditController.validateDocument);
+// ✅ Sauvegarder les données financières complémentaires (IA / scoring) dans application.aiFinancialData
+router.put('/applications/:id/ai-financial-data', CreditController.saveFinancialData);
 // Supprimer une demande
 router.delete('/applications/:id', CreditController.deleteApplication);
 

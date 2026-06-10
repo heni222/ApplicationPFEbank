@@ -172,7 +172,14 @@ export class DashboardAnalysteComponent implements OnInit, OnDestroy {
     });
 
     this.creditService.applications$.pipe(takeUntil(this.destroy$)).subscribe(a => {
-      this.applications = a;
+      // ✅ Normaliser clientId une seule fois dès réception
+      this.applications = a.map(app => ({
+        ...app,
+        clientId: typeof app.clientId === 'object'
+          ? (app.clientId as any)?._id
+          : app.clientId,
+        clientName: app.clientName || (app.clientId as any)?.fullName || '',
+      }));
       this.applyFilters();
       this.computeRiskKpis();
       this.cdr.markForCheck();
@@ -194,7 +201,6 @@ export class DashboardAnalysteComponent implements OnInit, OnDestroy {
       this.cdr.markForCheck();
     });
   }
-
   // ──────────────────────────────────────────
   //  Calcul des KPIs risque (analyste)
   // ──────────────────────────────────────────
@@ -264,7 +270,13 @@ export class DashboardAnalysteComponent implements OnInit, OnDestroy {
   // ──────────────────────────────────────────
   //  Score de risque (calculé dynamiquement)
   // ──────────────────────────────────────────
+  hasAiFinancialData(app: CreditApplication | null): boolean {
+    return !!(app as any)?.aiFinancialData;
+  }
 
+  getAiFinancialData(app: CreditApplication | null): any {
+    return (app as any)?.aiFinancialData || {};
+  }
   /**
    * Calcule un score de risque 0-100 basé sur les données financières du client.
    * Score élevé = risque élevé.

@@ -358,6 +358,46 @@ class CreditService {
     }
   }
 
+  // ✅ Données financières complémentaires (IA / scoring) — sauvegardées dans application.aiFinancialData
+  async saveFinancialData(applicationId, data) {
+    try {
+      if (!mongoose.Types.ObjectId.isValid(applicationId)) {
+        throw new Error('ID de demande invalide');
+      }
+
+      const application = await CreditApplication.findById(applicationId);
+      if (!application) {
+        throw new Error('Demande non trouvée');
+      }
+
+      // Whitelist des champs autorisés pour éviter l'injection de champs arbitraires
+      const allowed = [
+        'account_age_months',
+        'avg_monthly_balance',
+        'num_deposits_per_month',
+        'avg_deposit_amount',
+        'num_withdrawals_per_month',
+        'avg_withdrawal_amount',
+        'debit_card_spending',
+        'credit_card_utilization',
+        'total_outstanding_debt',
+        'loan_application_amount'
+      ];
+      const clean = {};
+      for (const key of allowed) {
+        if (data[key] !== undefined) clean[key] = data[key];
+      }
+
+      // ✅ On assigne le sous-document puis on persiste
+      application.aiFinancialData = clean;
+      await application.save();
+
+      return application;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // ========== Services Statistiques ==========
 
   async getKPIs() {
