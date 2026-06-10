@@ -20,21 +20,29 @@ export interface AiFinancialData {
   total_outstanding_debt: number;
   loan_application_amount: number;
 }
-
 export interface Client {
   _id: string;
+
   fullName: string;
+  cin: string;
   email: string;
   phone: string;
+  birthDate: string;
+
+  gender: 'Male' | 'Female' | 'Other';
+  employmentStatus: 'Employed' | 'Self-Employed' | 'Unemployed';
+
   address: string;
   city: string;
-  cin: string;
-  birthDate: string;
   profession: string;
   employer: string;
+
   revenue: number;
   monthlyCharges: number;
-  existingLoanPayments: number; // ✅ mensualité réelle (remplace existingLoans)
+
+  // mensualité totale des crédits existants
+  existingLoanPayments: number;
+
   createdAt: Date;
   updatedAt: Date;
 }

@@ -205,17 +205,21 @@ export class DashboardCreditComponent implements OnInit, OnDestroy {
   buildForms(): void {
     this.clientForm = this.fb.group({
       fullName: ['', [Validators.required, Validators.minLength(3)]],
+      cin: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       phone: ['', Validators.required],
-      address: ['', Validators.required],
-      city: ['', Validators.required],
-      cin: ['', [Validators.required, Validators.minLength(6)]],
       birthDate: ['', Validators.required],
+
+      gender: ['', Validators.required],
+      employmentStatus: ['', Validators.required],
+
+      city: ['', Validators.required],
+      address: ['', Validators.required],
       profession: ['', Validators.required],
       employer: ['', Validators.required],
-      revenue: [0, [Validators.required, Validators.min(1)]],
-      monthlyCharges: [0, [Validators.required, Validators.min(0)]],
-      existingLoanPayments: [0, [Validators.required, Validators.min(0)]], // ✅ mensualité réelle
+      revenue: [null, Validators.required],
+      monthlyCharges: [null, Validators.required],
+      existingLoans: [0]
     });
 
     this.applicationForm = this.fb.group({

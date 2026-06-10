@@ -14,88 +14,39 @@ SCALER_PATH = os.path.join("models", "scaler.pkl")
 model = joblib.load(MODEL_PATH)
 scaler = joblib.load(SCALER_PATH)
 
-# IMPORTANT:
-# Mets ici exactement les mêmes colonnes et le même ordre que dans le notebook
-FEATURE_COLUMNS = [
-    "age",
-    "annual_income",
-    "account_age_months",
-    "avg_monthly_balance",
-    "num_deposits_per_month",
-    "avg_deposit_amount",
-    "num_withdrawals_per_month",
-    "avg_withdrawal_amount",
-    "debit_card_spending",
-    "credit_card_utilization",
-    "total_outstanding_debt",
-    "loan_application_amount",
-    "employment_status",
-    "housing_status",
-    "marital_status",
-    "education_level"
-]
-
-NUMERIC_COLUMNS = [
-    "age",
-    "annual_income",
-    "account_age_months",
-    "avg_monthly_balance",
-    "num_deposits_per_month",
-    "avg_deposit_amount",
-    "num_withdrawals_per_month",
-    "avg_withdrawal_amount",
-    "debit_card_spending",
-    "credit_card_utilization",
-    "total_outstanding_debt",
-    "loan_application_amount"
-]
-
-CATEGORICAL_COLUMNS = [
-    "employment_status",
-    "housing_status",
-    "marital_status",
-    "education_level"
-]
-
-# À adapter selon ton notebook
-ENCODING_MAPS = {
-    "employment_status": {
-        "employed": 0,
-        "self-employed": 1,
-        "unemployed": 2,
-        "student": 3,
-        "retired": 4
-    },
-    "housing_status": {
-        "rent": 0,
-        "own": 1,
-        "mortgage": 2,
-        "other": 3
-    },
-    "marital_status": {
-        "single": 0,
-        "married": 1,
-        "divorced": 2,
-        "widowed": 3
-    },
-    "education_level": {
-        "high school": 0,
-        "bachelor": 1,
-        "master": 2,
-        "phd": 3
-    }
-}
-
-
-@app.route("/", methods=["GET"])
-def home():
-    return jsonify({
-        "message": "API Flask Credit Risk fonctionne correctement"
-    })
-
-
-@app.route("/predict", methods=["POST"])
+@app.route('/predict', methods=['POST'])
 def predict():
+    data = request.get_json()
+
+    client = data['client']
+    application = data['application']
+
+    revenue = client['revenue']
+    monthly_charges = client['monthlyCharges']
+    existing_loans = client['existingLoans']
+    amount = application['amount']
+    duration = application['duration']
+    monthly_payment = application['monthlyPayment']
+
+    # مثال features
+    features = {
+        'annual_income': revenue * 12,
+        'loan_application_amount': amount,
+        'monthly_charges': monthly_charges,
+        'existing_loans': existing_loans,
+        'loan_duration': duration,
+        'monthly_payment': monthly_payment
+    }
+
+    # لازم هنا نفس colonnes متاع training بالضبط
+    X = pd.DataFrame([features])
+    prediction = model.predict(X)[0]
+    proba = model.predict_proba(X)[0][1]
+
+    return jsonify({
+        'prediction': int(prediction),
+        'risk_score': round(float(proba) * 100, 2)
+    })
     try:
         data = request.get_json()
 
@@ -104,7 +55,13 @@ def predict():
                 "error": "Aucune donnée JSON reçue"
             }), 400
 
-        missing_fields = [col for col in FEATURE_COLUMNS if col not in data]
+        # Cas Angular : données dans aiFinancialData
+        ai_data = data.get("aiFinancialData", data)
+
+        missing_fields = [
+            col for col in FEATURE_COLUMNS
+            if col not in ai_data
+        ]
 
         if missing_fields:
             return jsonify({
@@ -114,53 +71,71 @@ def predict():
 
         input_data = {}
 
+        # Variables numériques
         for col in NUMERIC_COLUMNS:
             try:
-                input_data[col] = float(data[col])
-            except ValueError:
+                input_data[col] = float(ai_data[col])
+            except Exception:
                 return jsonify({
                     "error": f"Le champ {col} doit être numérique"
                 }), 400
 
+        # Variables catégorielles
         for col in CATEGORICAL_COLUMNS:
-            value = str(data[col]).lower().strip()
+            value = str(ai_data[col]).lower().strip()
 
             if value not in ENCODING_MAPS[col]:
                 return jsonify({
                     "error": f"Valeur invalide pour {col}",
-                    "accepted_values": list(ENCODING_MAPS[col].keys())
+                    "accepted_values": list(
+                        ENCODING_MAPS[col].keys()
+                    )
                 }), 400
 
             input_data[col] = ENCODING_MAPS[col][value]
 
+        # DataFrame
         df = pd.DataFrame([input_data])
 
-        # Respecter exactement l’ordre des colonnes
+        # Ordre identique à l'entraînement
         df = df[FEATURE_COLUMNS]
 
-        # Appliquer le scaler sauvegardé
+        # Scaling
         df_scaled = scaler.transform(df)
 
+        # Prédiction
         prediction = int(model.predict(df_scaled)[0])
 
+        # Probabilité
         if hasattr(model, "predict_proba"):
-            probability = float(model.predict_proba(df_scaled)[0][prediction])
+            probability = float(
+                model.predict_proba(df_scaled)[0][1]
+            )
         else:
             probability = None
 
-        label = "Risque élevé" if prediction == 1 else "Risque faible"
+        # Score risque 0-100
+        risk_score = round(probability * 100) if probability is not None else None
+
+        label = (
+            "Risque élevé"
+            if prediction == 1
+            else "Risque faible"
+        )
 
         return jsonify({
             "prediction": prediction,
             "label": label,
-            "probability": probability
+            "probability": probability,
+            "risk_score": risk_score,
+
+            # infos utiles Angular
+            "applicationId": data.get("applicationId"),
+            "clientId": data.get("clientId"),
+            "clientName": data.get("clientName")
         })
 
     except Exception as e:
         return jsonify({
             "error": str(e)
         }), 500
-
-
-if __name__ == "__main__":
-    app.run(debug=True, port=5000)

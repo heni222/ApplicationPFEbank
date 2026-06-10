@@ -8,7 +8,7 @@ const clientSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    required: [true, 'L\'email est requis'],
+    required: [true, "L'email est requis"],
     unique: true,
     lowercase: true,
     trim: true,
@@ -21,7 +21,7 @@ const clientSchema = new mongoose.Schema({
   },
   address: {
     type: String,
-    required: [true, 'L\'adresse est requise'],
+    required: [true, "L'adresse est requise"],
     trim: true
   },
   city: {
@@ -39,6 +39,19 @@ const clientSchema = new mongoose.Schema({
     type: Date,
     required: [true, 'La date de naissance est requise']
   },
+
+  gender: {
+    type: String,
+    required: [true, 'Le genre est requis'],
+    enum: ['Male', 'Female', 'Other']
+  },
+
+  employmentStatus: {
+    type: String,
+    required: [true, "Le statut d'emploi est requis"],
+    enum: ['Employed', 'Self-Employed', 'Unemployed']
+  },
+
   profession: {
     type: String,
     required: [true, 'La profession est requise'],
@@ -46,7 +59,7 @@ const clientSchema = new mongoose.Schema({
   },
   employer: {
     type: String,
-    required: [true, 'L\'employeur est requis'],
+    required: [true, "L'employeur est requis"],
     trim: true
   },
   revenue: {

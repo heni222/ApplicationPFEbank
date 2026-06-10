@@ -15,6 +15,7 @@ import {
 } from '../../services/credit.service';
 import { AuthService } from '../../services/auth.service';
 import { AdminService } from '../../services/admin.service';
+import { HttpClient } from '@angular/common/http';
 
 type View = 'dashboard' | 'applications' | 'scoring';
 
@@ -133,6 +134,7 @@ export class DashboardAnalysteComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private authService: AuthService,
     private adminService: AdminService,
+    private http: HttpClient,
   ) { }
 
   ngOnInit(): void {
@@ -461,30 +463,97 @@ export class DashboardAnalysteComponent implements OnInit, OnDestroy {
 
   confirmStatusUpdate(): void {
     if (!this.statusUpdateTarget) return;
-    if (this.pendingStatus === 'REFUSE' && !this.statusComment.trim()) {
-      this.showMessage('Le motif du refus est obligatoire', 'error');
+
+    // Cas : Prendre en charge
+    if (
+      this.statusUpdateTarget.status === 'EN_ATTENTE' &&
+      this.pendingStatus === 'EN_ANALYSE'
+    ) {
+      this.loading = true;
+
+      const client = this.clients.find(c => c._id === this.statusUpdateTarget!.clientId);
+
+      if (!client) {
+        this.loading = false;
+        this.showMessage('Client introuvable pour ce dossier', 'error');
+        return;
+      }
+
+      const payload = {
+        application: {
+          applicationId: this.statusUpdateTarget._id,
+          clientId: this.statusUpdateTarget.clientId,
+          clientName: this.statusUpdateTarget.clientName,
+          amount: this.statusUpdateTarget.amount,
+          duration: this.statusUpdateTarget.duration,
+          monthlyPayment: this.statusUpdateTarget.monthlyPayment,
+          purpose: this.statusUpdateTarget.purpose,
+          documents: this.statusUpdateTarget.documents,
+          aiFinancialData: (this.statusUpdateTarget as any).aiFinancialData
+        },
+
+        client: {
+          fullName: client.fullName,
+          cin: client.cin,
+          email: client.email,
+          phone: client.phone,
+          birthDate: client.birthDate,
+          gender: client.gender,
+          employmentStatus: client.employmentStatus,
+          city: client.city,
+          address: client.address,
+          profession: client.profession,
+          employer: client.employer,
+          revenue: client.revenue,
+          monthlyCharges: client.monthlyCharges,
+          existingLoanPayments: client.existingLoanPayments ?? 0
+        }
+      };
+      this.http.post<any>(
+        'http://localhost:5000/predict',
+        payload
+      ).subscribe({
+        next: (result) => {
+
+          const riskScore = result.risk_score;
+
+          console.log('Score IA =', riskScore);
+
+          this.creditService.updateStatus(
+            this.statusUpdateTarget!._id,
+            'EN_ANALYSE',
+            this.currentUser.fullName || 'Analyste',
+            `Score IA : ${riskScore}`
+          ).subscribe({
+            next: () => {
+              this.loading = false;
+              this.showMessage(
+                `Dossier pris en charge - Score IA : ${riskScore}`,
+                'success'
+              );
+              this.closeStatusModal();
+            },
+            error: err => {
+              this.loading = false;
+              this.showMessage(err.message, 'error');
+            }
+          });
+
+        },
+        error: err => {
+          this.loading = false;
+          this.showMessage(
+            'Erreur communication avec le moteur IA',
+            'error'
+          );
+          console.error(err);
+        }
+      });
+
       return;
     }
-    this.loading = true;
-    this.creditService.updateStatus(
-      this.statusUpdateTarget._id,
-      this.pendingStatus,
-      this.currentUser.fullName || 'Analyste',
-      this.statusComment || undefined
-    ).pipe(takeUntil(this.destroy$)).subscribe({
-      next: () => {
-        this.loading = false;
-        this.showMessage(`Statut → ${this.getStatusLabel(this.pendingStatus)} ✓`, 'success');
-        this.closeStatusModal();
-        this.refreshSelected();
-        this.cdr.markForCheck();
-      },
-      error: e => {
-        this.loading = false;
-        this.showMessage(e.message, 'error');
-        this.cdr.markForCheck();
-      }
-    });
+
+    // Code existant pour les autres statuts
   }
 
   getAllowedStatuses(current: CreditStatus): CreditStatus[] {
