@@ -19,6 +19,7 @@ export interface AiFinancialData {
   credit_card_utilization: number;
   total_outstanding_debt: number;
   loan_application_amount: number;
+  ia_risk_score?: number;
 }
 export interface Client {
   _id: string;

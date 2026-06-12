@@ -1803,6 +1803,25 @@ $breakpoint-2xl: 1536px;
     }
   }
 }
+.ia-badge {
+  margin-left: 5px;
+  font-size: 12px;
+  color: #6366f1;
+}
+
+.score-meter {
+  width: 100%;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.score-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #22c55e, #facc15, #ef4444);
+  transition: width 0.4s ease;
+}
 
 .comment-input {
   display: flex;

@@ -35,7 +35,12 @@ const aiFinancialDataSchema = new mongoose.Schema({
   debit_card_spending: { type: Number, default: null },
   credit_card_utilization: { type: Number, default: null },
   total_outstanding_debt: { type: Number, default: null },
-  loan_application_amount: { type: Number, default: null }
+  loan_application_amount: { type: Number, default: null },
+  ia_risk_score: {
+    type: Number,
+    default: null
+  }
+
 }, { _id: false });
 
 const creditApplicationSchema = new mongoose.Schema({

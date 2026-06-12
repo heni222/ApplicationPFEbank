@@ -7,18 +7,24 @@
       <div class="logo" *ngIf="!sidebarCollapsed">
         <div class="logo__icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" />
           </svg>
         </div>
         <span class="logo__text">CreditHub</span>
       </div>
       <div class="logo-icon" *ngIf="sidebarCollapsed">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+            stroke-linejoin="round" />
+          <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+            stroke-linejoin="round" />
+          <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+            stroke-linejoin="round" />
         </svg>
       </div>
       <button class="sidebar__toggle" (click)="sidebarCollapsed = !sidebarCollapsed">
@@ -40,9 +46,8 @@
     </div>
 
     <nav class="sidebar__nav">
-      <a *ngFor="let item of sidebarItems" class="sidebar__item"
-         [class.active]="currentView === item.id"
-         (click)="setView(item.id)">
+      <a *ngFor="let item of sidebarItems" class="sidebar__item" [class.active]="currentView === item.id"
+        (click)="setView(item.id)">
         <span class="sidebar__icon">{{ item.icon }}</span>
         <span class="sidebar__label" *ngIf="!sidebarCollapsed">{{ item.label }}</span>
       </a>
@@ -73,9 +78,8 @@
   <!-- ═══════════════════════════ MAIN ═══════════════════════════ -->
   <main class="main-content">
 
-    <div class="toast" *ngIf="message"
-         [class.toast--success]="messageType==='success'"
-         [class.toast--error]="messageType==='error'">
+    <div class="toast" *ngIf="message" [class.toast--success]="messageType==='success'"
+      [class.toast--error]="messageType==='error'">
       <span class="toast__icon">{{ messageType==='success' ? '✓' : '⚠' }}</span>
       <span class="toast__message">{{ message }}</span>
     </div>
@@ -83,7 +87,8 @@
     <!-- ── Hero ── -->
     <div class="hero">
       <div class="hero__bg">
-        <img src="https://images.unsplash.com/photo-1557683316-973673baf926?w=1600&h=400&fit=crop" alt="" class="hero__img"/>
+        <img src="https://images.unsplash.com/photo-1557683316-973673baf926?w=1600&h=400&fit=crop" alt=""
+          class="hero__img" />
         <div class="hero__overlay"></div>
       </div>
       <div class="hero__content">
@@ -192,9 +197,9 @@
               — {{ topPriorityApp.amount | number:'1.0-0' }} DT
             </div>
             <div class="score-gauge">
-              <div class="score-value">{{ getRiskScore(topPriorityApp) }}/100</div>
+              <div class="score-value">{{ getDisplayScore(topPriorityApp) }}/100</div>
               <div class="score-meter">
-                <div class="score-fill" [style.width.%]="getRiskScore(topPriorityApp)"></div>
+                <div class="score-fill" [style.width.%]="getDisplayScore(topPriorityApp)"></div>
               </div>
               <div class="score-labels">
                 <span>Faible</span><span>Modéré</span><span>Élevé</span>
@@ -224,9 +229,8 @@
           <div class="card__icon">📉</div>
           <h3 class="card__title">Répartition des niveaux de risque</h3>
           <div class="pie-chart-placeholder">
-            <div class="pie"
-                 [style.--high]="riskDistribution.high + '%'"
-                 [style.--medium]="(riskDistribution.high + riskDistribution.medium) + '%'">
+            <div class="pie" [style.--high]="riskDistribution.high + '%'"
+              [style.--medium]="(riskDistribution.high + riskDistribution.medium) + '%'">
             </div>
             <div class="pie-legend">
               <span><span class="legend-color high"></span> Haut risque ({{ riskDistribution.high }}%)</span>
@@ -243,8 +247,7 @@
           <h3 class="card__title">Évolution du score moyen (6 mois)</h3>
           <div class="line-chart">
             <div class="chart-bars">
-              <div class="bar" *ngFor="let point of riskTrend"
-                   [style.height.%]="(point.value / 100) * 100">
+              <div class="bar" *ngFor="let point of riskTrend" [style.height.%]="(point.value / 100) * 100">
                 <span class="bar-label">{{ point.month }}</span>
                 <span class="bar-value">{{ point.value }}</span>
               </div>
@@ -264,7 +267,9 @@
               <div class="chart-bar__value">{{ m.count }}</div>
             </div>
           </div>
-          <ng-template #noStats><p class="empty-state-small">Aucune donnée disponible</p></ng-template>
+          <ng-template #noStats>
+            <p class="empty-state-small">Aucune donnée disponible</p>
+          </ng-template>
         </div>
       </div>
 
@@ -331,7 +336,7 @@
         </div>
         <div class="users-list">
           <div class="user-item" *ngFor="let app of applications.slice(0,5); trackBy: trackByApp"
-               (click)="viewApplication(app)">
+            (click)="viewApplication(app)">
             <div class="user-item__avatar">
               <span>{{ app.clientName.charAt(0).toUpperCase() }}</span>
             </div>
@@ -339,8 +344,10 @@
               <div class="user-item__name">{{ app.clientName }}</div>
               <div class="user-item__email">
                 {{ app.purpose }} — {{ app.amount | number:'1.0-0' }} DT
-                <span class="risk-badge" [class]="getRiskLevelClass(getRiskScore(app))">
-                  Score: {{ getRiskScore(app) }}
+                <!-- APRÈS -->
+                <span class="risk-badge" [class]="getRiskLevelClass(getDisplayScore(app))">
+                  Score: {{ getDisplayScore(app) }}
+                  <span *ngIf="isIaScore(app)">🤖</span>
                 </span>
               </div>
             </div>
@@ -370,7 +377,7 @@
         <div class="filters-card__search">
           <span class="search-icon">🔍</span>
           <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()"
-                 placeholder="Rechercher par client ou objet..." class="search-input" />
+            placeholder="Rechercher par client ou objet..." class="search-input" />
         </div>
         <div class="filters-card__controls">
           <select [(ngModel)]="filterStatus" (ngModelChange)="onFilterChange()" class="filter-select">
@@ -418,43 +425,46 @@
             <tr *ngFor="let app of filteredApplications; trackBy: trackByApp">
               <td class="cell-user">
                 <div class="user-avatar">{{ app.clientName.charAt(0).toUpperCase() }}</div>
-                <div class="user-info"><div class="user-name">{{ app.clientName }}</div></div>
+                <div class="user-info">
+                  <div class="user-name">{{ app.clientName }}</div>
+                </div>
               </td>
               <td class="amount-cell">{{ app.amount | number:'1.0-0' }} DT</td>
               <td>{{ app.duration }} mois</td>
               <td>{{ app.monthlyPayment | number:'1.0-0' }} DT</td>
               <td>{{ app.purpose }}</td>
+              <!-- APRÈS -->
               <td class="score-cell">
-                <span class="score-number"
-                      [class.high-risk]="getRiskScore(app) > 75"
-                      [class.medium-risk]="getRiskScore(app) >= 35 && getRiskScore(app) <= 75"
-                      [class.low-risk]="getRiskScore(app) < 35">
-                  {{ getRiskScore(app) }}
+                <span class="score-number" [class.high-risk]="getDisplayScore(app) > 75"
+                  [class.medium-risk]="getDisplayScore(app) >= 35 && getDisplayScore(app) <= 75"
+                  [class.low-risk]="getDisplayScore(app) < 35">
+                  {{ getDisplayScore(app) }}
+                  <span *ngIf="isIaScore(app)" title="Score calculé par IA" style="font-size:10px">🤖</span>
                 </span>
                 <div class="mini-score-bar">
-                  <div class="mini-fill"
-                       [class.fill-high]="getRiskScore(app) > 75"
-                       [class.fill-medium]="getRiskScore(app) >= 35 && getRiskScore(app) <= 75"
-                       [class.fill-low]="getRiskScore(app) < 35"
-                       [style.width.%]="getRiskScore(app)">
+                  <div class="mini-fill" [class.fill-high]="getDisplayScore(app) > 75"
+                    [class.fill-medium]="getDisplayScore(app) >= 35 && getDisplayScore(app) <= 75"
+                    [class.fill-low]="getDisplayScore(app) < 35" [style.width.%]="getDisplayScore(app)">
                   </div>
                 </div>
               </td>
+
               <td>
-                <span class="risk-level" [class]="getRiskLevelClass(getRiskScore(app))">
-                  {{ getRiskLevelLabel(getRiskScore(app)) }}
+                <span class="risk-level" [class]="getRiskLevelClass(getDisplayScore(app))">
+                  {{ getRiskLevelLabel(getDisplayScore(app)) }}
+                  <span *ngIf="isIaScore(app)">🤖</span>
                 </span>
               </td>
+
               <td>
                 <span class="status-badge" [class]="getStatusClass(app.status)">{{ getStatusLabel(app.status) }}</span>
               </td>
               <td>{{ app.createdAt | date:'dd/MM/yyyy' }}</td>
               <td class="cell-actions">
                 <button class="action-btn" (click)="viewApplication(app)" title="Consulter">👁️</button>
-                <button class="action-btn action-btn--analyze"
-                        *ngIf="canChangeStatus(app)"
-                        (click)="openStatusModal(app)"
-                        [title]="app.status === 'EN_ATTENTE' ? 'Prendre en charge' : 'Décider'">
+                <button class="action-btn action-btn--analyze" *ngIf="canChangeStatus(app)"
+                  (click)="openStatusModal(app)"
+                  [title]="app.status === 'EN_ATTENTE' ? 'Prendre en charge' : 'Décider'">
                   {{ app.status === 'EN_ATTENTE' ? '▶️' : '⚖️' }}
                 </button>
               </td>
@@ -500,13 +510,26 @@
               <strong>{{ scoringTarget.clientName }}</strong> — {{ scoringTarget.amount | number:'1.0-0' }} DT
             </div>
             <div class="score-gauge">
-              <div class="score-value">{{ getRiskScore(scoringTarget) }}/100</div>
+
+              <div class="score-value">
+                {{ getDisplayScore(scoringTarget) }}/100
+
+                <span class="info-badge" *ngIf="isIaScore(scoringTarget)">
+                  🤖 IA
+                </span>
+              </div>
+
               <div class="score-meter">
-                <div class="score-fill" [style.width.%]="getRiskScore(scoringTarget)"></div>
+                <div class="score-fill" [style.width.%]="getDisplayScore(scoringTarget)">
+                </div>
               </div>
+
               <div class="score-labels">
-                <span>Faible</span><span>Modéré</span><span>Élevé</span>
+                <span>Faible</span>
+                <span>Modéré</span>
+                <span>Élevé</span>
               </div>
+
             </div>
             <div class="risk-factors">
               <h4>Facteurs de risque détaillés</h4>
@@ -525,16 +548,18 @@
               <div class="financial-indicators">
                 <div class="indicator">
                   <div class="indicator__label">Revenus</div>
-                  <div class="indicator__value">{{ getClientFinancials(scoringTarget.clientId).revenue | number:'1.0-0' }} DT</div>
+                  <div class="indicator__value">{{ getClientFinancials(scoringTarget.clientId).revenue | number:'1.0-0'
+                    }} DT</div>
                 </div>
                 <div class="indicator">
                   <div class="indicator__label">Charges</div>
-                  <div class="indicator__value">{{ getClientFinancials(scoringTarget.clientId).monthlyCharges | number:'1.0-0' }} DT</div>
+                  <div class="indicator__value">{{ getClientFinancials(scoringTarget.clientId).monthlyCharges |
+                    number:'1.0-0' }} DT</div>
                 </div>
                 <div class="indicator">
                   <div class="indicator__label">Taux endettement</div>
                   <div class="indicator__value"
-                       [class.high-risk]="getDebtRatio(scoringTarget.clientId, scoringTarget.monthlyPayment) > 33">
+                    [class.high-risk]="getDebtRatio(scoringTarget.clientId, scoringTarget.monthlyPayment) > 33">
                     {{ getDebtRatio(scoringTarget.clientId, scoringTarget.monthlyPayment) }}%
                   </div>
                 </div>
@@ -554,21 +579,24 @@
                 </div>
                 <div class="indicator">
                   <div class="indicator__label">Solde moyen</div>
-                  <div class="indicator__value">{{ getAiFinancialData(scoringTarget).avg_monthly_balance | number:'1.0-0' }} DT</div>
+                  <div class="indicator__value">{{ getAiFinancialData(scoringTarget).avg_monthly_balance |
+                    number:'1.0-0' }} DT</div>
                 </div>
                 <div class="indicator">
                   <div class="indicator__label">Utilisation carte</div>
-                  <div class="indicator__value">{{ getAiFinancialData(scoringTarget).credit_card_utilization | percent:'1.0-2' }}</div>
+                  <div class="indicator__value">{{ getAiFinancialData(scoringTarget).credit_card_utilization |
+                    percent:'1.0-2' }}</div>
                 </div>
                 <div class="indicator">
                   <div class="indicator__label">Dette restante</div>
-                  <div class="indicator__value">{{ getAiFinancialData(scoringTarget).total_outstanding_debt | number:'1.0-0' }} DT</div>
+                  <div class="indicator__value">{{ getAiFinancialData(scoringTarget).total_outstanding_debt |
+                    number:'1.0-0' }} DT</div>
                 </div>
               </div>
             </div>
             <div class="scoring-actions">
               <button class="btn btn--primary" (click)="openStatusModal(scoringTarget)"
-                      *ngIf="canChangeStatus(scoringTarget)">
+                *ngIf="canChangeStatus(scoringTarget)">
                 ⚖️ Prendre une décision
               </button>
               <button class="btn btn--ghost" (click)="viewApplication(scoringTarget)">
@@ -591,7 +619,7 @@
               <div class="chart-bar__label">Faible &lt;35</div>
               <div class="chart-bar__track">
                 <div class="chart-bar__fill chart-bar__fill--success"
-                     [style.width.%]="kpis.total > 0 ? (riskKpis.lowRiskCount / kpis.total * 100) : 0"></div>
+                  [style.width.%]="kpis.total > 0 ? (riskKpis.lowRiskCount / kpis.total * 100) : 0"></div>
               </div>
               <div class="chart-bar__value">{{ riskKpis.lowRiskCount }}</div>
             </div>
@@ -599,7 +627,8 @@
               <div class="chart-bar__label">Modéré 35-75</div>
               <div class="chart-bar__track">
                 <div class="chart-bar__fill chart-bar__fill--warning"
-                     [style.width.%]="kpis.total > 0 ? ((kpis.total - riskKpis.lowRiskCount - riskKpis.highRiskCount) / kpis.total * 100) : 0"></div>
+                  [style.width.%]="kpis.total > 0 ? ((kpis.total - riskKpis.lowRiskCount - riskKpis.highRiskCount) / kpis.total * 100) : 0">
+                </div>
               </div>
               <div class="chart-bar__value">{{ kpis.total - riskKpis.lowRiskCount - riskKpis.highRiskCount }}</div>
             </div>
@@ -607,7 +636,7 @@
               <div class="chart-bar__label">Élevé &gt;75</div>
               <div class="chart-bar__track">
                 <div class="chart-bar__fill chart-bar__fill--danger"
-                     [style.width.%]="kpis.total > 0 ? (riskKpis.highRiskCount / kpis.total * 100) : 0"></div>
+                  [style.width.%]="kpis.total > 0 ? (riskKpis.highRiskCount / kpis.total * 100) : 0"></div>
               </div>
               <div class="chart-bar__value">{{ riskKpis.highRiskCount }}</div>
             </div>
@@ -628,10 +657,8 @@
           </div>
         </div>
         <div class="users-list">
-          <div class="user-item"
-               *ngFor="let app of getScoringList(); trackBy: trackByApp"
-               [class.user-item--selected]="scoringTarget?._id === app._id"
-               (click)="selectForScoring(app)">
+          <div class="user-item" *ngFor="let app of getScoringList(); trackBy: trackByApp"
+            [class.user-item--selected]="scoringTarget?._id === app._id" (click)="selectForScoring(app)">
             <div class="user-item__avatar"><span>{{ app.clientName.charAt(0).toUpperCase() }}</span></div>
             <div class="user-item__info">
               <div class="user-item__name">{{ app.clientName }}</div>
@@ -642,8 +669,8 @@
               </div>
             </div>
             <div class="user-item__badges">
-              <span class="risk-level" [class]="getRiskLevelClass(getRiskScore(app))">
-                Score: {{ getRiskScore(app) }}
+              <span class="risk-level" [class]="getRiskLevelClass(getDisplayScore(app))">
+                Score: {{ getDisplayScore(app) }}
               </span>
               <span class="status-badge" [class]="getStatusClass(app.status)">{{ getStatusLabel(app.status) }}</span>
             </div>
@@ -670,8 +697,8 @@
         <span class="status-badge" [class]="getStatusClass(selectedApplication.status)">
           {{ getStatusLabel(selectedApplication.status) }}
         </span>
-        <span class="risk-level" [class]="getRiskLevelClass(getRiskScore(selectedApplication))">
-          Score: {{ getRiskScore(selectedApplication) }}
+        <span class="risk-level" [class]="getRiskLevelClass(getDisplayScore(selectedApplication))">
+          Score: {{ getDisplayScore(selectedApplication) }}
         </span>
       </div>
       <button class="modal__close" (click)="closeApplication()">✕</button>
@@ -683,13 +710,26 @@
       <div class="detail-section">
         <h3>🎯 Score de risque</h3>
         <div class="score-gauge">
-          <div class="score-value">{{ getRiskScore(selectedApplication) }}/100</div>
+
+          <div class="score-value">
+            {{ getDisplayScore(selectedApplication) }}/100
+
+            <span class="info-badge" *ngIf="isIaScore(selectedApplication)">
+              🤖 IA
+            </span>
+          </div>
+
           <div class="score-meter">
-            <div class="score-fill" [style.width.%]="getRiskScore(selectedApplication)"></div>
+            <div class="score-fill" [style.width.%]="getDisplayScore(selectedApplication)">
+            </div>
           </div>
+
           <div class="score-labels">
-            <span>Faible</span><span>Modéré</span><span>Élevé</span>
+            <span>Faible</span>
+            <span>Modéré</span>
+            <span>Élevé</span>
           </div>
+
         </div>
         <div class="risk-factors">
           <h4>Facteurs de risque</h4>
@@ -708,14 +748,27 @@
       <div class="detail-section">
         <h3>📋 Informations générales</h3>
         <div class="detail-grid">
-          <div class="detail-item"><label>Montant</label><div class="detail-value">{{ selectedApplication.amount | number:'1.0-0' }} DT</div></div>
-          <div class="detail-item"><label>Durée</label><div class="detail-value">{{ selectedApplication.duration }} mois</div></div>
-          <div class="detail-item"><label>Mensualité</label><div class="detail-value">{{ selectedApplication.monthlyPayment | number:'1.0-0' }} DT</div></div>
-          <div class="detail-item"><label>Taux</label><div class="detail-value">{{ selectedApplication.interestRate }}%</div></div>
-          <div class="detail-item"><label>Objet</label><div class="detail-value">{{ selectedApplication.purpose }}</div></div>
-          <div class="detail-item"><label>Date création</label><div class="detail-value">{{ selectedApplication.createdAt | date:'dd/MM/yyyy HH:mm' }}</div></div>
+          <div class="detail-item"><label>Montant</label>
+            <div class="detail-value">{{ selectedApplication.amount | number:'1.0-0' }} DT</div>
+          </div>
+          <div class="detail-item"><label>Durée</label>
+            <div class="detail-value">{{ selectedApplication.duration }} mois</div>
+          </div>
+          <div class="detail-item"><label>Mensualité</label>
+            <div class="detail-value">{{ selectedApplication.monthlyPayment | number:'1.0-0' }} DT</div>
+          </div>
+          <div class="detail-item"><label>Taux</label>
+            <div class="detail-value">{{ selectedApplication.interestRate }}%</div>
+          </div>
+          <div class="detail-item"><label>Objet</label>
+            <div class="detail-value">{{ selectedApplication.purpose }}</div>
+          </div>
+          <div class="detail-item"><label>Date création</label>
+            <div class="detail-value">{{ selectedApplication.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
+          </div>
           <div class="detail-item" *ngIf="selectedApplication.processedBy">
-            <label>Traité par</label><div class="detail-value">{{ selectedApplication.processedBy }}</div>
+            <label>Traité par</label>
+            <div class="detail-value">{{ selectedApplication.processedBy }}</div>
           </div>
           <div class="detail-item" *ngIf="selectedApplication.rejectionReason">
             <label>Motif refus</label>
@@ -730,20 +783,23 @@
         <div class="financial-indicators">
           <div class="indicator">
             <div class="indicator__label">Revenus mensuels</div>
-            <div class="indicator__value">{{ getClientFinancials(selectedApplication.clientId).revenue | number:'1.0-0' }} DT</div>
+            <div class="indicator__value">{{ getClientFinancials(selectedApplication.clientId).revenue | number:'1.0-0'
+              }} DT</div>
           </div>
           <div class="indicator">
             <div class="indicator__label">Charges mensuelles</div>
-            <div class="indicator__value">{{ getClientFinancials(selectedApplication.clientId).monthlyCharges | number:'1.0-0' }} DT</div>
+            <div class="indicator__value">{{ getClientFinancials(selectedApplication.clientId).monthlyCharges |
+              number:'1.0-0' }} DT</div>
           </div>
           <div class="indicator">
             <div class="indicator__label">Capacité résiduelle</div>
-            <div class="indicator__value">{{ getRemainingCapacity(selectedApplication.clientId) | number:'1.0-0' }} DT</div>
+            <div class="indicator__value">{{ getRemainingCapacity(selectedApplication.clientId) | number:'1.0-0' }} DT
+            </div>
           </div>
           <div class="indicator">
             <div class="indicator__label">Taux d'endettement</div>
             <div class="indicator__value"
-                 [class.high-risk]="getDebtRatio(selectedApplication.clientId, selectedApplication.monthlyPayment) > 33">
+              [class.high-risk]="getDebtRatio(selectedApplication.clientId, selectedApplication.monthlyPayment) > 33">
               {{ getDebtRatio(selectedApplication.clientId, selectedApplication.monthlyPayment) }}%
             </div>
           </div>
@@ -760,6 +816,22 @@
         </div>
 
         <div class="financial-indicators" *ngIf="hasAiFinancialData(selectedApplication); else noAiDataTpl">
+          <!-- Ajouter dans le bloc *ngIf="hasAiFinancialData(scoringTarget)" -->
+          <div class="indicator">
+            <div class="indicator__label">Score risque</div>
+
+            <div class="indicator__value" [class.high-risk]="getDisplayScore(selectedApplication) > 75"
+              [class.medium-risk]="getDisplayScore(selectedApplication) >= 35 && getDisplayScore(selectedApplication) <= 75"
+              [class.low-risk]="getDisplayScore(selectedApplication) < 35">
+
+              {{ getDisplayScore(selectedApplication) }}/100
+
+              <span class="info-badge" *ngIf="isIaScore(selectedApplication)">
+                🤖 IA
+              </span>
+
+            </div>
+          </div>
           <div class="indicator">
             <div class="indicator__label">Ancienneté compte</div>
             <div class="indicator__value">
@@ -827,12 +899,14 @@
             <div class="document-item__icon">📄</div>
             <div class="document-item__info">
               <div class="document-item__name">{{ doc.name }}</div>
-              <div class="document-item__meta">{{ formatSize(doc.size) }} — {{ doc.uploadedAt | date:'dd/MM/yyyy' }}</div>
+              <div class="document-item__meta">{{ formatSize(doc.size) }} — {{ doc.uploadedAt | date:'dd/MM/yyyy' }}
+              </div>
             </div>
             <span class="doc-status" [class]="getDocStatusClass(doc.status)">{{ getDocStatusLabel(doc.status) }}</span>
-            <button class="action-btn" *ngIf="doc.status === 'EN_ATTENTE'"
-                    (click)="validateDocument(doc._id)" title="Valider le document">✅</button>
-            <a class="action-btn" [href]="creditService.getDocumentUrl(doc.url)" target="_blank" title="Télécharger">📥</a>
+            <button class="action-btn" *ngIf="doc.status === 'EN_ATTENTE'" (click)="validateDocument(doc._id)"
+              title="Valider le document">✅</button>
+            <a class="action-btn" [href]="creditService.getDocumentUrl(doc.url)" target="_blank"
+              title="Télécharger">📥</a>
           </div>
         </div>
         <p class="empty-state-small" *ngIf="selectedApplication.documents.length === 0">Aucun document déposé</p>
@@ -869,20 +943,18 @@
           </div>
         </div>
         <div class="comment-input" *ngIf="!isFinalStatus(selectedApplication.status)">
-          <input type="text" [(ngModel)]="newCommentText"
-                 placeholder="Ajouter un commentaire..." class="search-input"
-                 (keyup.enter)="submitComment()"/>
+          <input type="text" [(ngModel)]="newCommentText" placeholder="Ajouter un commentaire..." class="search-input"
+            (keyup.enter)="submitComment()" />
           <button class="btn btn--primary" (click)="submitComment()"
-                  [disabled]="!newCommentText.trim()">Envoyer</button>
+            [disabled]="!newCommentText.trim()">Envoyer</button>
         </div>
       </div>
     </div>
 
     <div class="modal__footer">
       <button class="btn btn--ghost" (click)="closeApplication()">Fermer</button>
-      <button class="btn btn--primary"
-              *ngIf="canChangeStatus(selectedApplication)"
-              (click)="openStatusModal(selectedApplication)">
+      <button class="btn btn--primary" *ngIf="canChangeStatus(selectedApplication)"
+        (click)="openStatusModal(selectedApplication)">
         {{ selectedApplication.status === 'EN_ATTENTE' ? '▶️ Prendre en charge' : '⚖️ Décider' }}
       </button>
     </div>
@@ -905,26 +977,24 @@
       <div class="dossier-recap">
         <strong>{{ statusUpdateTarget.clientName }}</strong>
         — {{ statusUpdateTarget.amount | number:'1.0-0' }} DT / {{ statusUpdateTarget.duration }} mois
-        <br/>
+        <br />
         <span class="status-badge" [class]="getStatusClass(statusUpdateTarget.status)">
           {{ getStatusLabel(statusUpdateTarget.status) }}
         </span>
-        <span class="risk-level" [class]="getRiskLevelClass(getRiskScore(statusUpdateTarget))">
-          Score risque : {{ getRiskScore(statusUpdateTarget) }}/100
+        <span class="risk-level" [class]="getRiskLevelClass(getDisplayScore(statusUpdateTarget))">
+          Score risque : {{ getDisplayScore(statusUpdateTarget) }}/100
         </span>
       </div>
 
       <div class="form-group">
         <label>Nouveau statut <span class="required">*</span></label>
         <div class="status-choices">
-          <button *ngFor="let s of getAllowedStatuses(statusUpdateTarget.status)"
-                  class="status-choice"
-                  [class.selected]="pendingStatus === s"
-                  [class]="'status-choice ' + getStatusClass(s)"
-                  (click)="pendingStatus = s">
+          <button *ngFor="let s of getAllowedStatuses(statusUpdateTarget.status)" class="status-choice"
+            [class.selected]="pendingStatus === s" [class]="'status-choice ' + getStatusClass(s)"
+            (click)="pendingStatus = s">
             {{ s === 'EN_ANALYSE' ? '▶️ Prendre en charge' :
-               s === 'ACCEPTE'   ? '✅ Accepter' :
-               s === 'REFUSE'    ? '❌ Refuser' : getStatusLabel(s) }}
+            s === 'ACCEPTE' ? '✅ Accepter' :
+            s === 'REFUSE' ? '❌ Refuser' : getStatusLabel(s) }}
           </button>
         </div>
       </div>
@@ -934,8 +1004,7 @@
           Commentaire
           <span *ngIf="pendingStatus === 'REFUSE'" class="required">(obligatoire pour un refus)</span>
         </label>
-        <textarea [(ngModel)]="statusComment" class="form-control" rows="3"
-          [placeholder]="pendingStatus === 'REFUSE'
+        <textarea [(ngModel)]="statusComment" class="form-control" rows="3" [placeholder]="pendingStatus === 'REFUSE'
             ? 'Motif du refus obligatoire...'
             : 'Commentaire sur la décision...'"></textarea>
       </div>
@@ -943,7 +1012,7 @@
     <div class="modal__footer">
       <button class="btn btn--ghost" (click)="closeStatusModal()">Annuler</button>
       <button class="btn btn--primary" (click)="confirmStatusUpdate()"
-              [disabled]="loading || (pendingStatus === 'REFUSE' && !statusComment.trim())">
+        [disabled]="loading || (pendingStatus === 'REFUSE' && !statusComment.trim())">
         <span *ngIf="!loading">✓ Confirmer</span>
         <span *ngIf="loading">Mise à jour...</span>
       </button>

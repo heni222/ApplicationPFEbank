@@ -381,7 +381,8 @@ class CreditService {
         'debit_card_spending',
         'credit_card_utilization',
         'total_outstanding_debt',
-        'loan_application_amount'
+        'loan_application_amount',
+        'ia_risk_score'  
       ];
       const clean = {};
       for (const key of allowed) {

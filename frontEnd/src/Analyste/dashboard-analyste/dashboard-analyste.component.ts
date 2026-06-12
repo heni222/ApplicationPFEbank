@@ -175,6 +175,7 @@ export class DashboardAnalysteComponent implements OnInit, OnDestroy {
 
     this.creditService.applications$.pipe(takeUntil(this.destroy$)).subscribe(a => {
       // ✅ Normaliser clientId une seule fois dès réception
+      console.log('APPLICATIONS API', a);
       this.applications = a.map(app => ({
         ...app,
         clientId: typeof app.clientId === 'object'
@@ -208,7 +209,7 @@ export class DashboardAnalysteComponent implements OnInit, OnDestroy {
   // ──────────────────────────────────────────
 
   computeRiskKpis(): void {
-    const scores = this.applications.map(a => this.getRiskScore(a));
+    const scores = this.applications.map(a => this.getDisplayScore(a));
     const total = scores.length;
 
     if (total === 0) {
@@ -249,7 +250,7 @@ export class DashboardAnalysteComponent implements OnInit, OnDestroy {
     // Dossier prioritaire = haut score EN_ATTENTE ou EN_ANALYSE
     const active = this.applications
       .filter(a => a.status === 'EN_ATTENTE' || a.status === 'EN_ANALYSE')
-      .sort((a, b) => this.getRiskScore(b) - this.getRiskScore(a));
+      .sort((a, b) => this.getDisplayScore(b) - this.getDisplayScore(a));
     this.topPriorityApp = active[0] ?? null;
   }
 
@@ -399,11 +400,15 @@ export class DashboardAnalysteComponent implements OnInit, OnDestroy {
       result = result.filter(a => a.amount > 50000);
 
     if (this.riskFilter === 'HIGH')
-      result = result.filter(a => this.getRiskScore(a) > 75);
+      result = result.filter(a => this.getDisplayScore(a) > 75);
     else if (this.riskFilter === 'MEDIUM')
-      result = result.filter(a => this.getRiskScore(a) >= 35 && this.getRiskScore(a) <= 75);
+      result = result.filter(a => {
+        const s = this.getDisplayScore(a);
+        return s >= 35 && s <= 75;
+      });
     else if (this.riskFilter === 'LOW')
-      result = result.filter(a => this.getRiskScore(a) < 35);
+      result = result.filter(a => this.getDisplayScore(a) < 35);
+
 
     this.filteredApplications = result;
   }
@@ -433,12 +438,12 @@ export class DashboardAnalysteComponent implements OnInit, OnDestroy {
     this.scoringTarget = app;
     this.cdr.markForCheck();
   }
-
   getScoringList(): CreditApplication[] {
     return this.applications
       .filter(a => !this.isFinalStatus(a.status))
-      .sort((a, b) => this.getRiskScore(b) - this.getRiskScore(a));
+      .sort((a, b) => this.getDisplayScore(b) - this.getDisplayScore(a));
   }
+
 
   // ──────────────────────────────────────────
   //  Mise à jour statut (Analyste uniquement)
@@ -460,11 +465,33 @@ export class DashboardAnalysteComponent implements OnInit, OnDestroy {
     this.showStatusModal = false;
     this.statusUpdateTarget = null;
   }
+  getDisplayScore(app: CreditApplication): number {
 
+    const iaScore = (app as any)?.aiFinancialData?.ia_risk_score;
+
+    switch (app.status) {
+
+      case 'EN_ATTENTE':
+        return this.getRiskScore(app);
+
+      case 'EN_ANALYSE':
+      case 'ACCEPTE':
+      case 'REFUSE':
+        return iaScore ?? this.getRiskScore(app);
+
+      default:
+        return this.getRiskScore(app);
+    }
+  }
+  // APRÈS
+  getAiRiskScore(app: CreditApplication | null): number | null {
+    if (!app) return null;
+    const score = (app as any)?.aiFinancialData?.ia_risk_score;
+    return score != null ? score : null;
+  }
   confirmStatusUpdate(): void {
     if (!this.statusUpdateTarget) return;
 
-    // Cas : Prendre en charge
     if (
       this.statusUpdateTarget.status === 'EN_ATTENTE' &&
       this.pendingStatus === 'EN_ANALYSE'
@@ -491,7 +518,6 @@ export class DashboardAnalysteComponent implements OnInit, OnDestroy {
           documents: this.statusUpdateTarget.documents,
           aiFinancialData: (this.statusUpdateTarget as any).aiFinancialData
         },
-
         client: {
           fullName: client.fullName,
           cin: client.cin,
@@ -509,51 +535,128 @@ export class DashboardAnalysteComponent implements OnInit, OnDestroy {
           existingLoanPayments: client.existingLoanPayments ?? 0
         }
       };
-      this.http.post<any>(
+
+      this.http.post<{ risk_score: number }>(
         'http://localhost:5000/predict',
         payload
       ).subscribe({
-        next: (result) => {
-
-          const riskScore = result.risk_score;
-
+        next: (predictResult) => {                        // ← renommé predictResult
+          const riskScore = predictResult.risk_score;     // ← pas d'ambiguïté de type
           console.log('Score IA =', riskScore);
 
-          this.creditService.updateStatus(
-            this.statusUpdateTarget!._id,
-            'EN_ANALYSE',
-            this.currentUser.fullName || 'Analyste',
-            `Score IA : ${riskScore}`
-          ).subscribe({
-            next: () => {
-              this.loading = false;
-              this.showMessage(
-                `Dossier pris en charge - Score IA : ${riskScore}`,
-                'success'
-              );
-              this.closeStatusModal();
-            },
-            error: err => {
-              this.loading = false;
-              this.showMessage(err.message, 'error');
-            }
-          });
+          const existingAiData = (this.statusUpdateTarget as any)?.aiFinancialData ?? {};
+          const updatedAiData = { ...existingAiData, ia_risk_score: riskScore };
 
+          const doUpdateStatus = () => {
+            this.creditService.updateStatus(
+              this.statusUpdateTarget!._id,
+              'EN_ANALYSE',
+              this.currentUser.fullName || 'Analyste',
+              `Score IA : ${riskScore}`
+            ).subscribe({
+              next: () => {
+                this.loading = false;
+                this.showMessage(
+                  `Dossier pris en charge - Score risque IA : ${riskScore}`,
+                  'success'
+                );
+                this.closeStatusModal();
+              },
+              error: err => {
+                this.loading = false;
+                this.showMessage(err.message, 'error');
+              }
+            });
+          };
+
+          this.creditService.saveFinancialData(
+            this.statusUpdateTarget!._id,
+            updatedAiData
+          ).subscribe({
+            next: () => doUpdateStatus(),
+            error: () => doUpdateStatus()   // échec sauvegarde → on continue quand même
+          });
         },
         error: err => {
           this.loading = false;
-          this.showMessage(
-            'Erreur communication avec le moteur IA',
-            'error'
-          );
+          this.showMessage('Erreur communication avec le moteur IA', 'error');
           console.error(err);
         }
       });
 
       return;
     }
+    // ── Cas 2 : Accepter (EN_ANALYSE → ACCEPTE) ──
+    if (
+      this.statusUpdateTarget.status === 'EN_ANALYSE' &&
+      this.pendingStatus === 'ACCEPTE'
+    ) {
+      this.loading = true;
 
-    // Code existant pour les autres statuts
+      const riskScore = this.getAiRiskScore(this.statusUpdateTarget)
+        ?? this.getDisplayScore(this.statusUpdateTarget);
+
+      const comment = this.statusComment.trim()
+        || `Dossier accepté — Score risque : ${riskScore}/100`;
+
+      this.creditService.updateStatus(
+        this.statusUpdateTarget._id,
+        'ACCEPTE',
+        this.currentUser.fullName || 'Analyste',
+        comment
+      ).subscribe({
+        next: () => {
+          this.loading = false;
+          this.showMessage(
+            `✅ Dossier accepté — ${this.statusUpdateTarget!.clientName}`,
+            'success'
+          );
+          this.closeStatusModal();
+        },
+        error: err => {
+          this.loading = false;
+          this.showMessage(err.message, 'error');
+        }
+      });
+
+      return;
+    }
+    // ── Cas 3 : Refuser (EN_ATTENTE | EN_ANALYSE → REFUSE) ──
+    if (this.pendingStatus === 'REFUSE') {
+      if (!this.statusComment.trim()) {
+        this.showMessage('Le motif de refus est obligatoire', 'error');
+        return;
+      }
+
+      this.loading = true;
+
+      const riskScore = this.getAiRiskScore(this.statusUpdateTarget)
+        ?? this.getDisplayScore(this.statusUpdateTarget);
+
+      const comment = `${this.statusComment.trim()} — Score risque : ${riskScore}/100`;
+
+      this.creditService.updateStatus(
+        this.statusUpdateTarget._id,
+        'REFUSE',
+        this.currentUser.fullName || 'Analyste',
+        comment
+      ).subscribe({
+        next: () => {
+          this.loading = false;
+          this.showMessage(
+            `❌ Dossier refusé — ${this.statusUpdateTarget!.clientName}`,
+            'error'
+          );
+          this.closeStatusModal();
+        },
+        error: err => {
+          this.loading = false;
+          this.showMessage(err.message, 'error');
+        }
+      });
+
+      return;
+    }
   }
 
   getAllowedStatuses(current: CreditStatus): CreditStatus[] {
@@ -682,6 +785,14 @@ export class DashboardAnalysteComponent implements OnInit, OnDestroy {
     return this.creditService.getStatusLabel(s);
   }
 
+  getLocalScore(app: CreditApplication): number {
+    return this.getRiskScore(app);
+  }
+
+  isIaScore(app: CreditApplication): boolean {
+    return ['EN_ANALYSE', 'ACCEPTE', 'REFUSE'].includes(app.status)
+      && (app as any)?.aiFinancialData?.ia_risk_score != null;
+  }
   getStatusClass(s: string): string {
     return ({
       EN_ATTENTE: 'status--pending',
